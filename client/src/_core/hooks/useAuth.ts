@@ -1,98 +1,42 @@
-import { startLogin } from "@/const";
-import { trpc } from "@/lib/trpc";
-import { TRPCClientError } from "@trpc/client";
-import { useCallback, useEffect, useMemo } from "react";
+// client/src/const.ts
 
-type UseAuthOptions = {
-  redirectOnUnauthenticated?: boolean;
-  redirectPath?: string;
-};
-
-export function useAuth(options?: UseAuthOptions) {
-  // Login is started via startLogin() in the effect below, only when we actually
-  // navigate — never during render. startLogin() mints a one-time nonce + writes
-  // the state cookie, so calling it per render would overwrite the cookie and
-  // desync it from an in-flight login's `state`.
-  const { redirectOnUnauthenticated = false, redirectPath } = options ?? {};
-  const utils = trpc.useUtils();
-
-  const meQuery = trpc.auth.me.useQuery(undefined, {
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
-
-  const logoutMutation = trpc.auth.logout.useMutation({
-    onSuccess: () => {
-      utils.auth.me.setData(undefined, null);
-    },
-  });
-
-  const logout = useCallback(async () => {
+// Helper function สำหรับสร้าง URL อย่างปลอดภัย ไม่ให้แอปพลิเคชัน crash หากไม่ได้กำหนดค่า Environment Variable
+function getSafeOAuthUrl(): string {
+  const envUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
+  if (envUrl) {
     try {
-      await logoutMutation.mutateAsync();
-    } catch (error: unknown) {
-      if (
-        error instanceof TRPCClientError &&
-        error.data?.code === "UNAUTHORIZED"
-      ) {
-        return;
-      }
-      throw error;
-    } finally {
-      // Clear the Preview auto-login token mirrored into sessionStorage, so
-      // header-based sessions (Safari ITP / WebView) are logged out too. The
-      // backend cookie is cleared by the logout mutation.
-      try {
-        sessionStorage.removeItem("manus-cookie");
-      } catch {}
-      utils.auth.me.setData(undefined, null);
-      await utils.auth.me.invalidate();
+      return new URL(envUrl).toString();
+    } catch {
+      // หากค่าใน env ไม่ใช่ URL ที่ถูกต้อง ให้ข้ามไปใช้ fallback
     }
-  }, [logoutMutation, utils]);
+  }
+  
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+  
+  return "https://fonzow.onrender.com";
+}
 
-  const state = useMemo(() => {
-    localStorage.setItem(
-      "manus-runtime-user-info",
-      JSON.stringify(meQuery.data)
-    );
-    return {
-      user: meQuery.data ?? null,
-      loading: meQuery.isLoading || logoutMutation.isPending,
-      error: meQuery.error ?? logoutMutation.error ?? null,
-      isAuthenticated: Boolean(meQuery.data),
-    };
-  }, [
-    meQuery.data,
-    meQuery.error,
-    meQuery.isLoading,
-    logoutMutation.error,
-    logoutMutation.isPending,
-  ]);
+export const OAUTH_PORTAL_URL = getSafeOAuthUrl();
 
-  useEffect(() => {
-    if (!redirectOnUnauthenticated) return;
-    if (meQuery.isLoading || logoutMutation.isPending) return;
-    if (state.user) return;
-    if (typeof window === "undefined") return;
-    if (redirectPath && window.location.pathname === redirectPath) return;
+export function startLogin() {
+  if (typeof window === "undefined") return;
 
-    // Navigate at this moment only. startLogin() mints the nonce + cookie itself.
-    if (redirectPath) {
-      window.location.href = redirectPath;
-    } else {
-      startLogin();
+  try {
+    const rawUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || window.location.origin;
+    let targetUrl: URL;
+
+    try {
+      targetUrl = new URL(rawUrl);
+    } catch {
+      // กรณี URL ที่ส่งมาฟอร์แมตผิด ให้ Fallback ไปที่หน้าแรกของเว็บตัวเอง
+      targetUrl = new URL(window.location.origin);
     }
-  }, [
-    redirectOnUnauthenticated,
-    redirectPath,
-    logoutMutation.isPending,
-    meQuery.isLoading,
-    state.user,
-  ]);
 
-  return {
-    ...state,
-    refresh: () => meQuery.refetch(),
-    logout,
-  };
+    window.location.href = targetUrl.toString();
+  } catch (error) {
+    console.error("Failed to execute startLogin:", error);
+    window.location.href = "/";
+  }
 }
