@@ -1,31 +1,42 @@
-import { OAUTH_STATE_COOKIE, encodeOAuthState } from "@shared/const";
+// client/src/const.ts
 
-export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+// Helper function สำหรับสร้าง URL อย่างปลอดภัย ไม่ให้แอปพลิเคชัน crash หากไม่ได้กำหนดค่า Environment Variable
+function getSafeOAuthUrl(): string {
+  const envUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
+  if (envUrl) {
+    try {
+      return new URL(envUrl).toString();
+    } catch {
+      // หากค่าใน env ไม่ใช่ URL ที่ถูกต้อง ให้ข้ามไปใช้ fallback
+    }
+  }
+  
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+  
+  return "https://fonzow.onrender.com";
+}
 
-// Start the Manus OAuth login. Call this from an event handler or effect at the
-// moment you want to navigate, e.g. `onClick={() => startLogin()}`.
-//
-// It has SIDE EFFECTS — it mints a one-time nonce, writes the __Host- state
-// cookie, and navigates immediately — so the cookie nonce always matches the
-// `state` it sends. Do NOT call it during render (no `href={startLogin()}` /
-// `loginUrl={...}`): each call overwrites the cookie, so a stray render-phase
-// call would desync it from an in-flight login and the callback would reject it
-// with "invalid oauth state". It returns void by design, so there is no URL to
-// stash across renders.
-export const startLogin = () => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const appId = import.meta.env.VITE_APP_ID;
-  const redirectUri = `${window.location.origin}/api/oauth/callback`;
+export const OAUTH_PORTAL_URL = getSafeOAuthUrl();
 
-  const nonce = crypto.randomUUID();
-  document.cookie = `${OAUTH_STATE_COOKIE}=${nonce}; Path=/; Max-Age=600; SameSite=None; Secure`;
-  const state = encodeOAuthState({ redirectUri, nonce });
+export function startLogin() {
+  if (typeof window === "undefined") return;
 
-  const url = new URL(`${oauthPortalUrl}/app-auth`);
-  url.searchParams.set("appId", appId);
-  url.searchParams.set("redirectUri", redirectUri);
-  url.searchParams.set("state", state);
-  url.searchParams.set("type", "signIn");
+  try {
+    const rawUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || window.location.origin;
+    let targetUrl: URL;
 
-  window.location.href = url.toString();
-};
+    try {
+      targetUrl = new URL(rawUrl);
+    } catch {
+      // กรณี URL ที่ส่งมาฟอร์แมตผิด ให้ Fallback ไปที่หน้าแรกของเว็บตัวเอง
+      targetUrl = new URL(window.location.origin);
+    }
+
+    window.location.href = targetUrl.toString();
+  } catch (error) {
+    console.error("Failed to execute startLogin:", error);
+    window.location.href = "/";
+  }
+}
