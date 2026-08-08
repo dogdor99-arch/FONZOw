@@ -1,0 +1,1 @@
+import React from "react"; export const SiteFooter: React.FC = () => { return ( <footer className="border-t py-6 text-center text-sm text-muted-foreground"> <div className="container"><p>&copy; {new Date().getFullYear()} Fonzo Guitar. All rights reserved.</p></div> </footer> ); }; export default SiteFooter;

@@ -1,0 +1,389 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Noto Sans Thai", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", "Noto Serif Thai", Georgia, serif;
+  --font-display: "Cormorant Garamond", "Noto Serif Thai", Georgia, serif;
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-ink: var(--ink);
+  --color-cream: var(--cream);
+  --color-sand: var(--sand);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  /* Fonzo luxury palette: deep burgundy brand mark, warm gold accents, ivory paper */
+  --radius: 0.25rem;
+
+  --brand: oklch(0.44 0.16 24);
+  --brand-foreground: oklch(0.98 0.008 85);
+  --gold: oklch(0.72 0.09 78);
+  --gold-soft: oklch(0.88 0.045 85);
+  --ink: oklch(0.19 0.012 55);
+  --cream: oklch(0.968 0.008 85);
+  --sand: oklch(0.925 0.014 82);
+
+  --background: oklch(0.978 0.006 85);
+  --foreground: oklch(0.22 0.014 55);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.014 55);
+  --popover: oklch(0.995 0.003 85);
+  --popover-foreground: oklch(0.22 0.014 55);
+  --primary: oklch(0.44 0.16 24);
+  --primary-foreground: oklch(0.98 0.008 85);
+  --secondary: oklch(0.94 0.012 82);
+  --secondary-foreground: oklch(0.3 0.016 55);
+  --muted: oklch(0.945 0.01 84);
+  --muted-foreground: oklch(0.52 0.018 62);
+  --accent: oklch(0.9 0.035 84);
+  --accent-foreground: oklch(0.26 0.02 50);
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.885 0.012 82);
+  --input: oklch(0.885 0.012 82);
+  --ring: oklch(0.72 0.09 78);
+  --chart-1: oklch(0.44 0.16 24);
+  --chart-2: oklch(0.72 0.09 78);
+  --chart-3: oklch(0.55 0.06 60);
+  --chart-4: oklch(0.35 0.03 50);
+  --chart-5: oklch(0.82 0.05 84);
+  --sidebar: oklch(0.96 0.008 85);
+  --sidebar-foreground: oklch(0.22 0.014 55);
+  --sidebar-primary: oklch(0.44 0.16 24);
+  --sidebar-primary-foreground: oklch(0.98 0.008 85);
+  --sidebar-accent: oklch(0.9 0.035 84);
+  --sidebar-accent-foreground: oklch(0.26 0.02 50);
+  --sidebar-border: oklch(0.885 0.012 82);
+  --sidebar-ring: oklch(0.72 0.09 78);
+}
+
+.dark {
+  --brand: oklch(0.62 0.15 26);
+  --brand-foreground: oklch(0.98 0.008 85);
+  --gold: oklch(0.78 0.1 80);
+  --gold-soft: oklch(0.6 0.06 80);
+  --ink: oklch(0.12 0.008 55);
+  --cream: oklch(0.2 0.01 60);
+  --sand: oklch(0.26 0.012 60);
+
+  --background: oklch(0.16 0.009 55);
+  --foreground: oklch(0.93 0.008 85);
+  --card: oklch(0.21 0.011 55);
+  --card-foreground: oklch(0.93 0.008 85);
+  --popover: oklch(0.21 0.011 55);
+  --popover-foreground: oklch(0.93 0.008 85);
+  --primary: oklch(0.62 0.15 26);
+  --primary-foreground: oklch(0.98 0.008 85);
+  --secondary: oklch(0.25 0.012 58);
+  --secondary-foreground: oklch(0.9 0.008 85);
+  --muted: oklch(0.26 0.012 58);
+  --muted-foreground: oklch(0.7 0.014 70);
+  --accent: oklch(0.3 0.02 70);
+  --accent-foreground: oklch(0.95 0.008 85);
+  --destructive: oklch(0.65 0.19 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.78 0.1 80);
+  --chart-1: oklch(0.62 0.15 26);
+  --chart-2: oklch(0.78 0.1 80);
+  --chart-3: oklch(0.6 0.06 60);
+  --chart-4: oklch(0.45 0.04 50);
+  --chart-5: oklch(0.85 0.05 84);
+  --sidebar: oklch(0.19 0.01 55);
+  --sidebar-foreground: oklch(0.93 0.008 85);
+  --sidebar-primary: oklch(0.62 0.15 26);
+  --sidebar-primary-foreground: oklch(0.98 0.008 85);
+  --sidebar-accent: oklch(0.3 0.02 70);
+  --sidebar-accent-foreground: oklch(0.95 0.008 85);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.78 0.1 80);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "kern" 1, "liga" 1;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: 0.005em;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+}
+
+@layer components {
+  /* ---- Fonzo design tokens & utilities ---- */
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .hairline {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      color-mix(in oklch, var(--gold) 65%, transparent),
+      transparent
+    );
+  }
+
+  .gold-rule {
+    width: 3rem;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  .paper {
+    background-color: var(--background);
+    background-image: radial-gradient(
+        circle at 18% 12%,
+        color-mix(in oklch, var(--gold) 9%, transparent),
+        transparent 42%
+      ),
+      radial-gradient(circle at 82% 78%, color-mix(in oklch, var(--brand) 6%, transparent), transparent 46%);
+  }
+
+  .surface-ink {
+    background-color: var(--ink);
+    color: var(--cream);
+  }
+
+  /* Deep editorial surface used for the hero and closing panels: near-black
+     with a whisper of brand warmth so photography sits inside it, not on it. */
+  .surface-deep {
+    background-color: var(--ink);
+    color: var(--cream);
+    background-image:
+      radial-gradient(ellipse 70% 55% at 78% 8%, color-mix(in oklch, var(--gold) 13%, transparent), transparent 70%),
+      radial-gradient(ellipse 60% 60% at 12% 92%, color-mix(in oklch, var(--brand) 22%, transparent), transparent 72%);
+  }
+
+  /* Hairline grid frame used to separate editorial blocks without heavy borders. */
+  .rule-top {
+    border-top: 1px solid color-mix(in oklch, var(--border) 88%, transparent);
+  }
+
+  /* Oversized section index numerals ("01", "02") for editorial rhythm. */
+  .section-index {
+    font-family: var(--font-display);
+    font-size: 0.8125rem;
+    letter-spacing: 0.22em;
+    color: color-mix(in oklch, var(--gold) 82%, var(--foreground));
+  }
+
+  /* Elevation reserved for cards that need to feel like objects on paper. */
+  .lift {
+    transition:
+      transform 320ms cubic-bezier(0.23, 1, 0.32, 1),
+      box-shadow 320ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 26px 60px -38px color-mix(in oklch, var(--ink) 55%, transparent);
+  }
+
+  /* Slow, subtle image reveal for hero photography. */
+  @media (prefers-reduced-motion: no-preference) {
+    .ken-burns {
+      animation: fonzo-ken-burns 22s ease-out forwards;
+    }
+  }
+  @keyframes fonzo-ken-burns {
+    from {
+      transform: scale(1.06);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  /* Marquee used for the thin "now at Fonzo" ticker. */
+  @media (prefers-reduced-motion: no-preference) {
+    .marquee-track {
+      animation: fonzo-marquee 42s linear infinite;
+    }
+    .marquee:hover .marquee-track {
+      animation-play-state: paused;
+    }
+  }
+  @keyframes fonzo-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .link-underline {
+    position: relative;
+  }
+  .link-underline::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    height: 1px;
+    width: 100%;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .link-underline:hover::after,
+  .link-underline[data-active="true"]::after {
+    transform: scaleX(1);
+  }
+
+  .press {
+    transition:
+      transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+      background-color 200ms cubic-bezier(0.23, 1, 0.32, 1),
+      color 200ms cubic-bezier(0.23, 1, 0.32, 1),
+      border-color 200ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .press:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .prose-fonzo :where(h2) {
+    font-family: var(--font-display);
+    font-size: 1.65rem;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    color: var(--foreground);
+  }
+  .prose-fonzo :where(h3, h4) {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--foreground);
+  }
+  .prose-fonzo :where(p) {
+    margin-bottom: 1rem;
+    line-height: 1.95;
+    color: var(--muted-foreground);
+  }
+  .prose-fonzo :where(strong) {
+    color: var(--foreground);
+    font-weight: 600;
+  }
+  .prose-fonzo :where(a) {
+    color: var(--brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .prose-fonzo :where(ul) {
+    list-style: disc;
+    padding-left: 1.35rem;
+    margin-bottom: 1rem;
+    color: var(--muted-foreground);
+  }
+  .prose-fonzo :where(img) {
+    margin: 1.5rem 0;
+    width: 100%;
+  }
+
+  /**
+   * Custom container utility that centers content and adds responsive padding.
+   *
+   * This overrides Tailwind's default container behavior to:
+   * - Auto-center content (mx-auto)
+   * - Add responsive horizontal padding
+   * - Set max-width for large screens
+   *
+   * Usage: <div className="container">...</div>
+   *
+   * For custom widths, use max-w-* utilities directly:
+   * <div className="max-w-6xl mx-auto px-4">...</div>
+   */
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem; /* 16px - mobile padding */
+    padding-right: 1rem;
+  }
+
+  .flex {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem; /* 24px - tablet padding */
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2rem; /* 32px - desktop padding */
+      padding-right: 2rem;
+      max-width: 1280px; /* Standard content width */
+    }
+  }
+}

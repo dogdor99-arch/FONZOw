@@ -1,0 +1,482 @@
+{
+ "G0051": {
+  "name": "FONZO V-34C SJ Full Body",
+  "shopee": "https://shopee.co.th/Fonzo-V-34C-SJ-Fullbody-i.602826372.54651450887",
+  "lazada": "https://www.lazada.co.th/products/fonzo-v-34c-sj-full-body-i4230989425-s16693259799.html",
+  "confidence": "high"
+ },
+ "G0052": {
+  "name": "FONZO V-34S SJ Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-34S-SJ-Full-Body-i.602826372.10682314091",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0065": {
+  "name": "FONZO V-34C SJ Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-34C-SJ-Cutaway-i.602826372.15335000555",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0060": {
+  "name": "FONZO V-34S SJ Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-34S-SJ-Cutaway-i.602826372.20708113553",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0058": {
+  "name": "FONZO V-34C GA Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-34C-GA-Full-Body-i.602826372.17540428785",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0055": {
+  "name": "FONZO V-34S GA Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-34S-GA-Full-Body-i.602826372.15839437981",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0057": {
+  "name": "FONZO V-34C GA Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-34C-GA-Cutaway-i.602826372.15870889560",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0053": {
+  "name": "FONZO V-34S GA Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-34S-GA-Cutaway-i.602826372.15235463885",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0096": {
+  "name": "FONZO V-301S SJ Full Body",
+  "shopee": "https://shopee.co.th/Fonzo-V-301S-SJ-Full-Body-i.602826372.24001949487",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0085": {
+  "name": "FONZO V-301S SJ Cutaway",
+  "shopee": "https://shopee.co.th/Fonzo-V-301S-SJ-Cutaway-i.602826372.25351949391",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0097": {
+  "name": "FONZO V-301S Dreadnought",
+  "shopee": "https://shopee.co.th/Fonzo-V-301S-Dreadnought-Full-Body-i.602826372.18486566281",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0038": {
+  "name": "FONZO V-33C Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-33C-Full-Body-i.602826372.15335465451",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0040": {
+  "name": "FONZO V-33S Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-33S-Full-Body-i.602826372.15035469999",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0041": {
+  "name": "FONZO V-33S Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-33S-Cutaway-Body-i.602826372.14935478744",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0112": {
+  "name": "FONZO V-31SSB SJ Cutaway",
+  "shopee": "https://shopee.co.th/Fonzo-V-31SSB-SJ-Cutaway-i.602826372.28815843135",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0113": {
+  "name": "FONZO V-31M SJ Cutaway",
+  "shopee": "https://shopee.co.th/Fonzo-V-31M-SJ-Cutaway-i.602826372.25287721070",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0036": {
+  "name": "FONZO V-32C Dreadnought Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-32C-Dreadnought-Full-Body-i.602826372.12269628766",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0046": {
+  "name": "FONZO V-32S Dreadnought Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-32S-Dreadnought-Full-Body-i.602826372.10782836582",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0035": {
+  "name": "FONZO V-32C Dreadnought Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-32C-Dreadnought-Cutaway-i.602826372.15137353874",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0037": {
+  "name": "FONZO V-32S Dreadnought Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-32S-Dreadnought-Cutaway-i.602826372.14737347767",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0028": {
+  "name": "FONZO V-32C OM",
+  "shopee": "https://shopee.co.th/FONZO-V-32C-Orchestra-Model-(OM)-i.602826372.15037367632",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0027": {
+  "name": "FONZO V-32S OM",
+  "shopee": "https://shopee.co.th/FONZO-V-32S-Orchestra-Model-(OM)-i.602826372.15037421620",
+  "lazada": "https://www.lazada.co.th/products/fonzo-v-32s-om-i5502122465-s23364006245.html",
+  "confidence": "high"
+ },
+ "G0034": {
+  "name": "FONZO V-31S Dreadnought Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-31S-Dreadnought-Full-Body-i.602826372.15037447376",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0031": {
+  "name": "FONZO V-31C Dreadnought Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-31C-Dreadnought-Cutaway-i.602826372.12569683977",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0033": {
+  "name": "FONZO V-31S Dreadnought Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-31S-Dreadnought-Cutaway-i.602826372.14737461445",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0025": {
+  "name": "FONZO V-31C OM",
+  "shopee": "https://shopee.co.th/FONZO-V-31C-Orchestra-Model-(OM)-i.602826372.8698002991",
+  "lazada": "https://www.lazada.co.th/products/fonzo-v-31c-om-i4230735728-s17363782766.html",
+  "confidence": "high"
+ },
+ "G0026": {
+  "name": "FONZO V-31S OM",
+  "shopee": "https://shopee.co.th/FONZO-V-31S-Orchestra-Model-(OM)-i.602826372.15637473892",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0114": {
+  "name": "FONZO V-23SMP SJ Cutaway",
+  "shopee": "https://shopee.co.th/Fonzo-V-23S-Maple-SJ-Cutaway-i.602826372.24337725110",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0043": {
+  "name": "FONZO V-23C Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-23C-Full-Body-i.602826372.11082330576",
+  "lazada": "https://www.lazada.co.th/products/fonzo-v-23c-full-body-i3168722774-s11860484209.html",
+  "confidence": "high"
+ },
+ "G0044": {
+  "name": "FONZO V-23S Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-23S-Full-Body-i.602826372.15935482247",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0042": {
+  "name": "FONZO V-23C Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-23C-Cutaway-Body-i.602826372.15035485323",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0045": {
+  "name": "FONZO V-23S Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-23S-Cutaway-Body-i.602826372.15435487496",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0072": {
+  "name": "FONZO V-201C Dreadnought Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-201C-Dreadnought-Full-Body-i.602826372.21837245670",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0061": {
+  "name": "FONZO V-201S Dreadnought Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-201S-Dreadnought-Full-Body-i.602826372.20125605743",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0069": {
+  "name": "FONZO V-201C Dreadnought Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-201C-Dreadnought-Cutaway-i.602826372.17882750104",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0091": {
+  "name": "FONZO V-201S Dreadnought Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-201S-Dreadnought-Cutaway-i.602826372.22476129293",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0086": {
+  "name": "FONZO V-201C OM Deep Body Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-201C-OM-Deep-Body-Full-Body-i.602826372.18791121180",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0070": {
+  "name": "FONZO V-201S OM Deep Body Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-201S-OM-Deep-Body-Full-Body-i.602826372.18234847172",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0071": {
+  "name": "FONZO V-201C OM Deep Body Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-201C-OM-Deep-Body-Cutaway-i.602826372.21934845595",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0087": {
+  "name": "FONZO V-201S OM Deep Body Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-201S-OM-Deep-Body-Cutaway-i.602826372.20534848028",
+  "lazada": "https://www.lazada.co.th/products/fonzo-v-201s-om-deep-body-cutaway-i4791051263-s19783600027.html",
+  "confidence": "high"
+ },
+ "G0066": {
+  "name": "FONZO V-201S Mini Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-201S-Mini-Full-Body-i.602826372.20833675499",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0068": {
+  "name": "FONZO V-201C Mini Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-201C-Mini-Cutaway-i.602826372.20933757417",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0067": {
+  "name": "FONZO V-201S Mini Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-201S-Mini-Cutaway-i.602826372.18033697335",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0117": {
+  "name": "FONZO V-220SN SJ Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-220SN-SJ-Cutaway-i.602826372.27725798916",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0115": {
+  "name": "FONZO V-220SB SJ Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-220SB-SJ-Cutaway-i.602826372.28375798841",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0116": {
+  "name": "FONZO V-220SP SJ Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-220SP-SJ-Cutaway-i.602826372.26775794497",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0118": {
+  "name": "FONZO V-220M SJ Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-220M-SJ-Cutaway-i.602826372.28125796511",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0093": {
+  "name": "FONZO V-200C Dreadnought Cutaway",
+  "shopee": "https://shopee.co.th/Fonzo-V-200C-Dreadnought-Cutaway-i.602826372.22486204037",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0098": {
+  "name": "FONZO V-200S Dreadnought Cutaway",
+  "shopee": "https://shopee.co.th/Fonzo-V-200S-Dreadnought-Cutaway-i.602826372.23261632050",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0095": {
+  "name": "FONZO V-200C SJ Full Body",
+  "shopee": "https://shopee.co.th/Fonzo-V-200C-SJ-Full-Body-i.602826372.24700750150",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0094": {
+  "name": "FONZO V-200S SJ Full Body",
+  "shopee": "https://shopee.co.th/Fonzo-V-200S-SJ-Full-Body-i.602826372.25150750407",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0099": {
+  "name": "FONZO V-200C SJ Cutaway",
+  "shopee": "https://shopee.co.th/Fonzo-V-200C-SJ-Cutaway-i.602826372.19795503769",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0100": {
+  "name": "FONZO V-200S SJ Cutaway",
+  "shopee": "https://shopee.co.th/Fonzo-V-200S-SJ-Cutaway-i.602826372.22187132187",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0029": {
+  "name": "FONZO V-22C Dreadnought",
+  "shopee": "https://shopee.co.th/FONZO-V-22C-Dreadnought-Full-Body-i.602826372.15337581714",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0030": {
+  "name": "FONZO V-22S Dreadnought Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-22S-Dreadnought-Cutaway-i.602826372.12869747905",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0023": {
+  "name": "FONZO V-22C Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-22C-Full-Body-i.602826372.14237609282",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0021": {
+  "name": "FONZO V-22S Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-22S-Full-Body-i.602826372.10782923871",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0119": {
+  "name": "FONZO V-21SG GA Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-21SG-GA-Cutaway-i.602826372.14137681250",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0120": {
+  "name": "FONZO V-21SG Mini Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-21SG-Mini-Full-Body-i.602826372.29826459790",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0101": {
+  "name": "FONZO V-21SB OM",
+  "shopee": "https://shopee.co.th/FONZO-V-21SB-OM-Full-Body-i.602826372.25006677120",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0102": {
+  "name": "FONZO V-21SB Mini Cutaway",
+  "shopee": "https://shopee.co.th/FONZO-V-21SB-Mini-Cutaway-i.602826372.25056673205",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0019": {
+  "name": "FONZO V-21C Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-21C-Full-Body-i.602826372.14537676229",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0001": {
+  "name": "FONZO EJ-01C",
+  "shopee": "https://shopee.co.th/Fonzo-Classic-EJ-01C-i.602826372.23082167032",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0002": {
+  "name": "FONZO EJ-01S",
+  "shopee": "https://shopee.co.th/Fonzo-Classic-EJ-01S-i.602826372.22982168595",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0003": {
+  "name": "FONZO EJ-11C",
+  "shopee": "https://shopee.co.th/FONZO-EJ-11C-(FONZO-EJ-11C)-i.602826372.10983453840",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0004": {
+  "name": "FONZO EJ-11S",
+  "shopee": "https://shopee.co.th/FONZO-EJ-11S-(FONZO-EJ-11S)-i.602826372.10683454744",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0005": {
+  "name": "FONZO EJ-12C",
+  "shopee": "https://shopee.co.th/FONZO-EJ-12C-(FONZO-EJ-12C)-i.602826372.10083466309",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0006": {
+  "name": "FONOZ EJ-12S",
+  "shopee": "https://shopee.co.th/FONZO-EJ-12S-(FONZO-EJ-12S)-i.602826372.13170716459",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0007": {
+  "name": "FONZO EJ-13C",
+  "shopee": "https://shopee.co.th/FONZO-EJ-13C-(FONZO-EJ-13C)-i.602826372.10886188721",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0008": {
+  "name": "FONZO EJ-13S",
+  "shopee": "https://shopee.co.th/FONZO-EJ-13S-(FONZO-EJ-13S)-i.602826372.14349569472",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0009": {
+  "name": "FONZO EJ-14C",
+  "shopee": "https://shopee.co.th/FONZO-EJ-14C-(Made-in-Spain)-i.602826372.17557350621",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0010": {
+  "name": "FONZO EJ-14S",
+  "shopee": "https://shopee.co.th/FONZO-EJ-14S-(Made-in-Spain)-i.602826372.16057353126",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0011": {
+  "name": "FONZO EJ-15C",
+  "shopee": "https://shopee.co.th/FONZO-EJ-15C-(Made-in-Spain)-i.602826372.17557354020",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0012": {
+  "name": "FONZO EJ-15S",
+  "shopee": "https://shopee.co.th/FONZO-EJ-15S-(Made-in-Spain)-i.602826372.16557355939",
+  "lazada": null,
+  "confidence": "high"
+ },
+ "G0059": {
+  "name": "FONZO V-34C Dreadnought Full Body",
+  "shopee": "https://shopee.co.th/Fonzo-V-34C-Dreadnought-Full-Body-i.602826372.20576509099",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "G0032": {
+  "name": "FONZO V-31C Dreadnought Full Body",
+  "shopee": "https://shopee.co.th/FONZO-V-31C-Dreadnought-Full-Body-i.602826372.14237434498",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "A0005": {
+  "name": "Savarez 540CR New Crystal Normal Tension",
+  "shopee": "https://shopee.co.th/Savarez-540CR-New-Crystal-Normal-Tension-i.602826372.17842688001",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "A0008": {
+  "name": "Savarez 510ARP Alliance Cantiga Premium Normal Tension",
+  "shopee": "https://shopee.co.th/Savarez-510ARP-Alliance-Cantiga-Premium-Normal-Tension-i.602826372.16442693228",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "A0024": {
+  "name": "Guitar Stand",
+  "shopee": "https://shopee.co.th/Guitar-Stand-%E0%B8%82%E0%B8%B2%E0%B8%95%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B8%81%E0%B8%B5%E0%B8%95%E0%B8%B2%E0%B8%A3%E0%B9%8C-i.602826372.13886791763",
+  "lazada": null,
+  "confidence": "medium"
+ },
+ "A0034": {
+  "name": "Premium Pickguard (Flower)",
+  "shopee": "https://shopee.co.th/Fonzo-Removable-Pickguard-(Made-in-USA)-i.602826372.15279139356",
+  "lazada": null,
+  "confidence": "medium"
+ }
+}

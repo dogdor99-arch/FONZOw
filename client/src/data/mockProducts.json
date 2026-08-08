@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "name": "Guitar",
+    "image": "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800"
+  },
+  {
+    "id": 2,
+    "name": "Bass",
+    "image": "https://images.unsplash.com/photo-1567033084229-02b8ebe1b8a7?w=800"
+  },
+  {
+    "id": 3,
+    "name": "Drums",
+    "image": "https://images.unsplash.com/photo-1567033084229-02b8ebe1b8a7?w=800"
+  }
+]
