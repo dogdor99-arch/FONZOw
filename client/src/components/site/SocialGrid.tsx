@@ -19,8 +19,18 @@ export function SocialGrid({
 }) {
   const { t } = useLocale();
 
-  // โหลดสคริปต์ Juicer.io เข้ามาทำงานใน React
   useEffect(() => {
+    // 1. โหลด CSS ของ Juicer
+    const cssId = "juicer-css";
+    if (!document.getElementById(cssId)) {
+      const link = document.createElement("link");
+      link.id = cssId;
+      link.rel = "stylesheet";
+      link.href = "https://www.juicer.io/embed/fonzoguitar/embed-code.css";
+      document.head.appendChild(link);
+    }
+
+    // 2. โหลด JS ของ Juicer
     const scriptId = "juicer-script";
     if (!document.getElementById(scriptId)) {
       const script = document.createElement("script");
@@ -60,12 +70,12 @@ export function SocialGrid({
         </Reveal>
       )}
 
-      {/* พื้นที่แสดงผล Juicer Social Feed */}
-      <div className="mt-8">
+      {/* แท็กแสดงผล Juicer Feed */}
+      <div className="mt-8 min-h-[400px]">
         <ul className="juicer-feed" data-feed-id="fonzoguitar"></ul>
       </div>
 
-      {/* แถบติดตามโซเชียลมีเดียด้านล่าง */}
+      {/* แถบ Follow ด้านล่าง */}
       <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
         <span className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
           {t("ติดตามเรา", "Follow us")}
