@@ -24,17 +24,8 @@ export function startLogin() {
   if (typeof window === "undefined") return;
 
   try {
-    const rawUrl = import.meta.env.VITE_OAUTH_PORTAL_URL || window.location.origin;
-    let targetUrl: URL;
-
-    try {
-      targetUrl = new URL(rawUrl);
-    } catch {
-      // กรณี URL ที่ส่งมาฟอร์แมตผิด ให้ Fallback ไปที่หน้าแรกของเว็บตัวเอง
-      targetUrl = new URL(window.location.origin);
-    }
-
-    window.location.href = targetUrl.toString();
+    // ยิงตรงไปหา Route ล็อกอิน Google ของ Server โดยไม่พึ่งพารามิเตอร์ภายนอก
+    window.location.href = "/api/auth/google";
   } catch (error) {
     console.error("Failed to execute startLogin:", error);
     window.location.href = "/";
