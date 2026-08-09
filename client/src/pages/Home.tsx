@@ -432,7 +432,7 @@ export default function Home() {
             </div>
           </Reveal>
 
-          <Reveal delay={80}>
+ <Reveal delay={80}>
             <div className="border border-cream/15 bg-ink/40 p-8 backdrop-blur-sm">
               <p className="font-display text-5xl text-gold">{guitars.length || "—"}</p>
               <p className="mt-2 text-sm text-cream/65">
@@ -451,5 +451,15 @@ export default function Home() {
       </section>
       */}
     </>
+  );
+}
+
+// เอาฟังก์ชัน HeroStat ออกมาไว้นอกคอมเมนต์
+function HeroStat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div>
+      <dt className="text-[10px] tracking-[0.18em] text-cream/45 uppercase">{label}</dt>
+      <dd className="mt-2.5 font-display text-lg text-cream sm:text-xl">{value}</dd>
+    </div>
   );
 }
