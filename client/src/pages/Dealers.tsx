@@ -4,15 +4,14 @@ import { Reveal } from "@/components/site/Reveal";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { MapPin, Phone, Mail, Globe as GlobeIcon, ExternalLink, Store } from "lucide-react";
 
-// ข้อมูลตัวแทนจำหน่ายและพิกัดบนแผนที่ 2D (%)
 const DEALERS_DATA = [
   {
     id: "thailand",
     country: "Thailand",
     city: "Bangkok (HQ)",
     flag: "🇹🇭",
-    x: 77.5, // พิกัด % บนแผนที่
-    y: 53.0,
+    x: 76.5,
+    y: 52.0,
     mainWeb: "https://www.fonzoguitar.com/",
     fb: "Fonzo Guitar",
     ig: "fonzoguitar",
@@ -30,7 +29,7 @@ const DEALERS_DATA = [
     country: "Japan",
     city: "Tokyo / Osaka / Fukuoka / Kobe",
     flag: "🇯🇵",
-    x: 87.5,
+    x: 87.0,
     y: 38.0,
     mainWeb: "https://fonzoguitar.jp/",
     fb: "Fonzo Guitar Japan",
@@ -98,8 +97,8 @@ const DEALERS_DATA = [
     country: "Australia",
     city: "Sydney, NSW",
     flag: "🇦🇺",
-    x: 88.0,
-    y: 80.0,
+    x: 87.0,
+    y: 78.0,
     dealers: [
       {
         name: "Brett Guitar Studio",
@@ -116,7 +115,7 @@ const DEALERS_DATA = [
     country: "Taiwan",
     city: "Taichung City",
     flag: "🇹🇼",
-    x: 81.5,
+    x: 81.0,
     y: 47.0,
     ig: "fonzoguitartaiwan",
     dealers: [
@@ -133,8 +132,8 @@ const DEALERS_DATA = [
     country: "Hong Kong",
     city: "Kwun Tong",
     flag: "🇭🇰",
-    x: 79.5,
-    y: 48.0,
+    x: 78.5,
+    y: 47.5,
     dealers: [
       {
         name: "Tab Generation",
@@ -150,8 +149,8 @@ const DEALERS_DATA = [
     country: "China",
     city: "Zhejiang / Xi'an / Chongqing",
     flag: "🇨🇳",
-    x: 75.0,
-    y: 41.0,
+    x: 74.0,
+    y: 40.0,
     dealers: [
       { name: "原声吉他琴行", address: "Ping Chang Hua Fu, Sui Chang County, Li Shui, Zhe Jiang Province, China", tel: "+86 13735986951" },
       { name: "艺佳琴行", address: "No.43 Nan Guo Road, Bei Lin District, Xi An, Shan Xi Province, China", tel: "+86 18691039306" },
@@ -186,30 +185,49 @@ export default function Dealers() {
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
           
           {/* 2D World Map Container */}
-          <div className="relative min-h-[480px] w-full overflow-hidden rounded-2xl border border-gold/30 bg-[#0d0d11] p-4 shadow-2xl backdrop-blur-md flex flex-col justify-between">
+          <div className="relative min-h-[500px] w-full overflow-hidden rounded-2xl border border-gold/30 bg-[#121216] p-4 shadow-2xl backdrop-blur-md flex flex-col justify-between">
             
-            {/* SVG Interactive Map Area */}
-            <div className="relative h-[400px] w-full rounded-xl bg-gradient-to-b from-black/40 to-black/80 border border-white/5 overflow-hidden flex items-center justify-center">
+            {/* Map Canvas Box */}
+            <div className="relative h-[420px] w-full rounded-xl bg-[#0a0a0d] border border-white/5 overflow-hidden flex items-center justify-center">
               
-              {/* World Map Vector Pattern */}
-              <svg className="absolute inset-0 h-full w-full opacity-25" viewBox="0 0 1000 500" fill="currentColor">
-                {/* Lines of Latitude & Longitude */}
-                <path d="M 0 100 H 1000 M 0 250 H 1000 M 0 400 H 1000" stroke="rgba(212,175,55,0.15)" strokeWidth="0.5" fill="none" />
-                <path d="M 250 0 V 500 M 500 0 V 500 M 750 0 V 500" stroke="rgba(212,175,55,0.15)" strokeWidth="0.5" fill="none" />
+              {/* World Map Vector Silhouette (รูปแผ่นดินทวีปโลกจริงสีทองจาง) */}
+              <svg className="absolute inset-0 h-full w-full opacity-35" viewBox="0 0 1000 500" preserveAspectRatio="none">
+                {/* Grid Lines */}
+                <line x1="0" y1="125" x2="1000" y2="125" stroke="rgba(212,175,55,0.1)" strokeDasharray="4 4" />
+                <line x1="0" y1="250" x2="1000" y2="250" stroke="rgba(212,175,55,0.2)" />
+                <line x1="0" y1="375" x2="1000" y2="375" stroke="rgba(212,175,55,0.1)" strokeDasharray="4 4" />
+                <line x1="250" y1="0" x2="250" y2="500" stroke="rgba(212,175,55,0.1)" strokeDasharray="4 4" />
+                <line x1="500" y1="0" x2="500" y2="500" stroke="rgba(212,175,55,0.2)" />
+                <line x1="750" y1="0" x2="750" y2="500" stroke="rgba(212,175,55,0.1)" strokeDasharray="4 4" />
+
+                {/* World Continents Paths */}
+                {/* North America */}
+                <path d="M 120,60 Q 200,40 280,80 Q 250,180 180,220 Q 100,160 120,60 Z" fill="#d4af37" opacity="0.25" />
+                {/* South America */}
+                <path d="M 260,250 Q 340,270 320,380 Q 270,440 240,350 Q 220,280 260,250 Z" fill="#d4af37" opacity="0.25" />
+                {/* Europe */}
+                <path d="M 450,60 Q 550,50 560,130 Q 480,160 450,110 Z" fill="#d4af37" opacity="0.25" />
+                {/* Africa */}
+                <path d="M 460,170 Q 580,180 560,340 Q 500,380 460,260 Z" fill="#d4af37" opacity="0.25" />
+                {/* Asia */}
+                <path d="M 570,60 Q 820,40 850,220 Q 720,280 600,200 Z" fill="#d4af37" opacity="0.3" />
+                {/* Australia */}
+                <path d="M 800,320 Q 900,310 890,410 Q 810,420 800,320 Z" fill="#d4af37" opacity="0.3" />
               </svg>
 
               {/* Connecting Arcs from Thailand HQ to Global Dealers */}
               <svg className="pointer-events-none absolute inset-0 h-full w-full">
                 {DEALERS_DATA.filter(d => d.id !== "thailand").map((d, i) => (
-                  <path
-                    key={i}
-                    d={`M ${DEALERS_DATA[0].x * 10} ${DEALERS_DATA[0].y * 4} Q ${(DEALERS_DATA[0].x + d.x) * 5} ${(DEALERS_DATA[0].y + d.y) * 1.8} ${d.x * 10} ${d.y * 4}`}
-                    fill="none"
-                    stroke="#d4af37"
-                    strokeWidth="1.5"
-                    strokeDasharray="4 4"
-                    className="opacity-40"
-                  />
+                  <g key={i}>
+                    <path
+                      d={`M ${DEALERS_DATA[0].x * 10} ${DEALERS_DATA[0].y * 4.2} Q ${(DEALERS_DATA[0].x + d.x) * 5} ${(DEALERS_DATA[0].y + d.y) * 1.8} ${d.x * 10} ${d.y * 4.2}`}
+                      fill="none"
+                      stroke="#d4af37"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 4"
+                      opacity="0.6"
+                    />
+                  </g>
                 ))}
               </svg>
 
@@ -221,34 +239,34 @@ export default function Dealers() {
                     key={loc.id}
                     onClick={() => setSelectedLocation(loc)}
                     style={{ left: `${loc.x}%`, top: `${loc.y}%` }}
-                    className="group absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-300 focus:outline-none"
+                    className="group absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-300 focus:outline-none z-10"
                   >
-                    {/* Pulsing Aura for Selected Pin */}
+                    {/* Pulsing Ring for Selected Pin */}
                     {isSelected && (
-                      <span className="absolute -inset-2 rounded-full bg-gold/30 animate-ping" />
+                      <span className="absolute -inset-3 rounded-full bg-gold/40 animate-ping" />
                     )}
 
-                    {/* Pin Head */}
-                    <div className={`relative flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold shadow-lg transition-all ${
+                    {/* Pin Label */}
+                    <div className={`relative flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold shadow-xl transition-all ${
                       isSelected
-                        ? "bg-gold text-ink scale-110 shadow-gold/50"
-                        : "bg-black/80 text-gold border border-gold/40 hover:bg-gold hover:text-ink hover:scale-105"
+                        ? "bg-gold text-ink scale-110 shadow-gold/60 ring-2 ring-gold/80"
+                        : "bg-black/85 text-gold border border-gold/50 hover:bg-gold hover:text-ink hover:scale-105"
                     }`}>
-                      <span>{loc.flag}</span>
-                      <span className="hidden sm:inline">{loc.country}</span>
+                      <span className="text-sm">{loc.flag}</span>
+                      <span>{loc.country}</span>
                     </div>
                   </button>
                 );
               })}
             </div>
 
-            {/* Map Instruction Footer */}
-            <div className="mt-3 flex items-center justify-between text-xs text-cream/60 px-2">
+            {/* Map Footer */}
+            <div className="mt-3 flex items-center justify-between text-xs text-cream/70 px-2">
               <span className="flex items-center gap-2 text-gold">
-                <span className="h-2 w-2 rounded-full bg-gold animate-pulse" />
-                คลิกที่หมุดบนแผนที่เพื่อดูข้อมูลร้านค้า
+                <span className="h-2.5 w-2.5 rounded-full bg-gold animate-pulse" />
+                คลิกปุ่มปักหมุดประเทศบนแผนที่เพื่อดูรายชื่อตัวแทน
               </span>
-              <span>Fonzo Authorized Global Network</span>
+              <span className="text-cream/40">Fonzo Global Dealer Network</span>
             </div>
           </div>
 
@@ -277,7 +295,7 @@ export default function Dealers() {
                 )}
               </div>
 
-              {/* Quick Navigation Filter Buttons */}
+              {/* Quick Country Buttons */}
               <div className="mt-4 flex flex-wrap gap-2">
                 {DEALERS_DATA.map((loc) => {
                   const isSelected = selectedLocation.id === loc.id;
@@ -298,7 +316,7 @@ export default function Dealers() {
                 })}
               </div>
 
-              {/* Dealer Cards List */}
+              {/* Dealer Cards */}
               <div className="mt-6 space-y-4 max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
                 {selectedLocation.dealers.map((dealer: any, idx: number) => (
                   <div
