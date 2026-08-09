@@ -4,14 +4,15 @@ import { Reveal } from "@/components/site/Reveal";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { MapPin, Phone, Mail, Globe as GlobeIcon, ExternalLink, Store } from "lucide-react";
 
+// ข้อมูลพิกัดปรับระยะห่างกระจายหมุดไม่ให้บังกัน
 const DEALERS_DATA = [
   {
     id: "thailand",
     country: "Thailand",
     city: "Bangkok (HQ)",
     flag: "🇹🇭",
-    x: 77.0, // พิกัด % ปักหมุดบนแผนที่โลกจริง
-    y: 52.5,
+    x: 75.8, // ปรับตำแหน่งหลบโซนฮ่องกง/ไต้หวัน
+    y: 53.5,
     mainWeb: "https://www.fonzoguitar.com/",
     fb: "Fonzo Guitar",
     ig: "fonzoguitar",
@@ -115,7 +116,7 @@ const DEALERS_DATA = [
     country: "Taiwan",
     city: "Taichung City",
     flag: "🇹🇼",
-    x: 81.5,
+    x: 81.2,
     y: 47.0,
     ig: "fonzoguitartaiwan",
     dealers: [
@@ -132,8 +133,8 @@ const DEALERS_DATA = [
     country: "Hong Kong",
     city: "Kwun Tong",
     flag: "🇭🇰",
-    x: 79.2,
-    y: 47.5,
+    x: 78.5,
+    y: 48.2,
     dealers: [
       {
         name: "Tab Generation",
@@ -149,7 +150,7 @@ const DEALERS_DATA = [
     country: "China",
     city: "Zhejiang / Xi'an / Chongqing",
     flag: "🇨🇳",
-    x: 75.5,
+    x: 74.0,
     y: 40.0,
     dealers: [
       { name: "原声吉他琴行", address: "Ping Chang Hua Fu, Sui Chang County, Li Shui, Zhe Jiang Province, China", tel: "+86 13735986951" },
@@ -180,27 +181,25 @@ export default function Dealers() {
         </Reveal>
       </section>
 
-      {/* ═════════ Real 2D Vector World Map Section ═════════ */}
+      {/* ═════════ Interactive Map Section ═════════ */}
       <section className="mx-auto max-w-[1400px] px-4 pb-20 sm:px-6 lg:px-10">
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
           
-          {/* Real World Map Container */}
+          {/* World Map Container */}
           <div className="relative min-h-[500px] w-full overflow-hidden rounded-2xl border border-gold/30 bg-[#0d0d12] p-4 shadow-2xl backdrop-blur-md flex flex-col justify-between">
             
-            {/* Real World Map Canvas */}
+            {/* Map Area */}
             <div className="relative h-[420px] w-full rounded-xl bg-[#09090c] border border-white/5 overflow-hidden flex items-center justify-center">
               
-              {/* รูปแผนที่โลกจริงแบบ HD Vector Map Background */}
-              <div 
-                className="absolute inset-0 h-full w-full bg-contain bg-center bg-no-repeat opacity-25 mix-blend-screen"
-                style={{
-                  backgroundImage: `url('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')`,
-                  filter: 'invert(1) sepia(1) saturate(5) hue-rotate(10deg)'
-                }}
+              {/* แผนที่โลก Vector Background */}
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg"
+                alt="World Map"
+                className="absolute inset-0 h-full w-full object-contain opacity-20 filter invert sepia saturate-200 hue-rotate-15 pointer-events-none"
               />
 
-              {/* Real World Grid Overlay */}
-              <svg className="absolute inset-0 h-full w-full opacity-20" viewBox="0 0 1000 500" preserveAspectRatio="none">
+              {/* Grid Lines */}
+              <svg className="absolute inset-0 h-full w-full opacity-15" viewBox="0 0 1000 500" preserveAspectRatio="none">
                 <line x1="0" y1="125" x2="1000" y2="125" stroke="#d4af37" strokeDasharray="4 4" />
                 <line x1="0" y1="250" x2="1000" y2="250" stroke="#d4af37" strokeWidth="1.5" />
                 <line x1="0" y1="375" x2="1000" y2="375" stroke="#d4af37" strokeDasharray="4 4" />
@@ -209,14 +208,7 @@ export default function Dealers() {
                 <line x1="750" y1="0" x2="750" y2="500" stroke="#d4af37" strokeDasharray="4 4" />
               </svg>
 
-              {/* Map SVG Image Fallback (แผนที่ทวีปโลกจริงสีทอง) */}
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg"
-                alt="World Map"
-                className="absolute inset-0 h-full w-full object-contain opacity-20 filter invert sepia saturate-200 hue-rotate-15 pointer-events-none"
-              />
-
-              {/* Connecting Golden Arcs */}
+              {/* Connecting Lines */}
               <svg className="pointer-events-none absolute inset-0 h-full w-full z-10">
                 {DEALERS_DATA.filter(d => d.id !== "thailand").map((d, i) => (
                   <path
@@ -224,47 +216,62 @@ export default function Dealers() {
                     d={`M ${DEALERS_DATA[0].x * 10} ${DEALERS_DATA[0].y * 4.2} Q ${(DEALERS_DATA[0].x + d.x) * 5} ${(DEALERS_DATA[0].y + d.y) * 1.8} ${d.x * 10} ${d.y * 4.2}`}
                     fill="none"
                     stroke="#d4af37"
-                    strokeWidth="1.5"
+                    strokeWidth="1.2"
                     strokeDasharray="4 4"
-                    opacity="0.7"
+                    opacity="0.5"
                   />
                 ))}
               </svg>
 
-              {/* Location Pin Buttons */}
+              {/* Minimalist Logo Pin with Hover Popover */}
               {DEALERS_DATA.map((loc) => {
                 const isSelected = selectedLocation.id === loc.id;
                 return (
-                  <button
+                  <div
                     key={loc.id}
-                    onClick={() => setSelectedLocation(loc)}
                     style={{ left: `${loc.x}%`, top: `${loc.y}%` }}
-                    className="group absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-300 focus:outline-none z-20"
+                    className="group absolute -translate-x-1/2 -translate-y-1/2 z-20"
                   >
-                    {/* Ring Pulse Effect */}
-                    {isSelected && (
-                      <span className="absolute -inset-2.5 rounded-full bg-gold/50 animate-ping" />
-                    )}
-
-                    {/* Pin Label Box */}
-                    <div className={`relative flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold shadow-2xl transition-all ${
-                      isSelected
-                        ? "bg-gold text-ink scale-110 shadow-gold/80 ring-2 ring-gold"
-                        : "bg-black/90 text-gold border border-gold/60 hover:bg-gold hover:text-ink hover:scale-105"
-                    }`}>
-                      <span className="text-sm">{loc.flag}</span>
-                      <span>{loc.country}</span>
+                    {/* Hover Popover Box (จะเด้งขึ้นเมื่อเมาส์ชี้) */}
+                    <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center z-30 transition-all duration-200 animate-in fade-in slide-in-from-bottom-1">
+                      <div className="whitespace-nowrap rounded-lg bg-ink/95 border border-gold/60 px-3 py-1.5 text-xs shadow-2xl backdrop-blur-md">
+                        <div className="font-bold text-gold flex items-center gap-1.5">
+                          <span>{loc.flag}</span> {loc.country}
+                        </div>
+                        <div className="text-[10px] text-cream/70">{loc.city}</div>
+                      </div>
+                      <div className="h-1.5 w-1.5 rotate-45 bg-gold/60 -mt-1" />
                     </div>
-                  </button>
+
+                    {/* Logo Pin Button */}
+                    <button
+                      onClick={() => setSelectedLocation(loc)}
+                      className={`relative flex h-8 w-8 items-center justify-center rounded-full border shadow-xl transition-all duration-300 focus:outline-none ${
+                        isSelected
+                          ? "bg-gold border-white text-ink scale-125 shadow-gold/80 ring-4 ring-gold/30"
+                          : "bg-black/90 border-gold/60 text-gold hover:bg-gold hover:text-ink hover:scale-110"
+                      }`}
+                    >
+                      {/* Ring Pulse for Selected */}
+                      {isSelected && (
+                        <span className="absolute -inset-2 rounded-full bg-gold/40 animate-ping" />
+                      )}
+
+                      {/* Fonzo Logo 'F' Crest Icon */}
+                      <span className="font-serif font-black text-sm tracking-tighter">
+                        F
+                      </span>
+                    </button>
+                  </div>
                 );
               })}
             </div>
 
-            {/* Map Footer */}
+            {/* Footer Notice */}
             <div className="mt-3 flex items-center justify-between text-xs text-cream/70 px-2">
               <span className="flex items-center gap-2 text-gold font-medium">
-                <span className="h-2.5 w-2.5 rounded-full bg-gold animate-pulse" />
-                คลิกที่หมุดบนแผนที่โลกเพื่อดูรายชื่อโชว์รูมและตัวแทนจำหน่าย
+                <span className="h-2 w-2 rounded-full bg-gold animate-pulse" />
+                เลื่อนเมาส์ชี้เพื่อดูชื่อประเทศ และคลิกหมุดโลโก้ Fonzo เพื่อเลือกโชว์รูม
               </span>
               <span className="text-cream/40">Fonzo Global Dealer Network</span>
             </div>
@@ -295,7 +302,7 @@ export default function Dealers() {
                 )}
               </div>
 
-              {/* Quick Country Buttons */}
+              {/* Quick Country Navigation Tabs */}
               <div className="mt-4 flex flex-wrap gap-2">
                 {DEALERS_DATA.map((loc) => {
                   const isSelected = selectedLocation.id === loc.id;
