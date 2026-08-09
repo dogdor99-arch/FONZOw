@@ -24,8 +24,8 @@ export function startLogin() {
   if (typeof window === "undefined") return;
 
   try {
-    // ยิงตรงไปหา Route ล็อกอิน Google ของ Server โดยไม่พึ่งพารามิเตอร์ภายนอก
-    window.location.href = "/api/auth/google";
+    // เปลี่ยนไปใช้ Route /login ของฝั่ง Frontend
+    window.location.href = "/login";
   } catch (error) {
     console.error("Failed to execute startLogin:", error);
     window.location.href = "/";
