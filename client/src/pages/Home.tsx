@@ -393,7 +393,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═════════ 08 · Marketplace ═════════ */}
+{/* ═════════ 08 · Marketplace (ซ่อนการแสดงผล) ═════════ */}
+      {/* 
       <section className="surface-deep relative overflow-hidden">
         <img
           src={PLAYER_IMAGE}
@@ -448,15 +449,7 @@ export default function Home() {
           </Reveal>
         </div>
       </section>
+      */}
     </>
-  );
-}
-
-function HeroStat({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div>
-      <dt className="text-[10px] tracking-[0.18em] text-cream/45 uppercase">{label}</dt>
-      <dd className="mt-2.5 font-display text-lg text-cream sm:text-xl">{value}</dd>
-    </div>
   );
 }
