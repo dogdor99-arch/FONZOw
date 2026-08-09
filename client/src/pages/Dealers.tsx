@@ -4,15 +4,27 @@ import { Reveal } from "@/components/site/Reveal";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { MapPin, Phone, Mail, Globe as GlobeIcon, ExternalLink, Store } from "lucide-react";
 
-// ข้อมูลตัวแทนจำหน่ายปรับระยะพิกัดไม่ให้บังกัน
+// ฟังก์ชันแปลง ละติจูด/ลองจิจูด เป็น พิกัด X, Y บนแผนที่สเกล 1000x500
+function convertGeoToPixel(lat: number, lng: number) {
+  const x = ((lng + 180) * 1000) / 360;
+  const y = ((90 - lat) * 500) / 180;
+  return { x, y };
+}
+
+// พิกัดสำนักงานใหญ่ประเทศไทย
+const HQ_LAT = 13.693;
+const HQ_LNG = 100.539;
+const HQ_POS = convertGeoToPixel(HQ_LAT, HQ_LNG);
+
+// ข้อมูลพิกัดละติจูด/ลองจิจูดจริงของแต่ละเมือง
 const DEALERS_DATA = [
   {
     id: "thailand",
     country: "Thailand",
     city: "Bangkok (HQ)",
     flag: "🇹🇭",
-    x: 75.8,
-    y: 53.5,
+    lat: HQ_LAT,
+    lng: HQ_LNG,
     mainWeb: "https://www.fonzoguitar.com/",
     dealers: [
       {
@@ -28,8 +40,8 @@ const DEALERS_DATA = [
     country: "Japan",
     city: "Tokyo / Osaka / Fukuoka / Kobe",
     flag: "🇯🇵",
-    x: 88.0,
-    y: 36.0,
+    lat: 35.676,
+    lng: 139.650,
     mainWeb: "https://fonzoguitar.jp/",
     dealers: [
       {
@@ -78,8 +90,8 @@ const DEALERS_DATA = [
     country: "United States & Canada",
     city: "Austin, Texas",
     flag: "🇺🇸",
-    x: 23.5,
-    y: 38.0,
+    lat: 30.267,
+    lng: -97.743,
     dealers: [
       {
         name: "Guitar Collection",
@@ -94,8 +106,8 @@ const DEALERS_DATA = [
     country: "Australia",
     city: "Sydney, NSW",
     flag: "🇦🇺",
-    x: 87.5,
-    y: 78.0,
+    lat: -33.868,
+    lng: 151.209,
     dealers: [
       {
         name: "Brett Guitar Studio",
@@ -112,8 +124,8 @@ const DEALERS_DATA = [
     country: "Taiwan",
     city: "Taichung City",
     flag: "🇹🇼",
-    x: 81.2,
-    y: 47.0,
+    lat: 24.147,
+    lng: 120.673,
     dealers: [
       {
         name: "Cheng Feng Music",
@@ -128,8 +140,8 @@ const DEALERS_DATA = [
     country: "Hong Kong",
     city: "Kwun Tong",
     flag: "🇭🇰",
-    x: 78.5,
-    y: 48.2,
+    lat: 22.319,
+    lng: 114.169,
     dealers: [
       {
         name: "Tab Generation",
@@ -145,8 +157,8 @@ const DEALERS_DATA = [
     country: "China",
     city: "Zhejiang / Xi'an / Chongqing",
     flag: "🇨🇳",
-    x: 74.0,
-    y: 40.0,
+    lat: 34.341,
+    lng: 108.939,
     dealers: [
       { name: "原声吉他琴行", address: "Ping Chang Hua Fu, Sui Chang County, Li Shui, Zhe Jiang Province, China", tel: "+86 13735986951" },
       { name: "艺佳琴行", address: "No.43 Nan Guo Road, Bei Lin District, Xi An, Shan Xi Province, China", tel: "+86 18691039306" },
@@ -175,124 +187,147 @@ export default function Dealers() {
         </Reveal>
       </section>
 
-      {/* ═════════ Full-Width Interactive Map Section ═════════ */}
+      {/* ═════════ Precision Full-Width World Map ═════════ */}
       <section className="mx-auto max-w-[1400px] px-4 pb-20 sm:px-6 lg:px-10">
-        <div className="relative min-h-[620px] w-full overflow-hidden rounded-2xl border border-gold/30 bg-[#0d0d12] p-4 shadow-2xl backdrop-blur-md flex flex-col justify-between">
+        <div className="relative min-h-[580px] w-full overflow-hidden rounded-2xl border border-gold/30 bg-[#09090c] p-4 shadow-2xl backdrop-blur-md flex flex-col justify-between">
           
-          {/* Map Area */}
-          <div className="relative h-[550px] w-full rounded-xl bg-[#09090c] border border-white/5 overflow-hidden flex items-center justify-center">
+          {/* Map Viewport Area */}
+          <div className="relative h-[500px] w-full rounded-xl bg-[#0d0d12] border border-white/5 overflow-hidden flex items-center justify-center">
             
-            {/* World Map Background Image */}
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg"
-              alt="World Map"
-              className="absolute inset-0 h-full w-full object-contain opacity-20 filter invert sepia saturate-200 hue-rotate-15 pointer-events-none"
-            />
+            {/* SVG Container ความละเอียดสูง 1000x500 */}
+            <svg className="h-full w-full" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
+              
+              {/* Background Image: ภาพแผนที่โลก Equirectangular สเกลเป๊ะ */}
+              <image
+                href="https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg"
+                x="0"
+                y="0"
+                width="1000"
+                height="500"
+                opacity="0.22"
+                style={{ filter: "invert(1) sepia(1) saturate(5) hue-rotate(10deg)" }}
+              />
 
-            {/* Grid Overlay */}
-            <svg className="absolute inset-0 h-full w-full opacity-15" viewBox="0 0 1000 500" preserveAspectRatio="none">
-              <line x1="0" y1="125" x2="1000" y2="125" stroke="#d4af37" strokeDasharray="4 4" />
-              <line x1="0" y1="250" x2="1000" y2="250" stroke="#d4af37" strokeWidth="1.5" />
-              <line x1="0" y1="375" x2="1000" y2="375" stroke="#d4af37" strokeDasharray="4 4" />
-              <line x1="250" y1="0" x2="250" y2="500" stroke="#d4af37" strokeDasharray="4 4" />
-              <line x1="500" y1="0" x2="500" y2="500" stroke="#d4af37" strokeWidth="1.5" />
-              <line x1="750" y1="0" x2="750" y2="500" stroke="#d4af37" strokeDasharray="4 4" />
-            </svg>
+              {/* Grid Lines */}
+              <g opacity="0.12" stroke="#d4af37">
+                <line x1="0" y1="125" x2="1000" y2="125" strokeDasharray="4 4" />
+                <line x1="0" y1="250" x2="1000" y2="250" strokeWidth="1.5" />
+                <line x1="0" y1="375" x2="1000" y2="375" strokeDasharray="4 4" />
+                <line x1="250" y1="0" x2="250" y2="500" strokeDasharray="4 4" />
+                <line x1="500" y1="0" x2="500" y2="500" strokeWidth="1.5" />
+                <line x1="750" y1="0" x2="750" y2="500" strokeDasharray="4 4" />
+              </g>
 
-            {/* Connecting Lines */}
-            <svg className="pointer-events-none absolute inset-0 h-full w-full z-10">
-              {DEALERS_DATA.filter(d => d.id !== "thailand").map((d, i) => (
-                <path
-                  key={i}
-                  d={`M ${DEALERS_DATA[0].x * 10} ${DEALERS_DATA[0].y * 5.5} Q ${(DEALERS_DATA[0].x + d.x) * 5} ${(DEALERS_DATA[0].y + d.y) * 2.2} ${d.x * 10} ${d.y * 5.5}`}
-                  fill="none"
-                  stroke="#d4af37"
-                  strokeWidth="1.5"
-                  strokeDasharray="4 4"
-                  opacity="0.5"
-                />
-              ))}
-            </svg>
+              {/* Golden Connecting Arcs พุ่งออกจากประเทศไทย */}
+              <g>
+                {DEALERS_DATA.filter((d) => d.id !== "thailand").map((d, i) => {
+                  const targetPos = convertGeoToPixel(d.lat, d.lng);
+                  const controlX = (HQ_POS.x + targetPos.x) / 2;
+                  const controlY = Math.min(HQ_POS.y, targetPos.y) - 60; // ปรับความโค้งของเส้น
+                  return (
+                    <path
+                      key={i}
+                      d={`M ${HQ_POS.x} ${HQ_POS.y} Q ${controlX} ${controlY} ${targetPos.x} ${targetPos.y}`}
+                      fill="none"
+                      stroke="#d4af37"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 4"
+                      opacity="0.65"
+                    />
+                  );
+                })}
+              </g>
 
-            {/* Logo Pins & Full Hover Popovers */}
-            {DEALERS_DATA.map((loc) => {
-              return (
-                <div
-                  key={loc.id}
-                  style={{ left: `${loc.x}%`, top: `${loc.y}%` }}
-                  className="group absolute -translate-x-1/2 -translate-y-1/2 z-20"
-                >
-                  {/* Detailed Dealer Popover on Hover / Touch */}
-                  <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:flex flex-col items-center z-40 transition-all duration-300 animate-in fade-in slide-in-from-bottom-2">
-                    <div className="w-[300px] sm:w-[340px] rounded-2xl bg-[#121216]/95 border border-gold/50 p-5 shadow-2xl backdrop-blur-xl pointer-events-auto">
+              {/* Pins placed at precise Geo Coordinates */}
+              {DEALERS_DATA.map((loc) => {
+                const pos = convertGeoToPixel(loc.lat, loc.lng);
+                return (
+                  <foreignObject
+                    key={loc.id}
+                    x={pos.x - 20}
+                    y={pos.y - 20}
+                    width="40"
+                    height="40"
+                    className="overflow-visible"
+                  >
+                    <div className="group relative flex h-full w-full items-center justify-center">
                       
-                      {/* Popover Header */}
-                      <div className="flex items-center justify-between border-b border-cream/10 pb-3">
-                        <div>
-                          <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-gold">
-                            <MapPin className="h-3 w-3" /> {loc.city}
+                      {/* Hover Popover Box */}
+                      <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:flex flex-col items-center z-50 transition-all duration-300 animate-in fade-in slide-in-from-bottom-2">
+                        <div className="w-[300px] sm:w-[330px] rounded-2xl bg-[#121216]/95 border border-gold/60 p-5 shadow-2xl backdrop-blur-xl pointer-events-auto text-left">
+                          
+                          {/* Popover Header */}
+                          <div className="flex items-center justify-between border-b border-cream/10 pb-3">
+                            <div>
+                              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-gold">
+                                <MapPin className="h-3 w-3" /> {loc.city}
+                              </div>
+                              <h4 className="text-lg font-display text-cream flex items-center gap-2 mt-0.5">
+                                <span>{loc.flag}</span> {loc.country}
+                              </h4>
+                            </div>
+                            {loc.mainWeb && (
+                              <a
+                                href={loc.mainWeb}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1 text-[10px] text-gold hover:bg-gold hover:text-ink transition"
+                              >
+                                <GlobeIcon className="h-3 w-3" /> Site
+                              </a>
+                            )}
                           </div>
-                          <h4 className="text-lg font-display text-cream flex items-center gap-2 mt-0.5">
-                            <span>{loc.flag}</span> {loc.country}
-                          </h4>
+
+                          {/* Popover Dealer Items */}
+                          <div className="mt-3 space-y-2.5 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
+                            {loc.dealers.map((dealer, idx) => (
+                              <div key={idx} className="rounded-lg border border-white/5 bg-ink/80 p-3">
+                                <div className="flex items-start justify-between gap-1">
+                                  <span className="font-semibold text-gold text-xs">{dealer.name}</span>
+                                  <Store className="h-3.5 w-3.5 text-gold/60 shrink-0" />
+                                </div>
+                                <p className="mt-1 text-[11px] leading-relaxed text-cream/70">{dealer.address}</p>
+                                
+                                <div className="mt-2 flex flex-wrap gap-2 border-t border-cream/10 pt-2 text-[10px] text-cream/80">
+                                  {dealer.tel && (
+                                    <span className="flex items-center gap-1">
+                                      <Phone className="h-3 w-3 text-gold shrink-0" /> {dealer.tel}
+                                    </span>
+                                  )}
+                                  {dealer.email && (
+                                    <a href={`mailto:${dealer.email}`} className="flex items-center gap-1 text-gold hover:underline">
+                                      <Mail className="h-3 w-3 shrink-0" /> Email
+                                    </a>
+                                  )}
+                                  {dealer.web && (
+                                    <a href={dealer.web} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-gold hover:underline font-medium">
+                                      <GlobeIcon className="h-3 w-3" /> Visit <ExternalLink className="h-2.5 w-2.5" />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
                         </div>
-                        {loc.mainWeb && (
-                          <a
-                            href={loc.mainWeb}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1 text-[10px] text-gold hover:bg-gold hover:text-ink transition"
-                          >
-                            <GlobeIcon className="h-3 w-3" /> Site
-                          </a>
-                        )}
+                        {/* Arrow Indicator */}
+                        <div className="h-2 w-2 rotate-45 bg-[#121216] border-r border-b border-gold/50 -mt-1" />
                       </div>
 
-                      {/* Popover Dealer Items */}
-                      <div className="mt-3 space-y-3 max-h-[220px] overflow-y-auto pr-1 custom-scrollbar">
-                        {loc.dealers.map((dealer, idx) => (
-                          <div key={idx} className="rounded-lg border border-white/5 bg-ink/80 p-3 text-left">
-                            <div className="flex items-start justify-between gap-1">
-                              <span className="font-semibold text-gold text-xs">{dealer.name}</span>
-                              <Store className="h-3.5 w-3.5 text-gold/60 shrink-0" />
-                            </div>
-                            <p className="mt-1 text-[11px] leading-relaxed text-cream/70">{dealer.address}</p>
-                            
-                            <div className="mt-2 flex flex-wrap gap-2 border-t border-cream/10 pt-2 text-[10px] text-cream/80">
-                              {dealer.tel && (
-                                <span className="flex items-center gap-1">
-                                  <Phone className="h-3 w-3 text-gold shrink-0" /> {dealer.tel}
-                                </span>
-                              )}
-                              {dealer.email && (
-                                <a href={`mailto:${dealer.email}`} className="flex items-center gap-1 text-gold hover:underline">
-                                  <Mail className="h-3 w-3 shrink-0" /> Email
-                                </a>
-                              )}
-                              {dealer.web && (
-                                <a href={dealer.web} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-gold hover:underline font-medium">
-                                  <GlobeIcon className="h-3 w-3" /> Visit <ExternalLink className="h-2.5 w-2.5" />
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      {/* Logo Pin Crest Button */}
+                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/70 bg-black/90 text-gold shadow-2xl transition-all duration-300 hover:bg-gold hover:text-ink hover:scale-125 hover:border-white focus:outline-none">
+                        <span className="font-serif font-black text-sm tracking-tighter">
+                          F
+                        </span>
+                      </button>
 
                     </div>
-                    {/* Arrow Indicator */}
-                    <div className="h-2 w-2 rotate-45 bg-[#121216] border-r border-b border-gold/50 -mt-1" />
-                  </div>
+                  </foreignObject>
+                );
+              })}
 
-                  {/* Logo Pin Crest Button */}
-                  <button className="relative flex h-9 w-9 items-center justify-center rounded-full border border-gold/60 bg-black/90 text-gold shadow-2xl transition-all duration-300 hover:bg-gold hover:text-ink hover:scale-125 hover:border-white focus:outline-none">
-                    <span className="font-serif font-black text-base tracking-tighter">
-                      F
-                    </span>
-                  </button>
-                </div>
-              );
-            })}
+            </svg>
+
           </div>
 
           {/* Footer Bar */}
