@@ -1,42 +1,40 @@
-import { useState, useRef, useEffect, useState as useClientState } from "react";
+import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
 import { Reveal } from "@/components/site/Reveal";
 import { SectionHeading } from "@/components/site/SectionHeading";
-import { MapPin, Phone, Mail, Globe as GlobeIcon, ExternalLink, Compass } from "lucide-react";
+import { MapPin, Phone, Mail, Globe as GlobeIcon, ExternalLink, Store } from "lucide-react";
 
-// พิกัดสำนักงานใหญ่ประเทศไทย (จุดเริ่มต้นเส้น Arc)
-const HQ_LAT = 13.693;
-const HQ_LNG = 100.539;
-
-// ข้อมูลพิกัดและตัวแทนจำหน่ายทั้งหมด
+// ข้อมูลตัวแทนจำหน่ายและพิกัดบนแผนที่ 2D (%)
 const DEALERS_DATA = [
   {
     id: "thailand",
     country: "Thailand",
-    city: "Bangkok",
+    city: "Bangkok (HQ)",
     flag: "🇹🇭",
-    lat: HQ_LAT,
-    lng: HQ_LNG,
+    x: 77.5, // พิกัด % บนแผนที่
+    y: 53.0,
+    mainWeb: "https://www.fonzoguitar.com/",
+    fb: "Fonzo Guitar",
+    ig: "fonzoguitar",
     dealers: [
       {
         name: "Fonzo Guitar Showroom (Headquarters)",
         address: "1338/928 Supalai Prima Riva, Rama 3 Road, Yannawa, Bangkok, Thailand 10120",
         tel: "+66 2051 2223, +66 99 291 1935",
-        email: "fonzoguitars@gmail.com",
-        web: "https://www.fonzoguitar.com/",
-        fb: "Fonzo Guitar",
-        ig: "fonzoguitar"
+        email: "fonzoguitars@gmail.com"
       }
     ]
   },
   {
     id: "japan",
     country: "Japan",
-    city: "Tokyo / Osaka / Fukuoka / Kobe / Okayama / Ayagawa",
+    city: "Tokyo / Osaka / Fukuoka / Kobe",
     flag: "🇯🇵",
-    lat: 35.648,
-    lng: 139.707,
+    x: 87.5,
+    y: 38.0,
     mainWeb: "https://fonzoguitar.jp/",
+    fb: "Fonzo Guitar Japan",
+    ig: "fonzojapan",
     dealers: [
       {
         name: "Dolphin Guitars - Tokyo Store",
@@ -84,8 +82,8 @@ const DEALERS_DATA = [
     country: "USA & Canada",
     city: "Austin, Texas",
     flag: "🇺🇸",
-    lat: 30.326,
-    lng: -97.771,
+    x: 23.0,
+    y: 38.0,
     dealers: [
       {
         name: "Guitar Collection",
@@ -100,8 +98,8 @@ const DEALERS_DATA = [
     country: "Australia",
     city: "Sydney, NSW",
     flag: "🇦🇺",
-    lat: -33.878,
-    lng: 151.216,
+    x: 88.0,
+    y: 80.0,
     dealers: [
       {
         name: "Brett Guitar Studio",
@@ -118,8 +116,9 @@ const DEALERS_DATA = [
     country: "Taiwan",
     city: "Taichung City",
     flag: "🇹🇼",
-    lat: 24.143,
-    lng: 120.640,
+    x: 81.5,
+    y: 47.0,
+    ig: "fonzoguitartaiwan",
     dealers: [
       {
         name: "Cheng Feng Music",
@@ -134,8 +133,8 @@ const DEALERS_DATA = [
     country: "Hong Kong",
     city: "Kwun Tong",
     flag: "🇭🇰",
-    lat: 22.313,
-    lng: 114.225,
+    x: 79.5,
+    y: 48.0,
     dealers: [
       {
         name: "Tab Generation",
@@ -151,8 +150,8 @@ const DEALERS_DATA = [
     country: "China",
     city: "Zhejiang / Xi'an / Chongqing",
     flag: "🇨🇳",
-    lat: 34.341,
-    lng: 108.939,
+    x: 75.0,
+    y: 41.0,
     dealers: [
       { name: "原声吉他琴行", address: "Ping Chang Hua Fu, Sui Chang County, Li Shui, Zhe Jiang Province, China", tel: "+86 13735986951" },
       { name: "艺佳琴行", address: "No.43 Nan Guo Road, Bei Lin District, Xi An, Shan Xi Province, China", tel: "+86 18691039306" },
@@ -161,48 +160,9 @@ const DEALERS_DATA = [
   }
 ];
 
-// สร้างเส้น Arcs เชื่อมจากไทยไปประเทศต่างๆ
-const ARCS_DATA = DEALERS_DATA.filter((d) => d.id !== "thailand").map((d) => ({
-  startLat: HQ_LAT,
-  startLng: HQ_LNG,
-  endLat: d.lat,
-  endLng: d.lng,
-  color: ["rgba(212, 175, 55, 0.8)", "rgba(255, 223, 128, 0.9)"]
-}));
-
 export default function Dealers() {
   const { t } = useLocale();
-  const globeRef = useRef<any>(null);
-  const [GlobeComponent, setGlobeComponent] = useClientState<any>(null);
-  const [selectedLocation, setSelectedLocation] = useState<any>(DEALERS_DATA[0]);
-
-  useEffect(() => {
-    import("react-globe.gl").then((mod) => {
-      setGlobeComponent(() => mod.default);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (globeRef.current) {
-      try {
-        globeRef.current.controls().autoRotate = true;
-        globeRef.current.controls().autoRotateSpeed = 0.6;
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }, [GlobeComponent]);
-
-  const handlePointClick = (point: any) => {
-    setSelectedLocation(point);
-    if (globeRef.current) {
-      try {
-        globeRef.current.pointOfView({ lat: point.lat, lng: point.lng, altitude: 1.8 }, 1000);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  };
+  const [selectedLocation, setSelectedLocation] = useState(DEALERS_DATA[0]);
 
   return (
     <div className="min-h-screen bg-ink text-cream">
@@ -221,64 +181,78 @@ export default function Dealers() {
         </Reveal>
       </section>
 
-      {/* ═════════ 3D Globe & Dealer Network Panel ═════════ */}
+      {/* ═════════ 2D Interactive Map Section ═════════ */}
       <section className="mx-auto max-w-[1400px] px-4 pb-20 sm:px-6 lg:px-10">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
+        <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
           
-          {/* Globe Container */}
-          <div className="relative flex min-h-[550px] w-full items-center justify-center overflow-hidden rounded-2xl border border-gold/30 bg-[#0a0a0c] shadow-2xl backdrop-blur-md">
-            {GlobeComponent ? (
-              <GlobeComponent
-                ref={globeRef}
-                globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-                bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-                // Points Data (หมุดเรืองแสง)
-                pointsData={DEALERS_DATA}
-                pointLat="lat"
-                pointLng="lng"
-                pointColor={() => "#d4af37"}
-                pointAltitude={0.02}
-                pointRadius={0.6}
-                pointsMerge={false}
-                onPointClick={handlePointClick}
-                // Arcs Data (เส้นเชื่อมต่อสว่างสีทอง)
-                arcsData={ARCS_DATA}
-                arcStartLat="startLat"
-                arcStartLng="startLng"
-                arcEndLat="endLat"
-                arcEndLng="endLng"
-                arcColor="color"
-                arcAltitude={0.2}
-                arcStroke={1.2}
-                arcDashLength={0.5}
-                arcDashGap={0.2}
-                arcDashAnimateTime={2500}
-                // Rings Data (วงแหวนเรืองแสง)
-                ringsData={DEALERS_DATA}
-                ringLat="lat"
-                ringLng="lng"
-                ringColor={() => (t: number) => `rgba(212, 175, 55, ${1 - t})`}
-                ringMaxRadius={6}
-                ringPropagationSpeed={2}
-                ringRepeatPeriod={1500}
-                width={650}
-                height={550}
-                backgroundColor="rgba(0,0,0,0)"
-              />
-            ) : (
-              <div className="flex flex-col items-center gap-3 text-gold/80 animate-pulse">
-                <Compass className="h-8 w-8 animate-spin text-gold" />
-                <p className="text-xs tracking-wider">กำลังโหลด 3D Interactive Network Map...</p>
-              </div>
-            )}
+          {/* 2D World Map Container */}
+          <div className="relative min-h-[480px] w-full overflow-hidden rounded-2xl border border-gold/30 bg-[#0d0d11] p-4 shadow-2xl backdrop-blur-md flex flex-col justify-between">
+            
+            {/* SVG Interactive Map Area */}
+            <div className="relative h-[400px] w-full rounded-xl bg-gradient-to-b from-black/40 to-black/80 border border-white/5 overflow-hidden flex items-center justify-center">
+              
+              {/* World Map Vector Pattern */}
+              <svg className="absolute inset-0 h-full w-full opacity-25" viewBox="0 0 1000 500" fill="currentColor">
+                {/* Lines of Latitude & Longitude */}
+                <path d="M 0 100 H 1000 M 0 250 H 1000 M 0 400 H 1000" stroke="rgba(212,175,55,0.15)" strokeWidth="0.5" fill="none" />
+                <path d="M 250 0 V 500 M 500 0 V 500 M 750 0 V 500" stroke="rgba(212,175,55,0.15)" strokeWidth="0.5" fill="none" />
+              </svg>
 
-            <div className="pointer-events-none absolute bottom-4 left-4 rounded-full bg-black/80 px-4 py-2 text-xs text-gold border border-gold/30 backdrop-blur-md flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-gold animate-ping" />
-              หมุนลูกโลก 3D และคลิกจุดปักหมุดเพื่อดูร้านค้าตัวแทน
+              {/* Connecting Arcs from Thailand HQ to Global Dealers */}
+              <svg className="pointer-events-none absolute inset-0 h-full w-full">
+                {DEALERS_DATA.filter(d => d.id !== "thailand").map((d, i) => (
+                  <path
+                    key={i}
+                    d={`M ${DEALERS_DATA[0].x * 10} ${DEALERS_DATA[0].y * 4} Q ${(DEALERS_DATA[0].x + d.x) * 5} ${(DEALERS_DATA[0].y + d.y) * 1.8} ${d.x * 10} ${d.y * 4}`}
+                    fill="none"
+                    stroke="#d4af37"
+                    strokeWidth="1.5"
+                    strokeDasharray="4 4"
+                    className="opacity-40"
+                  />
+                ))}
+              </svg>
+
+              {/* Location Pins */}
+              {DEALERS_DATA.map((loc) => {
+                const isSelected = selectedLocation.id === loc.id;
+                return (
+                  <button
+                    key={loc.id}
+                    onClick={() => setSelectedLocation(loc)}
+                    style={{ left: `${loc.x}%`, top: `${loc.y}%` }}
+                    className="group absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-300 focus:outline-none"
+                  >
+                    {/* Pulsing Aura for Selected Pin */}
+                    {isSelected && (
+                      <span className="absolute -inset-2 rounded-full bg-gold/30 animate-ping" />
+                    )}
+
+                    {/* Pin Head */}
+                    <div className={`relative flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold shadow-lg transition-all ${
+                      isSelected
+                        ? "bg-gold text-ink scale-110 shadow-gold/50"
+                        : "bg-black/80 text-gold border border-gold/40 hover:bg-gold hover:text-ink hover:scale-105"
+                    }`}>
+                      <span>{loc.flag}</span>
+                      <span className="hidden sm:inline">{loc.country}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Map Instruction Footer */}
+            <div className="mt-3 flex items-center justify-between text-xs text-cream/60 px-2">
+              <span className="flex items-center gap-2 text-gold">
+                <span className="h-2 w-2 rounded-full bg-gold animate-pulse" />
+                คลิกที่หมุดบนแผนที่เพื่อดูข้อมูลร้านค้า
+              </span>
+              <span>Fonzo Authorized Global Network</span>
             </div>
           </div>
 
-          {/* Dealer Details Card */}
+          {/* Dealer Information Panel */}
           <div className="flex flex-col justify-between rounded-2xl border border-gold/30 bg-secondary/40 p-6 sm:p-8 backdrop-blur-md shadow-2xl">
             <div>
               {/* Header Info */}
@@ -303,14 +277,14 @@ export default function Dealers() {
                 )}
               </div>
 
-              {/* Country Selection Tabs */}
+              {/* Quick Navigation Filter Buttons */}
               <div className="mt-4 flex flex-wrap gap-2">
                 {DEALERS_DATA.map((loc) => {
                   const isSelected = selectedLocation.id === loc.id;
                   return (
                     <button
                       key={loc.id}
-                      onClick={() => handlePointClick(loc)}
+                      onClick={() => setSelectedLocation(loc)}
                       className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                         isSelected
                           ? "bg-gold text-ink font-bold shadow-md shadow-gold/20"
@@ -324,14 +298,18 @@ export default function Dealers() {
                 })}
               </div>
 
-              {/* Dealer List Cards */}
+              {/* Dealer Cards List */}
               <div className="mt-6 space-y-4 max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
                 {selectedLocation.dealers.map((dealer: any, idx: number) => (
                   <div
                     key={idx}
                     className="rounded-xl border border-cream/10 bg-ink/70 p-5 transition-all hover:border-gold/50"
                   >
-                    <h4 className="font-semibold text-gold text-base">{dealer.name}</h4>
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="font-semibold text-gold text-base">{dealer.name}</h4>
+                      <Store className="h-4 w-4 text-gold/60 shrink-0 mt-1" />
+                    </div>
+
                     <p className="mt-2 text-xs leading-relaxed text-cream/75">{dealer.address}</p>
 
                     <div className="mt-4 flex flex-wrap gap-3 border-t border-cream/10 pt-3 text-xs text-cream/80">
