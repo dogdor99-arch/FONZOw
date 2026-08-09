@@ -10,8 +10,8 @@ const DEALERS_DATA = [
     country: "Thailand",
     city: "Bangkok (HQ)",
     flag: "🇹🇭",
-    x: 76.5,
-    y: 52.0,
+    x: 77.0, // พิกัด % ปักหมุดบนแผนที่โลกจริง
+    y: 52.5,
     mainWeb: "https://www.fonzoguitar.com/",
     fb: "Fonzo Guitar",
     ig: "fonzoguitar",
@@ -29,8 +29,8 @@ const DEALERS_DATA = [
     country: "Japan",
     city: "Tokyo / Osaka / Fukuoka / Kobe",
     flag: "🇯🇵",
-    x: 87.0,
-    y: 38.0,
+    x: 88.0,
+    y: 36.0,
     mainWeb: "https://fonzoguitar.jp/",
     fb: "Fonzo Guitar Japan",
     ig: "fonzojapan",
@@ -81,7 +81,7 @@ const DEALERS_DATA = [
     country: "USA & Canada",
     city: "Austin, Texas",
     flag: "🇺🇸",
-    x: 23.0,
+    x: 23.5,
     y: 38.0,
     dealers: [
       {
@@ -97,7 +97,7 @@ const DEALERS_DATA = [
     country: "Australia",
     city: "Sydney, NSW",
     flag: "🇦🇺",
-    x: 87.0,
+    x: 87.5,
     y: 78.0,
     dealers: [
       {
@@ -115,7 +115,7 @@ const DEALERS_DATA = [
     country: "Taiwan",
     city: "Taichung City",
     flag: "🇹🇼",
-    x: 81.0,
+    x: 81.5,
     y: 47.0,
     ig: "fonzoguitartaiwan",
     dealers: [
@@ -132,7 +132,7 @@ const DEALERS_DATA = [
     country: "Hong Kong",
     city: "Kwun Tong",
     flag: "🇭🇰",
-    x: 78.5,
+    x: 79.2,
     y: 47.5,
     dealers: [
       {
@@ -149,7 +149,7 @@ const DEALERS_DATA = [
     country: "China",
     city: "Zhejiang / Xi'an / Chongqing",
     flag: "🇨🇳",
-    x: 74.0,
+    x: 75.5,
     y: 40.0,
     dealers: [
       { name: "原声吉他琴行", address: "Ping Chang Hua Fu, Sui Chang County, Li Shui, Zhe Jiang Province, China", tel: "+86 13735986951" },
@@ -180,58 +180,58 @@ export default function Dealers() {
         </Reveal>
       </section>
 
-      {/* ═════════ 2D Interactive Map Section ═════════ */}
+      {/* ═════════ Real 2D Vector World Map Section ═════════ */}
       <section className="mx-auto max-w-[1400px] px-4 pb-20 sm:px-6 lg:px-10">
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
           
-          {/* 2D World Map Container */}
-          <div className="relative min-h-[500px] w-full overflow-hidden rounded-2xl border border-gold/30 bg-[#121216] p-4 shadow-2xl backdrop-blur-md flex flex-col justify-between">
+          {/* Real World Map Container */}
+          <div className="relative min-h-[500px] w-full overflow-hidden rounded-2xl border border-gold/30 bg-[#0d0d12] p-4 shadow-2xl backdrop-blur-md flex flex-col justify-between">
             
-            {/* Map Canvas Box */}
-            <div className="relative h-[420px] w-full rounded-xl bg-[#0a0a0d] border border-white/5 overflow-hidden flex items-center justify-center">
+            {/* Real World Map Canvas */}
+            <div className="relative h-[420px] w-full rounded-xl bg-[#09090c] border border-white/5 overflow-hidden flex items-center justify-center">
               
-              {/* World Map Vector Silhouette (รูปแผ่นดินทวีปโลกจริงสีทองจาง) */}
-              <svg className="absolute inset-0 h-full w-full opacity-35" viewBox="0 0 1000 500" preserveAspectRatio="none">
-                {/* Grid Lines */}
-                <line x1="0" y1="125" x2="1000" y2="125" stroke="rgba(212,175,55,0.1)" strokeDasharray="4 4" />
-                <line x1="0" y1="250" x2="1000" y2="250" stroke="rgba(212,175,55,0.2)" />
-                <line x1="0" y1="375" x2="1000" y2="375" stroke="rgba(212,175,55,0.1)" strokeDasharray="4 4" />
-                <line x1="250" y1="0" x2="250" y2="500" stroke="rgba(212,175,55,0.1)" strokeDasharray="4 4" />
-                <line x1="500" y1="0" x2="500" y2="500" stroke="rgba(212,175,55,0.2)" />
-                <line x1="750" y1="0" x2="750" y2="500" stroke="rgba(212,175,55,0.1)" strokeDasharray="4 4" />
+              {/* รูปแผนที่โลกจริงแบบ HD Vector Map Background */}
+              <div 
+                className="absolute inset-0 h-full w-full bg-contain bg-center bg-no-repeat opacity-25 mix-blend-screen"
+                style={{
+                  backgroundImage: `url('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')`,
+                  filter: 'invert(1) sepia(1) saturate(5) hue-rotate(10deg)'
+                }}
+              />
 
-                {/* World Continents Paths */}
-                {/* North America */}
-                <path d="M 120,60 Q 200,40 280,80 Q 250,180 180,220 Q 100,160 120,60 Z" fill="#d4af37" opacity="0.25" />
-                {/* South America */}
-                <path d="M 260,250 Q 340,270 320,380 Q 270,440 240,350 Q 220,280 260,250 Z" fill="#d4af37" opacity="0.25" />
-                {/* Europe */}
-                <path d="M 450,60 Q 550,50 560,130 Q 480,160 450,110 Z" fill="#d4af37" opacity="0.25" />
-                {/* Africa */}
-                <path d="M 460,170 Q 580,180 560,340 Q 500,380 460,260 Z" fill="#d4af37" opacity="0.25" />
-                {/* Asia */}
-                <path d="M 570,60 Q 820,40 850,220 Q 720,280 600,200 Z" fill="#d4af37" opacity="0.3" />
-                {/* Australia */}
-                <path d="M 800,320 Q 900,310 890,410 Q 810,420 800,320 Z" fill="#d4af37" opacity="0.3" />
+              {/* Real World Grid Overlay */}
+              <svg className="absolute inset-0 h-full w-full opacity-20" viewBox="0 0 1000 500" preserveAspectRatio="none">
+                <line x1="0" y1="125" x2="1000" y2="125" stroke="#d4af37" strokeDasharray="4 4" />
+                <line x1="0" y1="250" x2="1000" y2="250" stroke="#d4af37" strokeWidth="1.5" />
+                <line x1="0" y1="375" x2="1000" y2="375" stroke="#d4af37" strokeDasharray="4 4" />
+                <line x1="250" y1="0" x2="250" y2="500" stroke="#d4af37" strokeDasharray="4 4" />
+                <line x1="500" y1="0" x2="500" y2="500" stroke="#d4af37" strokeWidth="1.5" />
+                <line x1="750" y1="0" x2="750" y2="500" stroke="#d4af37" strokeDasharray="4 4" />
               </svg>
 
-              {/* Connecting Arcs from Thailand HQ to Global Dealers */}
-              <svg className="pointer-events-none absolute inset-0 h-full w-full">
+              {/* Map SVG Image Fallback (แผนที่ทวีปโลกจริงสีทอง) */}
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg"
+                alt="World Map"
+                className="absolute inset-0 h-full w-full object-contain opacity-20 filter invert sepia saturate-200 hue-rotate-15 pointer-events-none"
+              />
+
+              {/* Connecting Golden Arcs */}
+              <svg className="pointer-events-none absolute inset-0 h-full w-full z-10">
                 {DEALERS_DATA.filter(d => d.id !== "thailand").map((d, i) => (
-                  <g key={i}>
-                    <path
-                      d={`M ${DEALERS_DATA[0].x * 10} ${DEALERS_DATA[0].y * 4.2} Q ${(DEALERS_DATA[0].x + d.x) * 5} ${(DEALERS_DATA[0].y + d.y) * 1.8} ${d.x * 10} ${d.y * 4.2}`}
-                      fill="none"
-                      stroke="#d4af37"
-                      strokeWidth="1.5"
-                      strokeDasharray="4 4"
-                      opacity="0.6"
-                    />
-                  </g>
+                  <path
+                    key={i}
+                    d={`M ${DEALERS_DATA[0].x * 10} ${DEALERS_DATA[0].y * 4.2} Q ${(DEALERS_DATA[0].x + d.x) * 5} ${(DEALERS_DATA[0].y + d.y) * 1.8} ${d.x * 10} ${d.y * 4.2}`}
+                    fill="none"
+                    stroke="#d4af37"
+                    strokeWidth="1.5"
+                    strokeDasharray="4 4"
+                    opacity="0.7"
+                  />
                 ))}
               </svg>
 
-              {/* Location Pins */}
+              {/* Location Pin Buttons */}
               {DEALERS_DATA.map((loc) => {
                 const isSelected = selectedLocation.id === loc.id;
                 return (
@@ -239,18 +239,18 @@ export default function Dealers() {
                     key={loc.id}
                     onClick={() => setSelectedLocation(loc)}
                     style={{ left: `${loc.x}%`, top: `${loc.y}%` }}
-                    className="group absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-300 focus:outline-none z-10"
+                    className="group absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-300 focus:outline-none z-20"
                   >
-                    {/* Pulsing Ring for Selected Pin */}
+                    {/* Ring Pulse Effect */}
                     {isSelected && (
-                      <span className="absolute -inset-3 rounded-full bg-gold/40 animate-ping" />
+                      <span className="absolute -inset-2.5 rounded-full bg-gold/50 animate-ping" />
                     )}
 
-                    {/* Pin Label */}
-                    <div className={`relative flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold shadow-xl transition-all ${
+                    {/* Pin Label Box */}
+                    <div className={`relative flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold shadow-2xl transition-all ${
                       isSelected
-                        ? "bg-gold text-ink scale-110 shadow-gold/60 ring-2 ring-gold/80"
-                        : "bg-black/85 text-gold border border-gold/50 hover:bg-gold hover:text-ink hover:scale-105"
+                        ? "bg-gold text-ink scale-110 shadow-gold/80 ring-2 ring-gold"
+                        : "bg-black/90 text-gold border border-gold/60 hover:bg-gold hover:text-ink hover:scale-105"
                     }`}>
                       <span className="text-sm">{loc.flag}</span>
                       <span>{loc.country}</span>
@@ -262,9 +262,9 @@ export default function Dealers() {
 
             {/* Map Footer */}
             <div className="mt-3 flex items-center justify-between text-xs text-cream/70 px-2">
-              <span className="flex items-center gap-2 text-gold">
+              <span className="flex items-center gap-2 text-gold font-medium">
                 <span className="h-2.5 w-2.5 rounded-full bg-gold animate-pulse" />
-                คลิกปุ่มปักหมุดประเทศบนแผนที่เพื่อดูรายชื่อตัวแทน
+                คลิกที่หมุดบนแผนที่โลกเพื่อดูรายชื่อโชว์รูมและตัวแทนจำหน่าย
               </span>
               <span className="text-cream/40">Fonzo Global Dealer Network</span>
             </div>
