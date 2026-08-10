@@ -11,14 +11,14 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
-  // 1. Direct Login Endpoint สำหรับทีมงาน/ผู้ดูแลระบบ
+  // Direct Login Endpoint สำหรับทีมงาน/ผู้ดูแลระบบ
   app.get(["/api/oauth/login", "/api/login"], async (req: Request, res: Response) => {
     try {
       const adminOpenId = "fonzo_admin_staff";
       const adminName = "Fonzo Admin";
       const adminEmail = "admin@fonzoguitar.com";
 
-      // อัปเดตข้อมูลผู้ใช้ในฐานข้อมูลและกำหนดสิทธิ์เป็น admin
+      // 1. บันทึก/อัปเดตผู้ใช้ลงฐานข้อมูล
       try {
         await db.upsertUser({
           openId: adminOpenId,
@@ -32,17 +32,31 @@ export function registerOAuthRoutes(app: Express) {
         console.warn("[OAuth] db.upsertUser warning:", dbErr);
       }
 
-      // สร้าง Session Token สำหรับเข้าใช้งานระบบ
+      // 2. ยืนยันสิทธิ์ role เป็น 'admin' ลงฐานข้อมูลโดยตรงเพื่อความชัวร์ 100%
+      if (typeof (db as any).getDb === "function") {
+        try {
+          const database = await (db as any).getDb();
+          if (database && typeof database.execute === "function") {
+            await database.execute(
+              `UPDATE users SET role = 'admin' WHERE open_id = '${adminOpenId}' OR email = '${adminEmail}'`
+            );
+          }
+        } catch (e) {
+          console.warn("[OAuth] Direct SQL role update warning:", e);
+        }
+      }
+
+      // 3. สร้าง Session Token
       const sessionToken = await sdk.createSessionToken(adminOpenId, {
         name: adminName,
         expiresInMs: ONE_YEAR_MS,
       });
 
-      // ฝัง Session Cookie ลงในเบราว์เซอร์
+      // 4. ฝัง Session Cookie ให้เบราว์เซอร์
       const cookieOptions = getSessionCookieOptions(req);
-      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, path: "/", maxAge: ONE_YEAR_MS });
 
-      // Redirect ตรงเข้าสู่หน้าจัดการร้าน /admin ทันที
+      // 5. ส่งกลับไปหน้า /admin
       return res.redirect(302, "/admin");
     } catch (error) {
       console.error("[OAuth] Login failed:", error);
@@ -50,7 +64,7 @@ export function registerOAuthRoutes(app: Express) {
     }
   });
 
-  // 2. Callback Endpoint
+  // Callback Endpoint
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
@@ -91,7 +105,7 @@ export function registerOAuthRoutes(app: Express) {
       });
 
       const cookieOptions = getSessionCookieOptions(req);
-      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, path: "/", maxAge: ONE_YEAR_MS });
 
       return res.redirect(302, "/admin");
     } catch (error) {
