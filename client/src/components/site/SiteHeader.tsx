@@ -10,7 +10,9 @@ export function SiteHeader() {
         
         {/* Brand Logo & Name */}
         <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
-          <img src="/fonzo-logo.png" alt="Fonzo Logo" className="h-8 w-auto object-contain" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-gold/60 bg-black/80 shadow-inner">
+            <span className="font-serif text-xl font-black text-gold tracking-tighter">F</span>
+          </div>
           <span className="font-display text-xl tracking-wider text-cream">Fonzo Guitar</span>
         </Link>
 

@@ -192,10 +192,10 @@ export default function Dealers() {
         <div className="relative min-h-[580px] w-full overflow-hidden rounded-2xl border border-gold/30 bg-[#09090c] p-4 shadow-2xl backdrop-blur-md flex flex-col justify-between">
           
           {/* Map Viewport Area */}
-          <div className="relative h-[500px] w-full rounded-xl bg-[#0d0d12] border border-white/5 overflow-hidden flex items-center justify-center">
+          <div className="relative h-[500px] w-full rounded-xl bg-[#0d0d12] border border-white/5 overflow-visible flex items-center justify-center">
             
             {/* SVG Container ความละเอียดสูง 1000x500 */}
-            <svg className="h-full w-full" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
+            <svg className="h-full w-full overflow-visible" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
               
               {/* Background Image: ภาพแผนที่โลก Equirectangular สเกลเป๊ะ */}
               <image
@@ -252,8 +252,9 @@ export default function Dealers() {
                   >
                     <div className="group relative flex h-full w-full items-center justify-center">
                       
-                      {/* Hover Popover Box */}
-                      <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:flex flex-col items-center z-50 transition-all duration-300 animate-in fade-in slide-in-from-bottom-2">
+                      {/* Hover Popover Box (เด้งลงด้านล่างของหมุด เพื่อป้องกันการหลุดขอบบน) */}
+                      <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-3 hidden group-hover:flex flex-col items-center z-50 transition-all duration-300 animate-in fade-in slide-in-from-top-2">
+                        <div className="h-2 w-2 rotate-45 bg-[#121216] border-l border-t border-gold/50 -mb-1 z-10" />
                         <div className="w-[300px] sm:w-[330px] rounded-2xl bg-[#121216]/95 border border-gold/60 p-5 shadow-2xl backdrop-blur-xl pointer-events-auto text-left">
                           
                           {/* Popover Header */}
@@ -310,15 +311,13 @@ export default function Dealers() {
                           </div>
 
                         </div>
-                        {/* Arrow Indicator */}
-                        <div className="h-2 w-2 rotate-45 bg-[#121216] border-r border-b border-gold/50 -mt-1" />
                       </div>
 
-                      {/* Official Fonzo Logo Pin Crest Button (Vector SVG) */}
-                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/80 bg-black/90 p-1 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none group/btn">
-                        <svg className="h-5 w-5 fill-gold transition-colors group-hover/btn:fill-ink" viewBox="0 0 24 24">
-                          <path d="M19.5 3.5C18 3.5 15.5 4.2 13.8 5.5C13 6.1 12.3 6.9 11.8 7.8C11.5 7.2 11.1 6.6 10.5 6.1C9.2 5 7.3 4.5 5.5 4.5C4 4.5 2.5 4.9 1.5 5.5L2 7.5C2.8 7 3.9 6.7 5.2 6.7C6.6 6.7 8 7.1 9 7.9C10.2 8.9 10.8 10.3 10.8 11.8V19.5C10.8 20.3 10.2 21 9.5 21C8.8 21 8.2 20.3 8.2 19.5V14.5C8.2 13 7.2 11.8 5.8 11.5C4.2 11.2 2.8 12.2 2.5 13.8C2.4 14.2 2.3 14.8 2.3 15.3C2.3 18.5 4.8 21 8 21C11.3 21 13.8 18.5 13.8 15.3V12.8C14.5 11.5 15.8 10.5 17.3 10.1C18.2 9.8 19.2 9.8 20.1 10.1L21 8.2C19.8 7.7 18.5 7.5 17.2 7.8C16.2 8 15.2 8.5 14.3 9.3V8.2C15.5 7 17.2 6.2 19 6.2C20.1 6.2 21.2 6.5 22 7L22.8 5.1C21.8 4.1 20.7 3.5 19.5 3.5Z"/>
-                        </svg>
+                      {/* Official Fonzo Logo Pin Crest Button */}
+                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/80 bg-black/90 p-1 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none">
+                        <span className="font-serif font-black text-sm text-gold tracking-tighter">
+                          F
+                        </span>
                       </button>
 
                     </div>
