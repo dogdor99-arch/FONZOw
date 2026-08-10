@@ -1,55 +1,84 @@
-import "dotenv/config";
-import express from "express";
-import { createServer } from "http";
-import path from "path";
-import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./oauth";
-import { registerStorageProxy } from "./storageProxy";
-import { registerFonzoMediaProxy } from "./fonzoMedia";
-import { registerSocialMediaProxy } from "./socialMedia";
-import { appRouter } from "../routers";
-import { createContext } from "./context";
-import { serveStatic, setupVite } from "./vite";
+import { COOKIE_NAME, ONE_YEAR_MS, OAUTH_STATE_COOKIE, decodeOAuthState } from "@shared/const";
+import { parse as parseCookieHeader } from "cookie";
+import type { Express, Request, Response } from "express";
+import * as db from "../db";
+import { getSessionCookieOptions } from "./cookies";
+import { sdk } from "./sdk";
 
-async function startServer() {
-  const app = express();
-  const server = createServer(app);
-
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
-
-  registerStorageProxy(app);
-  registerOAuthRoutes(app);
-  registerFonzoMediaProxy(app);
-  registerSocialMediaProxy(app);
-
-  app.use(
-    "/api/trpc",
-    createExpressMiddleware({
-      router: appRouter,
-      createContext,
-    })
-  );
-
-  if (process.env.NODE_ENV === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-
-    app.get("*", (req, res) => {
-      res.sendFile(path.resolve(process.cwd(), "dist/public/index.html"), (err) => {
-        if (err) {
-          res.sendFile(path.resolve(process.cwd(), "client/dist/index.html"));
-        }
-      });
-    });
-  }
-
-  const port = parseInt(process.env.PORT || "3000", 10);
-
-  server.listen(port, "0.0.0.0", () => {
-    console.log(`Server running on port ${port}`);
-  });
+function getQueryParam(req: Request, key: string): string | undefined {
+  const value = req.query[key];
+  return typeof value === "string" ? value : undefined;
 }
 
-startServer().catch(console.error);
+export function registerOAuthRoutes(app: Express) {
+  app.get(["/api/oauth/login", "/api/login"], async (req: Request, res: Response) => {
+    try {
+      if (typeof sdk?.getAuthorizationUrl === "function") {
+        const { url, stateCookie } = await sdk.getAuthorizationUrl();
+        const cookieOptions = getSessionCookieOptions(req);
+        res.cookie(OAUTH_STATE_COOKIE, stateCookie.value, {
+          ...cookieOptions,
+          maxAge: stateCookie.maxAge,
+        });
+        return res.redirect(302, url);
+      }
+      
+      const authUrl = (process.env.VITE_OAUTH_PORTAL_URL || "https://fonzow.onrender.com").trim();
+      res.redirect(302, authUrl);
+    } catch (error) {
+      console.error("[OAuth] Failed to generate login URL", error);
+      const authUrl = (process.env.VITE_OAUTH_PORTAL_URL || "https://fonzow.onrender.com").trim();
+      res.redirect(302, authUrl);
+    }
+  });
+
+  app.get("/api/oauth/callback", async (req: Request, res: Response) => {
+    const code = getQueryParam(req, "code");
+    const state = getQueryParam(req, "state");
+
+    if (!code || !state) {
+      res.status(400).json({ error: "code and state are required" });
+      return;
+    }
+
+    const { nonce } = decodeOAuthState(state);
+    const expectedNonce = parseCookieHeader(req.headers.cookie ?? "")[OAUTH_STATE_COOKIE];
+    if (!nonce || nonce !== expectedNonce) {
+      res.status(403).json({ error: "invalid oauth state" });
+      return;
+    }
+    res.clearCookie(OAUTH_STATE_COOKIE, { path: "/", secure: true, sameSite: "none" });
+
+    try {
+      const tokenResponse = await sdk.exchangeCodeForToken(code, state);
+      const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
+
+      if (!userInfo.openId) {
+        res.status(400).json({ error: "openId missing from user info" });
+        return;
+      }
+
+      await db.upsertUser({
+        openId: userInfo.openId,
+        name: userInfo.name || null,
+        email: userInfo.email ?? null,
+        loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
+        lastSignedIn: new Date(),
+      });
+
+      const sessionToken = await sdk.createSessionToken(userInfo.openId, {
+        name: userInfo.name || "",
+        expiresInMs: ONE_YEAR_MS,
+      });
+
+      const cookieOptions = getSessionCookieOptions(req);
+      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+
+      // พาผู้ใช้ตรงไปที่หน้าจัดการร้านทันทีหลังล็อกอินสำเร็จ
+      res.redirect(302, "/admin");
+    } catch (error) {
+      console.error("[OAuth] Callback failed", error);
+      res.status(500).json({ error: "OAuth callback failed" });
+    }
+  });
+}
