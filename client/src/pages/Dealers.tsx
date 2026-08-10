@@ -3,7 +3,6 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { Reveal } from "@/components/site/Reveal";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { MapPin, Phone, Mail, Globe as GlobeIcon, ExternalLink, Store } from "lucide-react";
-import { FonzoCrestLogo } from "@/components/site/SiteHeader";
 
 // ฟังก์ชันแปลง ละติจูด/ลองจิจูด เป็น พิกัด X, Y บนแผนที่สเกล 1000x500
 function convertGeoToPixel(lat: number, lng: number) {
@@ -314,9 +313,13 @@ export default function Dealers() {
                         </div>
                       </div>
 
-                      {/* Fonzo Crest Logo Pin Crest Button */}
-                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/80 bg-black/90 p-1.5 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none group/btn">
-                        <FonzoCrestLogo className="h-5 w-auto text-gold group-hover/btn:text-ink transition-colors" />
+                      {/* Fonzo Official Logo Crest Pin Button */}
+                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold bg-black/90 p-1.5 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none">
+                        <img 
+                          src="/fonzo-logo.png" 
+                          alt="Fonzo Logo" 
+                          className="h-full w-full object-contain filter brightness-0 invert" 
+                        />
                       </button>
 
                     </div>
