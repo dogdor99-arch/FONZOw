@@ -7,7 +7,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LocaleProvider } from "./contexts/LocaleContext";
 import { SiteLayout } from "./components/site/SiteLayout";
-import { startLogin } from "@/const";
 
 import Home from "./pages/Home";
 import Founder from "./pages/Founder";
@@ -55,19 +54,6 @@ function Router() {
       <Route path="/orders/track" component={TrackOrder} />
       <Route path="/orders/confirm" component={OrderConfirm} />
       <Route path="/admin" component={Admin} />
-      
-      {/* Route สำหรับจัดการหน้า Login */}
-      <Route path="/login">
-        {() => {
-          if (typeof startLogin === "function") {
-            startLogin();
-          } else {
-            window.location.href = "/api/oauth/login";
-          }
-          return null;
-        }}
-      </Route>
-
       <Route path="/marketplace" component={Marketplace} />
       <Route path="/marketplace/new" component={MarketplaceNew} />
       <Route path="/marketplace/my-listings" component={MyListings} />

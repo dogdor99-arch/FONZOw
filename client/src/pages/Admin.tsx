@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
 import { PageHeading } from "@/components/site/SiteLayout";
 import { NewsroomAdmin } from "@/components/site/NewsroomAdmin";
 import { Button } from "@/components/ui/button";
@@ -54,18 +53,6 @@ export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
   const [tab, setTab] = useState<Tab>("orders");
 
-  const handleLoginClick = () => {
-    try {
-      if (typeof startLogin === "function") {
-        startLogin();
-      } else {
-        window.location.href = "/api/auth/login";
-      }
-    } catch {
-      window.location.href = "/api/auth/login";
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -89,7 +76,9 @@ export default function Admin() {
           </p>
           <Button
             type="button"
-            onClick={handleLoginClick}
+            onClick={() => {
+              window.location.href = "/api/oauth/login";
+            }}
             className="press mt-6 h-11 rounded-none bg-brand px-8 text-[11px] tracking-[0.18em] text-brand-foreground uppercase">
             {t("เข้าสู่ระบบ", "Sign in")}
           </Button>
