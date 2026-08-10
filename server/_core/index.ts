@@ -3,7 +3,7 @@ import express from "express";
 import { createServer } from "http";
 import path from "path";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./oauth";
+import { registerOAuthRoutes } from "./_core/oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { registerFonzoMediaProxy } from "./fonzoMedia";
 import { registerSocialMediaProxy } from "./socialMedia";

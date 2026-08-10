@@ -23,11 +23,11 @@ export function registerOAuthRoutes(app: Express) {
         return res.redirect(302, url);
       }
       
-      const authUrl = process.env.VITE_OAUTH_PORTAL_URL || "/";
+      const authUrl = (process.env.VITE_OAUTH_PORTAL_URL || "https://fonzow.onrender.com").trim();
       res.redirect(302, authUrl);
     } catch (error) {
       console.error("[OAuth] Failed to generate login URL", error);
-      const authUrl = process.env.VITE_OAUTH_PORTAL_URL || "/";
+      const authUrl = (process.env.VITE_OAUTH_PORTAL_URL || "https://fonzow.onrender.com").trim();
       res.redirect(302, authUrl);
     }
   });
@@ -74,6 +74,7 @@ export function registerOAuthRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
+      // แก้ไขตรงนี้ให้พาไปที่หน้า admin ทันทีหลังล็อกอินสำเร็จ
       res.redirect(302, "/admin");
     } catch (error) {
       console.error("[OAuth] Callback failed", error);
