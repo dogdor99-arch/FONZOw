@@ -314,11 +314,13 @@ export default function Dealers() {
                         <div className="h-2 w-2 rotate-45 bg-[#121216] border-r border-b border-gold/50 -mt-1" />
                       </div>
 
-                      {/* Logo Pin Crest Button */}
-                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/70 bg-black/90 text-gold shadow-2xl transition-all duration-300 hover:bg-gold hover:text-ink hover:scale-125 hover:border-white focus:outline-none">
-                        <span className="font-serif font-black text-sm tracking-tighter">
-                          F
-                        </span>
+                      {/* Official Fonzo Logo Pin Crest Button */}
+                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/70 bg-black/90 p-1.5 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none">
+                        <img 
+                          src="/fonzo-logo.png" 
+                          alt="Fonzo Crest" 
+                          className="h-full w-full object-contain filter drop-shadow brightness-0 invert hover:brightness-100 hover:invert-0 transition-all" 
+                        />
                       </button>
 
                     </div>
