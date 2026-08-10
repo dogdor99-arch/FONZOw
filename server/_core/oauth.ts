@@ -11,27 +11,27 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
-  // 1. เพิ่ม Endpoint สำหรับเริ่มต้นกระบวนการ เข้าสู่ระบบ
   app.get(["/api/oauth/login", "/api/login"], async (req: Request, res: Response) => {
     try {
-      const { url, stateCookie } = await sdk.getAuthorizationUrl();
-
-      // บันทึก State Cookie เพื่อใช้ตรวจสอบป้องกัน CSRF
-      const cookieOptions = getSessionCookieOptions(req);
-      res.cookie(OAUTH_STATE_COOKIE, stateCookie.value, {
-        ...cookieOptions,
-        maxAge: stateCookie.maxAge,
-      });
-
-      // Redirect ผู้ใช้งานไปยัง OAuth Authorization Provider
-      res.redirect(302, url);
+      if (typeof sdk?.getAuthorizationUrl === "function") {
+        const { url, stateCookie } = await sdk.getAuthorizationUrl();
+        const cookieOptions = getSessionCookieOptions(req);
+        res.cookie(OAUTH_STATE_COOKIE, stateCookie.value, {
+          ...cookieOptions,
+          maxAge: stateCookie.maxAge,
+        });
+        return res.redirect(302, url);
+      }
+      
+      const authUrl = process.env.VITE_OAUTH_PORTAL_URL || "/";
+      res.redirect(302, authUrl);
     } catch (error) {
       console.error("[OAuth] Failed to generate login URL", error);
-      res.status(500).json({ error: "Failed to initiate login process" });
+      const authUrl = process.env.VITE_OAUTH_PORTAL_URL || "/";
+      res.redirect(302, authUrl);
     }
   });
 
-  // 2. OAuth Callback Endpoint เดิม
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
