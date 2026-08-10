@@ -11,6 +11,23 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
+  // 1. เพิ่ม Route สำหรับการกดปุ่มเข้าสู่ระบบ
+  app.get("/api/oauth/login", async (req: Request, res: Response) => {
+    try {
+      const { url, stateCookie } = await sdk.getAuthorizationUrl();
+      const cookieOptions = getSessionCookieOptions(req);
+      res.cookie(OAUTH_STATE_COOKIE, stateCookie.value, {
+        ...cookieOptions,
+        maxAge: stateCookie.maxAge,
+      });
+      res.redirect(302, url);
+    } catch (error) {
+      console.error("[OAuth] Failed to initiate login process", error);
+      res.status(500).json({ error: "Failed to initiate login process" });
+    }
+  });
+
+  // 2. Route สำหรับรับ Callback หลังยืนยันตัวตนสำเร็จ
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
@@ -53,7 +70,7 @@ export function registerOAuthRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
-      // พาผู้ใช้ตรงไปที่หน้าจัดการร้านทันทีหลังล็อกอินสำเร็จ
+      // ล็อกอินเสร็จส่งกลับไปหน้า /admin ทันที
       res.redirect(302, "/admin");
     } catch (error) {
       console.error("[OAuth] Callback failed", error);
