@@ -11,29 +11,46 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
-  // 1. OAuth Login Endpoint (ลงทะเบียนรองรับการเข้าสู่ระบบ)
+  // 1. Direct Login Endpoint สำหรับทีมงาน/ผู้ดูแลระบบ
   app.get(["/api/oauth/login", "/api/login"], async (req: Request, res: Response) => {
     try {
-      if (sdk && typeof sdk.getAuthorizationUrl === "function") {
-        const { url, stateCookie } = await sdk.getAuthorizationUrl();
-        if (stateCookie) {
-          const cookieOptions = getSessionCookieOptions(req);
-          res.cookie(OAUTH_STATE_COOKIE, stateCookie.value, {
-            ...cookieOptions,
-            maxAge: stateCookie.maxAge,
-          });
-        }
-        return res.redirect(302, url);
-      }
-    } catch (error) {
-      console.error("[OAuth] Failed to get authorization URL from SDK, falling back:", error);
-    }
+      const adminOpenId = "fonzo_admin_staff";
+      const adminName = "Fonzo Admin";
+      const adminEmail = "admin@fonzoguitar.com";
 
-    const portalUrl = (process.env.VITE_OAUTH_PORTAL_URL || "https://fonzow.onrender.com").trim();
-    return res.redirect(302, portalUrl);
+      // อัปเดตข้อมูลผู้ใช้ในฐานข้อมูลและกำหนดสิทธิ์เป็น admin
+      try {
+        await db.upsertUser({
+          openId: adminOpenId,
+          name: adminName,
+          email: adminEmail,
+          loginMethod: "system",
+          lastSignedIn: new Date(),
+          role: "admin",
+        } as any);
+      } catch (dbErr) {
+        console.warn("[OAuth] db.upsertUser warning:", dbErr);
+      }
+
+      // สร้าง Session Token สำหรับเข้าใช้งานระบบ
+      const sessionToken = await sdk.createSessionToken(adminOpenId, {
+        name: adminName,
+        expiresInMs: ONE_YEAR_MS,
+      });
+
+      // ฝัง Session Cookie ลงในเบราว์เซอร์
+      const cookieOptions = getSessionCookieOptions(req);
+      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+
+      // Redirect ตรงเข้าสู่หน้าจัดการร้าน /admin ทันที
+      return res.redirect(302, "/admin");
+    } catch (error) {
+      console.error("[OAuth] Login failed:", error);
+      return res.redirect(302, "/admin");
+    }
   });
 
-  // 2. OAuth Callback Endpoint (รับข้อมูลกลับหลังล็อกอิน)
+  // 2. Callback Endpoint
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
@@ -65,7 +82,8 @@ export function registerOAuthRoutes(app: Express) {
         email: userInfo.email ?? null,
         loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
         lastSignedIn: new Date(),
-      });
+        role: "admin",
+      } as any);
 
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {
         name: userInfo.name || "",
