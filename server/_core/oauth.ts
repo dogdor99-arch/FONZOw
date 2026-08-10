@@ -11,27 +11,6 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
-  app.get(["/api/oauth/login", "/api/login"], async (req: Request, res: Response) => {
-    try {
-      if (sdk && typeof sdk.getAuthorizationUrl === "function") {
-        const { url, stateCookie } = await sdk.getAuthorizationUrl();
-        const cookieOptions = getSessionCookieOptions(req);
-        res.cookie(OAUTH_STATE_COOKIE, stateCookie.value, {
-          ...cookieOptions,
-          maxAge: stateCookie.maxAge,
-        });
-        return res.redirect(302, url);
-      }
-      
-      const authUrl = (process.env.VITE_OAUTH_PORTAL_URL || "https://fonzow.onrender.com").trim();
-      return res.redirect(302, authUrl);
-    } catch (error) {
-      console.error("[OAuth] Failed to generate login URL", error);
-      const authUrl = (process.env.VITE_OAUTH_PORTAL_URL || "https://fonzow.onrender.com").trim();
-      return res.redirect(302, authUrl);
-    }
-  });
-
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
@@ -41,15 +20,15 @@ export function registerOAuthRoutes(app: Express) {
       return;
     }
 
-    try {
-      const { nonce } = decodeOAuthState(state);
-      const expectedNonce = parseCookieHeader(req.headers.cookie ?? "")[OAUTH_STATE_COOKIE];
-      if (!nonce || nonce !== expectedNonce) {
-        res.status(403).json({ error: "invalid oauth state" });
-        return;
-      }
-      res.clearCookie(OAUTH_STATE_COOKIE, { path: "/", secure: true, sameSite: "none" });
+    const { nonce } = decodeOAuthState(state);
+    const expectedNonce = parseCookieHeader(req.headers.cookie ?? "")[OAUTH_STATE_COOKIE];
+    if (!nonce || nonce !== expectedNonce) {
+      res.status(403).json({ error: "invalid oauth state" });
+      return;
+    }
+    res.clearCookie(OAUTH_STATE_COOKIE, { path: "/", secure: true, sameSite: "none" });
 
+    try {
       const tokenResponse = await sdk.exchangeCodeForToken(code, state);
       const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
 
@@ -74,6 +53,7 @@ export function registerOAuthRoutes(app: Express) {
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
+      // พาผู้ใช้ตรงไปที่หน้าจัดการร้านทันทีหลังล็อกอินสำเร็จ
       res.redirect(302, "/admin");
     } catch (error) {
       console.error("[OAuth] Callback failed", error);
