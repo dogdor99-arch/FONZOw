@@ -11,14 +11,14 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
-  // Direct Login Endpoint สำหรับทีมงาน/ผู้ดูแลระบบ
+  // Direct Login Endpoint สำหรับทีมงาน
   app.get(["/api/oauth/login", "/api/login"], async (req: Request, res: Response) => {
     try {
       const adminOpenId = "fonzo_admin_staff";
       const adminName = "Fonzo Admin";
       const adminEmail = "admin@fonzoguitar.com";
 
-      // 1. บันทึก/อัปเดตผู้ใช้ลงฐานข้อมูล
+      // 1. บันทึก/อัปเดตผู้ใช้ผ่าน Drizzle ORM
       try {
         await db.upsertUser({
           openId: adminOpenId,
@@ -32,31 +32,24 @@ export function registerOAuthRoutes(app: Express) {
         console.warn("[OAuth] db.upsertUser warning:", dbErr);
       }
 
-      // 2. ยืนยันสิทธิ์ role เป็น 'admin' ลงฐานข้อมูลโดยตรงเพื่อความชัวร์ 100%
-      if (typeof (db as any).getDb === "function") {
-        try {
-          const database = await (db as any).getDb();
-          if (database && typeof database.execute === "function") {
-            await database.execute(
-              `UPDATE users SET role = 'admin' WHERE open_id = '${adminOpenId}' OR email = '${adminEmail}'`
-            );
-          }
-        } catch (e) {
-          console.warn("[OAuth] Direct SQL role update warning:", e);
-        }
-      }
-
-      // 3. สร้าง Session Token
+      // 2. สร้าง Session Token โดยส่ง Payload ครบถ้วน (แก้ปัญหา Payload missing)
       const sessionToken = await sdk.createSessionToken(adminOpenId, {
+        openId: adminOpenId,
         name: adminName,
+        email: adminEmail,
+        role: "admin",
         expiresInMs: ONE_YEAR_MS,
       });
 
-      // 4. ฝัง Session Cookie ให้เบราว์เซอร์
+      // 3. ฝัง Session Cookie ให้เบราว์เซอร์
       const cookieOptions = getSessionCookieOptions(req);
-      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, path: "/", maxAge: ONE_YEAR_MS });
+      res.cookie(COOKIE_NAME, sessionToken, {
+        ...cookieOptions,
+        path: "/",
+        maxAge: ONE_YEAR_MS,
+      });
 
-      // 5. ส่งกลับไปหน้า /admin
+      // 4. พาไปที่หน้าจัดการร้าน /admin
       return res.redirect(302, "/admin");
     } catch (error) {
       console.error("[OAuth] Login failed:", error);
@@ -100,12 +93,19 @@ export function registerOAuthRoutes(app: Express) {
       } as any);
 
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {
+        openId: userInfo.openId,
         name: userInfo.name || "",
+        email: userInfo.email ?? "",
+        role: "admin",
         expiresInMs: ONE_YEAR_MS,
       });
 
       const cookieOptions = getSessionCookieOptions(req);
-      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, path: "/", maxAge: ONE_YEAR_MS });
+      res.cookie(COOKIE_NAME, sessionToken, {
+        ...cookieOptions,
+        path: "/",
+        maxAge: ONE_YEAR_MS,
+      });
 
       return res.redirect(302, "/admin");
     } catch (error) {
