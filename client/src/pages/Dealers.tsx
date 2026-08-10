@@ -223,7 +223,7 @@ export default function Dealers() {
                 {DEALERS_DATA.filter((d) => d.id !== "thailand").map((d, i) => {
                   const targetPos = convertGeoToPixel(d.lat, d.lng);
                   const controlX = (HQ_POS.x + targetPos.x) / 2;
-                  const controlY = Math.min(HQ_POS.y, targetPos.y) - 60; // ปรับความโค้งของเส้น
+                  const controlY = Math.min(HQ_POS.y, targetPos.y) - 60;
                   return (
                     <path
                       key={i}
@@ -314,13 +314,11 @@ export default function Dealers() {
                         <div className="h-2 w-2 rotate-45 bg-[#121216] border-r border-b border-gold/50 -mt-1" />
                       </div>
 
-                      {/* Official Fonzo Logo Pin Crest Button */}
-                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/70 bg-black/90 p-1.5 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none">
-                        <img 
-                          src="/fonzo-logo.png" 
-                          alt="Fonzo Crest" 
-                          className="h-full w-full object-contain filter drop-shadow brightness-0 invert hover:brightness-100 hover:invert-0 transition-all" 
-                        />
+                      {/* Official Fonzo Logo Pin Crest Button (Vector SVG) */}
+                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/80 bg-black/90 p-1 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none group/btn">
+                        <svg className="h-5 w-5 fill-gold transition-colors group-hover/btn:fill-ink" viewBox="0 0 24 24">
+                          <path d="M19.5 3.5C18 3.5 15.5 4.2 13.8 5.5C13 6.1 12.3 6.9 11.8 7.8C11.5 7.2 11.1 6.6 10.5 6.1C9.2 5 7.3 4.5 5.5 4.5C4 4.5 2.5 4.9 1.5 5.5L2 7.5C2.8 7 3.9 6.7 5.2 6.7C6.6 6.7 8 7.1 9 7.9C10.2 8.9 10.8 10.3 10.8 11.8V19.5C10.8 20.3 10.2 21 9.5 21C8.8 21 8.2 20.3 8.2 19.5V14.5C8.2 13 7.2 11.8 5.8 11.5C4.2 11.2 2.8 12.2 2.5 13.8C2.4 14.2 2.3 14.8 2.3 15.3C2.3 18.5 4.8 21 8 21C11.3 21 13.8 18.5 13.8 15.3V12.8C14.5 11.5 15.8 10.5 17.3 10.1C18.2 9.8 19.2 9.8 20.1 10.1L21 8.2C19.8 7.7 18.5 7.5 17.2 7.8C16.2 8 15.2 8.5 14.3 9.3V8.2C15.5 7 17.2 6.2 19 6.2C20.1 6.2 21.2 6.5 22 7L22.8 5.1C21.8 4.1 20.7 3.5 19.5 3.5Z"/>
+                        </svg>
                       </button>
 
                     </div>
