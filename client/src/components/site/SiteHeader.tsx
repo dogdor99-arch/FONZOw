@@ -1,6 +1,5 @@
 import { Link } from "wouter";
 import { useLocale } from "@/contexts/LocaleContext";
-import fonzoLogo from "/fonzo-logo.png"; // Import รูปภาพโดยตรง
 
 export function SiteHeader() {
   const { t, locale, setLocale } = useLocale();
@@ -12,7 +11,7 @@ export function SiteHeader() {
         {/* Brand Logo & Name */}
         <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
           <img 
-            src={fonzoLogo} 
+            src="/fonzo-logo.png" 
             alt="Fonzo Logo" 
             className="h-8 w-auto object-contain filter brightness-0 invert drop-shadow" 
           />
