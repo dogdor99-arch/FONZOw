@@ -3,7 +3,6 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { Reveal } from "@/components/site/Reveal";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { MapPin, Phone, Mail, Globe as GlobeIcon, ExternalLink, Store } from "lucide-react";
-import fonzoLogo from "/fonzo-logo.png"; // Import รูปภาพโดยตรง
 
 function convertGeoToPixel(lat: number, lng: number) {
   const x = ((lng + 180) * 1000) / 360;
@@ -298,7 +297,7 @@ export default function Dealers() {
                       {/* Pins Image */}
                       <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/80 bg-black/90 p-1.5 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none">
                         <img 
-                          src={fonzoLogo} 
+                          src="/fonzo-logo.png" 
                           alt="Fonzo Pin Logo" 
                           className="h-full w-full object-contain filter brightness-0 invert" 
                         />
