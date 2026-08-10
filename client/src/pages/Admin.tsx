@@ -54,6 +54,18 @@ export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
   const [tab, setTab] = useState<Tab>("orders");
 
+  const handleLoginClick = () => {
+    try {
+      if (typeof startLogin === "function") {
+        startLogin();
+      } else {
+        window.location.href = "/api/auth/login";
+      }
+    } catch {
+      window.location.href = "/api/auth/login";
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -76,7 +88,8 @@ export default function Admin() {
             {t("กรุณาเข้าสู่ระบบด้วยบัญชีทีมงาน", "Please sign in with a staff account.")}
           </p>
           <Button
-            onClick={() => startLogin()}
+            type="button"
+            onClick={handleLoginClick}
             className="press mt-6 h-11 rounded-none bg-brand px-8 text-[11px] tracking-[0.18em] text-brand-foreground uppercase">
             {t("เข้าสู่ระบบ", "Sign in")}
           </Button>
@@ -227,7 +240,6 @@ function StockPanel() {
         </Button>
       </div>
 
-      {/* ฟอร์มเพิ่มสินค้าใหม่ */}
       <form onSubmit={handleAddProduct} className="border border-border bg-card p-6 space-y-4">
         <p className="text-xs uppercase tracking-[0.16em] font-semibold text-brand flex items-center gap-2">
           <Plus className="h-4 w-4" /> {t("เพิ่มกีตาร์ / สินค้าใหม่", "Add New Product")}
@@ -268,7 +280,6 @@ function StockPanel() {
         </Button>
       </form>
 
-      {/* ตารางแสดงผลรายการสินค้า */}
       <div className="border border-border bg-card overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead className="bg-secondary/50 border-b border-border uppercase tracking-widest text-muted-foreground">
