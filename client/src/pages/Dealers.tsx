@@ -3,20 +3,18 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { Reveal } from "@/components/site/Reveal";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { MapPin, Phone, Mail, Globe as GlobeIcon, ExternalLink, Store } from "lucide-react";
+import fonzoLogo from "/fonzo-logo.png"; // Import รูปภาพโดยตรง
 
-// ฟังก์ชันแปลง ละติจูด/ลองจิจูด เป็น พิกัด X, Y บนแผนที่สเกล 1000x500
 function convertGeoToPixel(lat: number, lng: number) {
   const x = ((lng + 180) * 1000) / 360;
   const y = ((90 - lat) * 500) / 180;
   return { x, y };
 }
 
-// พิกัดสำนักงานใหญ่ประเทศไทย
 const HQ_LAT = 13.693;
 const HQ_LNG = 100.539;
 const HQ_POS = convertGeoToPixel(HQ_LAT, HQ_LNG);
 
-// ข้อมูลพิกัดละติจูด/ลองจิจูดจริงของแต่ละเมือง
 const DEALERS_DATA = [
   {
     id: "thailand",
@@ -172,7 +170,6 @@ export default function Dealers() {
 
   return (
     <div className="min-h-screen bg-ink text-cream">
-      {/* ═════════ Header ═════════ */}
       <section className="mx-auto max-w-[1400px] px-4 pt-16 pb-8 sm:px-6 lg:px-10">
         <Reveal>
           <SectionHeading
@@ -187,17 +184,11 @@ export default function Dealers() {
         </Reveal>
       </section>
 
-      {/* ═════════ Precision Full-Width World Map ═════════ */}
       <section className="mx-auto max-w-[1400px] px-4 pb-20 sm:px-6 lg:px-10">
         <div className="relative min-h-[580px] w-full overflow-hidden rounded-2xl border border-gold/30 bg-[#09090c] p-4 shadow-2xl backdrop-blur-md flex flex-col justify-between">
-          
-          {/* Map Viewport Area */}
           <div className="relative h-[500px] w-full rounded-xl bg-[#0d0d12] border border-white/5 overflow-visible flex items-center justify-center">
             
-            {/* SVG Container ความละเอียดสูง 1000x500 */}
             <svg className="h-full w-full overflow-visible" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
-              
-              {/* Background Image: ภาพแผนที่โลก Equirectangular สเกลเป๊ะ */}
               <image
                 href="https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg"
                 x="0"
@@ -208,7 +199,6 @@ export default function Dealers() {
                 style={{ filter: "invert(1) sepia(1) saturate(5) hue-rotate(10deg)" }}
               />
 
-              {/* Grid Lines */}
               <g opacity="0.12" stroke="#d4af37">
                 <line x1="0" y1="125" x2="1000" y2="125" strokeDasharray="4 4" />
                 <line x1="0" y1="250" x2="1000" y2="250" strokeWidth="1.5" />
@@ -218,7 +208,6 @@ export default function Dealers() {
                 <line x1="750" y1="0" x2="750" y2="500" strokeDasharray="4 4" />
               </g>
 
-              {/* Golden Connecting Arcs พุ่งออกจากประเทศไทย */}
               <g>
                 {DEALERS_DATA.filter((d) => d.id !== "thailand").map((d, i) => {
                   const targetPos = convertGeoToPixel(d.lat, d.lng);
@@ -238,7 +227,6 @@ export default function Dealers() {
                 })}
               </g>
 
-              {/* Pins placed at precise Geo Coordinates */}
               {DEALERS_DATA.map((loc) => {
                 const pos = convertGeoToPixel(loc.lat, loc.lng);
                 return (
@@ -251,13 +239,9 @@ export default function Dealers() {
                     className="overflow-visible"
                   >
                     <div className="group relative flex h-full w-full items-center justify-center">
-                      
-                      {/* Hover Popover Box */}
                       <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-3 hidden group-hover:flex flex-col items-center z-50 transition-all duration-300 animate-in fade-in slide-in-from-top-2">
                         <div className="h-2 w-2 rotate-45 bg-[#121216] border-l border-t border-gold/50 -mb-1 z-10" />
                         <div className="w-[300px] sm:w-[330px] rounded-2xl bg-[#121216]/95 border border-gold/60 p-5 shadow-2xl backdrop-blur-xl pointer-events-auto text-left">
-                          
-                          {/* Popover Header */}
                           <div className="flex items-center justify-between border-b border-cream/10 pb-3">
                             <div>
                               <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-gold">
@@ -279,7 +263,6 @@ export default function Dealers() {
                             )}
                           </div>
 
-                          {/* Popover Dealer Items */}
                           <div className="mt-3 space-y-2.5 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
                             {loc.dealers.map((dealer, idx) => (
                               <div key={idx} className="rounded-lg border border-white/5 bg-ink/80 p-3">
@@ -309,15 +292,14 @@ export default function Dealers() {
                               </div>
                             ))}
                           </div>
-
                         </div>
                       </div>
 
-                      {/* Fonzo Official Logo Crest Pin Button */}
-                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold bg-black/90 p-1.5 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none">
+                      {/* Pins Image */}
+                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/80 bg-black/90 p-1.5 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none">
                         <img 
-                          src="/fonzo-logo.png" 
-                          alt="Fonzo Logo" 
+                          src={fonzoLogo} 
+                          alt="Fonzo Pin Logo" 
                           className="h-full w-full object-contain filter brightness-0 invert" 
                         />
                       </button>
@@ -328,10 +310,8 @@ export default function Dealers() {
               })}
 
             </svg>
-
           </div>
 
-          {/* Footer Bar */}
           <div className="mt-3 flex items-center justify-between text-xs text-cream/70 px-2">
             <span className="flex items-center gap-2 text-gold font-medium">
               <span className="h-2 w-2 rounded-full bg-gold animate-pulse" />
@@ -339,7 +319,6 @@ export default function Dealers() {
             </span>
             <span className="text-cream/40">Fonzo Guitars Official Global Network</span>
           </div>
-
         </div>
       </section>
     </div>

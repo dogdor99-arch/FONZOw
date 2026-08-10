@@ -1,8 +1,6 @@
 import { Link } from "wouter";
 import { useLocale } from "@/contexts/LocaleContext";
-
-// โลโก้ Fonzo ตัวจริงจากไฟล์ F.png (Base64) คมชัด ไม่แตก 100%
-export const FONZO_LOGO_BASE64 = "/fonzo-logo.png";
+import fonzoLogo from "/fonzo-logo.png"; // Import รูปภาพโดยตรง
 
 export function SiteHeader() {
   const { t, locale, setLocale } = useLocale();
@@ -13,13 +11,11 @@ export function SiteHeader() {
         
         {/* Brand Logo & Name */}
         <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gold/40 bg-black/80 p-1.5 shadow-inner">
-            <img 
-              src={FONZO_LOGO_BASE64} 
-              alt="Fonzo Logo" 
-              className="h-full w-full object-contain filter brightness-0 invert drop-shadow" 
-            />
-          </div>
+          <img 
+            src={fonzoLogo} 
+            alt="Fonzo Logo" 
+            className="h-8 w-auto object-contain filter brightness-0 invert drop-shadow" 
+          />
           <span className="font-display text-xl tracking-wider text-cream">Fonzo Guitar</span>
         </Link>
 
