@@ -3,6 +3,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { Reveal } from "@/components/site/Reveal";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { MapPin, Phone, Mail, Globe as GlobeIcon, ExternalLink, Store } from "lucide-react";
+import { FonzoCrestLogo } from "@/components/site/SiteHeader";
 
 // ฟังก์ชันแปลง ละติจูด/ลองจิจูด เป็น พิกัด X, Y บนแผนที่สเกล 1000x500
 function convertGeoToPixel(lat: number, lng: number) {
@@ -252,7 +253,7 @@ export default function Dealers() {
                   >
                     <div className="group relative flex h-full w-full items-center justify-center">
                       
-                      {/* Hover Popover Box (เด้งลงด้านล่างของหมุด เพื่อป้องกันการหลุดขอบบน) */}
+                      {/* Hover Popover Box */}
                       <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-3 hidden group-hover:flex flex-col items-center z-50 transition-all duration-300 animate-in fade-in slide-in-from-top-2">
                         <div className="h-2 w-2 rotate-45 bg-[#121216] border-l border-t border-gold/50 -mb-1 z-10" />
                         <div className="w-[300px] sm:w-[330px] rounded-2xl bg-[#121216]/95 border border-gold/60 p-5 shadow-2xl backdrop-blur-xl pointer-events-auto text-left">
@@ -313,11 +314,9 @@ export default function Dealers() {
                         </div>
                       </div>
 
-                      {/* Official Fonzo Logo Pin Crest Button */}
-                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/80 bg-black/90 p-1 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none">
-                        <span className="font-serif font-black text-sm text-gold tracking-tighter">
-                          F
-                        </span>
+                      {/* Fonzo Crest Logo Pin Crest Button */}
+                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/80 bg-black/90 p-1.5 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none group/btn">
+                        <FonzoCrestLogo className="h-5 w-auto text-gold group-hover/btn:text-ink transition-colors" />
                       </button>
 
                     </div>
