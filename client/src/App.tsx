@@ -7,7 +7,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LocaleProvider } from "./contexts/LocaleContext";
 import { SiteLayout } from "./components/site/SiteLayout";
-import { getOAuthLoginUrl } from "@/const";
+import { startLogin } from "@/const";
 
 import Home from "./pages/Home";
 import Founder from "./pages/Founder";
@@ -56,11 +56,14 @@ function Router() {
       <Route path="/orders/confirm" component={OrderConfirm} />
       <Route path="/admin" component={Admin} />
       
-      {/* Route สำหรับจัดการหน้า Login เพื่อป้องกัน 404 */}
+      {/* Route สำหรับจัดการหน้า Login */}
       <Route path="/login">
         {() => {
-          const targetUrl = typeof getOAuthLoginUrl === "function" ? getOAuthLoginUrl() : "/api/oauth/login";
-          window.location.href = targetUrl;
+          if (typeof startLogin === "function") {
+            startLogin();
+          } else {
+            window.location.href = "/api/oauth/login";
+          }
           return null;
         }}
       </Route>
