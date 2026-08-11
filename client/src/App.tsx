@@ -42,8 +42,13 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/founder" component={Founder} />
       <Route path="/brand-story" component={BrandStory} />
+      
+      {/* รองรับทั้ง /guitars และ /guitar */}
+      <Route path="/guitars" component={GuitarList} />
+      <Route path="/guitars/:code" component={GuitarDetail} />
       <Route path="/guitar" component={GuitarList} />
       <Route path="/guitar/:code" component={GuitarDetail} />
+      
       <Route path="/accessories" component={AccessoriesList} />
       <Route path="/accessories/:code" component={AccessoryDetail} />
       <Route path="/catalog" component={Catalog} />
