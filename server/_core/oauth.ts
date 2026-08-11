@@ -2,7 +2,6 @@ import { COOKIE_NAME, ONE_YEAR_MS, OAUTH_STATE_COOKIE, decodeOAuthState } from "
 import { parse as parseCookieHeader } from "cookie";
 import type { Express, Request, Response } from "express";
 import * as db from "../db";
-import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
 
 function getQueryParam(req: Request, key: string): string | undefined {
@@ -11,14 +10,12 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
-  // Direct Login Endpoint สำหรับทีมงาน
   app.get(["/api/oauth/login", "/api/login"], async (req: Request, res: Response) => {
     try {
       const adminOpenId = "fonzo_admin_staff";
       const adminName = "Fonzo Admin";
       const adminEmail = "admin@fonzoguitar.com";
 
-      // 1. บันทึก/อัปเดตผู้ใช้ผ่าน Drizzle ORM
       try {
         await db.upsertUser({
           openId: adminOpenId,
@@ -32,7 +29,6 @@ export function registerOAuthRoutes(app: Express) {
         console.warn("[OAuth] db.upsertUser warning:", dbErr);
       }
 
-      // 2. สร้าง Session Token โดยส่ง Payload ครบถ้วน (แก้ปัญหา Payload missing)
       const sessionToken = await sdk.createSessionToken(adminOpenId, {
         openId: adminOpenId,
         name: adminName,
@@ -41,15 +37,16 @@ export function registerOAuthRoutes(app: Express) {
         expiresInMs: ONE_YEAR_MS,
       });
 
-      // 3. ฝัง Session Cookie ให้เบราว์เซอร์
-      const cookieOptions = getSessionCookieOptions(req);
+      // ฝัง Cookie แบบเจาะจงให้เบราว์เซอร์รับและบันทึก Session บน Production
+      const isProduction = process.env.NODE_ENV === "production";
       res.cookie(COOKIE_NAME, sessionToken, {
-        ...cookieOptions,
         path: "/",
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         maxAge: ONE_YEAR_MS,
       });
 
-      // 4. พาไปที่หน้าจัดการร้าน /admin
       return res.redirect(302, "/admin");
     } catch (error) {
       console.error("[OAuth] Login failed:", error);
@@ -57,7 +54,6 @@ export function registerOAuthRoutes(app: Express) {
     }
   });
 
-  // Callback Endpoint
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
@@ -100,10 +96,12 @@ export function registerOAuthRoutes(app: Express) {
         expiresInMs: ONE_YEAR_MS,
       });
 
-      const cookieOptions = getSessionCookieOptions(req);
+      const isProduction = process.env.NODE_ENV === "production";
       res.cookie(COOKIE_NAME, sessionToken, {
-        ...cookieOptions,
         path: "/",
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         maxAge: ONE_YEAR_MS,
       });
 
