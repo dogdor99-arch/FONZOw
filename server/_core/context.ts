@@ -1,28 +1,53 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import type { User } from "../../drizzle/schema";
+import { COOKIE_NAME } from "@shared/const";
+import * as db from "../db";
 import { sdk } from "./sdk";
 
-export type TrpcContext = {
-  req: CreateExpressContextOptions["req"];
-  res: CreateExpressContextOptions["res"];
-  user: User | null;
-};
-
-export async function createContext(
-  opts: CreateExpressContextOptions
-): Promise<TrpcContext> {
-  let user: User | null = null;
+export async function createContext({ req, res }: CreateExpressContextOptions) {
+  let user: any = null;
 
   try {
-    user = await sdk.authenticateRequest(opts.req);
+    const sessionToken = req.cookies?.[COOKIE_NAME] || req.cookies?.app_session_id;
+
+    if (sessionToken) {
+      // 1. ถอดรหัส Session Token จาก Cookie
+      const session = await sdk.verifySessionToken(sessionToken);
+
+      if (session && session.openId) {
+        // 2. ถ้าเป็นบัญชี Admin บังคับคืนค่า User Object ของ Admin ทันที
+        if (session.openId === "fonzo_admin_staff" || session.role === "admin") {
+          user = {
+            id: 1,
+            openId: "fonzo_admin_staff",
+            name: "Fonzo Admin",
+            email: "admin@fonzoguitar.com",
+            role: "admin",
+          };
+        } else {
+          // 3. บัญชีทั่วไป ลองดึงจาก DB หากล้มเหลวให้ใช้ข้อมูลจาก Session
+          try {
+            user = await db.getUserByOpenId(session.openId);
+          } catch (dbError) {
+            console.warn("[Context] DB fetch failed, using session payload:", dbError);
+            user = {
+              openId: session.openId,
+              name: session.name || "User",
+              email: session.email || "",
+              role: session.role || "user",
+            };
+          }
+        }
+      }
+    }
   } catch (error) {
-    // Authentication is optional for public procedures.
-    user = null;
+    console.warn("[Context] Failed to verify session token:", error);
   }
 
   return {
-    req: opts.req,
-    res: opts.res,
+    req,
+    res,
     user,
   };
 }
+
+export type Context = Awaited<ReturnType<typeof createContext>>;
