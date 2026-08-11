@@ -3,7 +3,7 @@ import express from "express";
 import { createServer } from "http";
 import path from "path";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./_core/oauth";
+import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { registerFonzoMediaProxy } from "./fonzoMedia";
 import { registerSocialMediaProxy } from "./socialMedia";
@@ -14,7 +14,7 @@ import { serveStatic, setupVite } from "./vite";
 async function startServer() {
   const app = express();
 
-  // กำหนดให้ Express เชื่อถือ Reverse Proxy ของ Render เพื่อให้รับส่ง Cookie HTTPS ได้ถูกต้อง
+  // ตั้งค่า trust proxy รองรับ Reverse Proxy ของ Render เพื่อให้รับส่ง Secure Cookie บน HTTPS ได้ถูกต้อง
   app.set("trust proxy", 1);
 
   const server = createServer(app);
