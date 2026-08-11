@@ -1,5 +1,6 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { COOKIE_NAME } from "@shared/const";
+import { parse as parseCookieHeader } from "cookie";
 import * as db from "../db";
 import { sdk } from "./sdk";
 
@@ -7,14 +8,20 @@ export async function createContext({ req, res }: CreateExpressContextOptions) {
   let user: any = null;
 
   try {
-    const sessionToken = req.cookies?.[COOKIE_NAME] || req.cookies?.app_session_id;
+    // ดึงค่า Cookie จากทั้ง req.cookies และอ่านจาก req.headers.cookie โดยตรง (กันกรณีไม่มี cookie-parser middleware)
+    const rawCookies = parseCookieHeader(req.headers.cookie ?? "");
+    const sessionToken =
+      req.cookies?.[COOKIE_NAME] ||
+      req.cookies?.app_session_id ||
+      rawCookies[COOKIE_NAME] ||
+      rawCookies["app_session_id"];
 
     if (sessionToken) {
-      // 1. ถอดรหัส Session Token จาก Cookie
+      // ถอดรหัส Session Token
       const session = await sdk.verifySessionToken(sessionToken);
 
       if (session && session.openId) {
-        // 2. ถ้าเป็นบัญชี Admin บังคับคืนค่า User Object ของ Admin ทันที
+        // ยืนยันสิทธิ์ Admin ให้สิทธิ์ใช้งานหน้าคอนโซลทันที
         if (session.openId === "fonzo_admin_staff" || session.role === "admin") {
           user = {
             id: 1,
@@ -24,7 +31,6 @@ export async function createContext({ req, res }: CreateExpressContextOptions) {
             role: "admin",
           };
         } else {
-          // 3. บัญชีทั่วไป ลองดึงจาก DB หากล้มเหลวให้ใช้ข้อมูลจาก Session
           try {
             user = await db.getUserByOpenId(session.openId);
           } catch (dbError) {
