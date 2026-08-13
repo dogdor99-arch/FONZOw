@@ -7,11 +7,11 @@ import { CatalogBrowser } from "@/components/site/CatalogBrowser";
 export default function GuitarList() {
   const { t } = useLocale();
 
-  // 1. ดึงข้อมูลแคตตาล็อกหลัก
+  // 1. ดึงแคตตาล็อก 114 ตัวเดิม
   const { data: catalogGuitars = [], isLoading: isLoadingCatalog } = trpc.fonzo.guitars.list.useQuery();
   const { data: types = [] } = trpc.fonzo.guitars.types.useQuery();
 
-  // 2. ดึงข้อมูลสินค้าที่บันทึกเพิ่มจากหน้า Admin
+  // 2. ดึงสินค้าที่เพิ่มจากหน้า Admin
   const shopQuery = (trpc as any).shop?.products?.useQuery?.() ?? 
                     (trpc as any).shop?.list?.useQuery?.() ?? 
                     (trpc as any).products?.list?.useQuery?.() ?? 
@@ -20,23 +20,22 @@ export default function GuitarList() {
   const shopProducts = shopQuery.data || [];
   const isLoadingShop = shopQuery.isLoading;
 
-  // 3. แปลงรูปแบบข้อมูลและนำมารวมกัน
+  // 3. รวมสินค้าและกำหนดฟิลด์ให้รองรับระบบค้นหา/ตัวกรอง
   const allGuitars = useMemo(() => {
     const formattedShopProducts = shopProducts.map((item: any) => ({
-      id: item.id || item.code || `shop-${item.name}`,
-      code: item.code || item.id || item.name,
-      name: item.name || item.title,
+      id: item.id || `shop-${item.name}`,
+      code: item.code || item.name,
+      name: item.name || "",
+      series: item.category || item.series || "Fonzo Custom",
+      type: item.type || "Acoustic",
       price: typeof item.price === "number" ? item.price : parseFloat(item.price || "0"),
-      category: item.category || item.type || "Fonzo Custom",
       image: item.image || item.imageUrl || "/fonzo-logo.png",
       inStock: item.stock !== undefined ? item.stock > 0 : true,
-      ...item,
+      raw: item,
     }));
 
-    const catalogIds = new Set(catalogGuitars.map((g: any) => g.id || g.code || g.name));
-    const uniqueShopProducts = formattedShopProducts.filter((p: any) => !catalogIds.has(p.id));
-
-    return [...uniqueShopProducts, ...catalogGuitars];
+    // รวมสินค้าจากหน้า Admin เข้ากับแคตตาล็อกหลัก
+    return [...formattedShopProducts, ...catalogGuitars];
   }, [catalogGuitars, shopProducts]);
 
   const isLoading = isLoadingCatalog || isLoadingShop;
