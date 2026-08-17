@@ -1,79 +1,99 @@
-import { Link, useParams } from "wouter";
-import { ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useRoute, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
-import { ProductDetailView } from "@/components/site/ProductDetailView";
+import { supabase } from "@/lib/supabase";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function GuitarDetail() {
-  const { code = "" } = useParams<{ code: string }>();
-  const { locale, t } = useLocale();
+  const [, params] = useRoute("/guitar/:code");
+  const rawCode = params?.code ? decodeURIComponent(params.code) : "";
+  const { t } = useLocale();
 
-  const { data: product, isLoading } = trpc.fonzo.guitars.byCode.useQuery(
-    { code },
-    { enabled: Boolean(code) },
+  // 1. ลองค้นหาจาก tRPC
+  const { data: trpcGuitar, isLoading: trpcLoading } = trpc.fonzo.guitars.getByCode.useQuery(
+    { code: rawCode },
+    { enabled: !!rawCode }
   );
-  const { data: all = [] } = trpc.fonzo.guitars.list.useQuery();
 
-  const related = product
-    ? all.filter(item => item.typeCode === product.typeCode && item.code !== product.code).slice(0, 4)
-    : [];
+  // 2. ลองค้นหาจาก Supabase กรณีสินค้าเพิ่มใหม่จาก Admin
+  const [supaGuitar, setSupaGuitar] = useState<any>(null);
+  const [supaLoading, setSupaLoading] = useState(false);
+
+  useEffect(() => {
+    if (!trpcLoading && !trpcGuitar && rawCode) {
+      setSupaLoading(true);
+      supabase
+        .from("products")
+        .select("*")
+        .or(`name.eq.${rawCode},id.eq.${rawCode}`)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            setSupaGuitar({
+              id: data.id,
+              code: data.name,
+              name: data.name,
+              series: data.category || "Fonzo Custom",
+              price: Number(data.price || 0),
+              image: data.image_url || "/fonzo-logo.png",
+              description: "กีตาร์คุณภาพสูงจาก Fonzo Guitar",
+              stock: data.stock,
+            });
+          }
+          setSupaLoading(false);
+        })
+        .catch(() => setSupaLoading(false));
+    }
+  }, [trpcGuitar, trpcLoading, rawCode]);
+
+  const guitar = trpcGuitar || supaGuitar;
+  const isLoading = trpcLoading || supaLoading;
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 lg:px-10">
-        <div className="grid gap-12 lg:grid-cols-2">
-          <div className="aspect-[4/5] animate-pulse bg-secondary" />
-          <div className="space-y-4">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="h-4 w-full animate-pulse bg-secondary" />
-            ))}
-          </div>
-        </div>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-brand" />
       </div>
     );
   }
 
-  if (!product) {
+  if (!guitar) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-28 text-center sm:px-6">
-        <h1 className="text-3xl">{t("ไม่พบรุ่นกีตาร์นี้", "Model not found")}</h1>
-        <p className="mt-4 text-muted-foreground">
-          {t(
-            "รุ่นที่คุณค้นหาอาจถูกนำออกจากแคตตาล็อกแล้ว",
-            "The model you are looking for may no longer be in the catalogue.",
-          )}
-        </p>
-        <Button
-          asChild
-          className="press mt-8 h-11 rounded-none bg-brand px-6 text-[11px] tracking-[0.18em] text-brand-foreground uppercase">
-          <Link href="/guitar">{t("กลับไปหน้ากีตาร์", "Back to guitars")}</Link>
+      <div className="mx-auto max-w-lg px-4 py-16 text-center">
+        <h2 className="text-2xl font-display">{t("ไม่พบรุ่นกีตาร์นี้", "Guitar model not found")}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t("รุ่นที่คุณค้นหาอาจถูกย้ายออกจากแคตตาล็อกแล้ว", "The model you are looking for may have been removed.")}</p>
+        <Button asChild className="mt-6 bg-brand text-brand-foreground rounded-none">
+          <Link href="/guitars">{t("กลับไปหน้ากีตาร์", "Back to guitars")}</Link>
         </Button>
       </div>
     );
   }
 
-  const title = locale === "th" ? product.name || product.nameEn : product.nameEn || product.name;
-
   return (
-    <>
-      <div className="border-b border-border/70">
-        <nav
-          aria-label="breadcrumb"
-          className="mx-auto flex max-w-[1400px] items-center gap-1.5 px-4 py-5 text-[11px] text-muted-foreground sm:px-6 lg:px-10">
-          <Link href="/" className="tracking-[0.14em] uppercase hover:text-brand">
-            {t("หน้าแรก", "Home")}
-          </Link>
-          <ChevronRight className="h-3 w-3" />
-          <Link href="/guitar" className="tracking-[0.14em] uppercase hover:text-brand">
-            Guitar
-          </Link>
-          <ChevronRight className="h-3 w-3" />
-          <span className="truncate text-foreground/80">{title}</span>
-        </nav>
+    <div className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6 lg:px-10">
+      <Link href="/guitars" className="inline-flex items-center text-xs tracking-widest uppercase text-muted-foreground hover:text-brand mb-8">
+        <ArrowLeft className="mr-2 h-4 w-4" /> {t("กลับไปหน้าแคตตาล็อก", "Back to catalog")}
+      </Link>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+        <div className="border border-border bg-card p-6 flex justify-center items-center min-h-[400px]">
+          <img src={guitar.image || guitar.imageUrl || "/fonzo-logo.png"} alt={guitar.name} className="w-full h-auto object-contain max-h-[500px]" />
+        </div>
+        <div className="space-y-6">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-brand font-semibold">{guitar.series || "Fonzo Custom"}</p>
+            <h1 className="text-3xl font-display mt-2">{guitar.name}</h1>
+            <p className="text-2xl font-display text-brand mt-4">฿{Number(guitar.price || 0).toLocaleString()}</p>
+          </div>
+          <p className="text-sm text-muted-foreground leading-relaxed">{guitar.description || t("กีตาร์คุณภาพสูง ออกแบบมาเพื่อเสียงอันประณีตและการเล่นที่พริ้วไหว", "Premium crafted guitar for exceptional tone and playability.")}</p>
+          <div className="border-t border-border pt-6">
+            <p className="text-xs text-muted-foreground uppercase tracking-widest">
+              {t("สถานะสินค้า", "Stock Status")}: <span className="font-bold text-foreground">{guitar.stock !== undefined ? (guitar.stock > 0 ? `${t("มีสินค้า", "In Stock")} (${guitar.stock} ${t("ตัว", "pcs")})` : t("สินค้าหมด", "Out of Stock")) : t("มีสินค้าพร้อมส่ง", "Available")}</span>
+            </p>
+          </div>
+        </div>
       </div>
-
-      <ProductDetailView product={product} related={related} basePath="/guitar" />
-    </>
+    </div>
   );
 }
