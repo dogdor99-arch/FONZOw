@@ -1,44 +1,62 @@
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { PageHeading } from "@/components/site/SiteLayout";
 import { CatalogBrowser } from "@/components/site/CatalogBrowser";
+import { supabase } from "@/lib/supabase";
 
 export default function GuitarList() {
   const { t } = useLocale();
 
-  // 1. ดึงแคตตาล็อก 114 ตัวเดิม
+  // 1. ดึงข้อมูลแคตตาล็อก 114 ตัวเดิมจาก tRPC
   const { data: catalogGuitars = [], isLoading: isLoadingCatalog } = trpc.fonzo.guitars.list.useQuery();
   const { data: types = [] } = trpc.fonzo.guitars.types.useQuery();
 
-  // 2. ดึงสินค้าที่เพิ่มจากหน้า Admin
-  const shopQuery = (trpc as any).shop?.products?.useQuery?.() ?? 
-                    (trpc as any).shop?.list?.useQuery?.() ?? 
-                    (trpc as any).products?.list?.useQuery?.() ?? 
-                    { data: [], isLoading: false };
+  // 2. ดึงข้อมูลสินค้าที่บันทึกเพิ่มจากหน้า Admin ผ่าน Supabase
+  const [supabaseProducts, setSupabaseProducts] = useState<any[]>([]);
+  const [isLoadingSupabase, setIsLoadingSupabase] = useState(true);
 
-  const shopProducts = shopQuery.data || [];
-  const isLoadingShop = shopQuery.isLoading;
+  useEffect(() => {
+    async function fetchSupabaseProducts() {
+      try {
+        const { data, error } = await supabase.from("products").select("*").order("id", { ascending: false });
+        if (!error && data) {
+          setSupabaseProducts(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch Supabase products:", err);
+      } finally {
+        setIsLoadingSupabase(false);
+      }
+    }
+    fetchSupabaseProducts();
+  }, []);
 
-  // 3. รวมสินค้าและกำหนดฟิลด์ให้รองรับระบบค้นหา/ตัวกรอง
+  // 3. จัด Format สินค้า ป้องกันรูปภาพแตก และแมปหมวดหมู่ให้ตรงกับ CatalogBrowser
   const allGuitars = useMemo(() => {
-    const formattedShopProducts = shopProducts.map((item: any) => ({
-      id: item.id || `shop-${item.name}`,
-      code: item.code || item.name,
-      name: item.name || "",
-      series: item.category || item.series || "Fonzo Custom",
-      type: item.type || "Acoustic",
-      price: typeof item.price === "number" ? item.price : parseFloat(item.price || "0"),
-      image: item.image || item.imageUrl || "/fonzo-logo.png",
-      inStock: item.stock !== undefined ? item.stock > 0 : true,
-      raw: item,
-    }));
+    const formattedSupabaseProducts = supabaseProducts.map((item) => {
+      // ตรวจสอบรูปภาพ หากไม่มีรูปหรือเป็นค่าว่าง ให้ใช้รูปโลโก้แทนกันรูปแตก
+      const validImage = item.image_url && item.image_url.trim() !== "" 
+        ? item.image_url 
+        : "/fonzo-logo.png";
 
-    // รวมสินค้าจากหน้า Admin เข้ากับแคตตาล็อกหลัก
-    return [...formattedShopProducts, ...catalogGuitars];
-  }, [catalogGuitars, shopProducts]);
+      return {
+        id: item.id || `supa-${item.name}`,
+        code: item.name,
+        name: item.name,
+        series: item.category || "Fonzo Custom",
+        type: "Acoustic",
+        price: Number(item.price || 0),
+        image: validImage,
+        inStock: Number(item.stock || 0) > 0,
+        raw: item,
+      };
+    });
 
-  const isLoading = isLoadingCatalog || isLoadingShop;
+    return [...formattedSupabaseProducts, ...catalogGuitars];
+  }, [catalogGuitars, supabaseProducts]);
+
+  const isLoading = isLoadingCatalog || isLoadingSupabase;
 
   return (
     <>
