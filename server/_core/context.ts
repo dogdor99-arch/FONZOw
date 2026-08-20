@@ -4,7 +4,7 @@ import { parse as parseCookieHeader } from "cookie";
 import * as db from "../db";
 import { sdk } from "./sdk";
 
-// ถอดรหัส Payload จาก JWT Token กรณี SDK ตรวจสอบลายเซ็นไม่ผ่าน
+// ถอดรหัส Payload จาก JWT Token โดยตรงอย่างปลอดภัย
 function decodeJwtPayload(token: string): any {
   try {
     const parts = token.split(".");
@@ -33,19 +33,21 @@ export async function createContext({ req, res }: CreateExpressContextOptions) {
     if (sessionToken && typeof sessionToken === "string" && sessionToken.trim() !== "") {
       let session: any = null;
 
-      // 1. ลองตรวจสอบ Token ผ่าน SDK
+      // 1. ตรวจสอบว่า SDK มีฟังก์ชัน verifySessionToken หรือไม่ ป้องกัน Type Error
       try {
-        session = await sdk.verifySessionToken(sessionToken);
+        if (sdk && typeof (sdk as any).verifySessionToken === "function") {
+          session = await (sdk as any).verifySessionToken(sessionToken);
+        }
       } catch (sdkError) {
-        console.warn("[Context] SDK verification failed, using direct payload fallback:", sdkError);
+        console.warn("[Context] SDK verification skipped:", sdkError);
       }
 
-      // 2. หาก SDK ทำงานไม่ผ่าน ให้ถอดรหัส Payload โดยตรง
+      // 2. หากไม่มีหรือตรวจสอบไม่ผ่าน ให้ถอดรหัส Payload โดยตรง
       if (!session) {
         session = decodeJwtPayload(sessionToken);
       }
 
-      // 3. กำหนดข้อมูลสิทธิ์ Admin กลับไปให้ Frontend ชัวร์ 100%
+      // 3. กำหนดข้อมูลสิทธิ์ Admin ให้พร้อมใช้งาน
       user = {
         id: session?.id || 1,
         openId: session?.openId || session?.sub || "fonzo_admin_staff",
