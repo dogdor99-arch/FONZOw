@@ -11,45 +11,53 @@ export default function GuitarDetail() {
   const rawCode = params?.code ? decodeURIComponent(params.code) : "";
   const { t } = useLocale();
 
-  // 1. ลองค้นหาจาก tRPC
-  const { data: trpcGuitar, isLoading: trpcLoading } = trpc.fonzo.guitars.getByCode.useQuery(
-    { code: rawCode },
-    { enabled: !!rawCode }
-  );
-
-  // 2. ลองค้นหาจาก Supabase กรณีสินค้าเพิ่มใหม่จาก Admin
+  const { data: catalogGuitars = [], isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
+  
   const [supaGuitar, setSupaGuitar] = useState<any>(null);
-  const [supaLoading, setSupaLoading] = useState(false);
+  const [supaLoading, setSupaLoading] = useState(true);
 
   useEffect(() => {
-    if (!trpcLoading && !trpcGuitar && rawCode) {
-      setSupaLoading(true);
-      supabase
+    async function findGuitar() {
+      // 1. หาจากแคตตาล็อกหลักก่อน
+      const foundInCatalog = catalogGuitars.find((g: any) => 
+        (g.code && g.code.toLowerCase() === rawCode.toLowerCase()) || 
+        (g.name && g.name.toLowerCase() === rawCode.toLowerCase())
+      );
+
+      if (foundInCatalog) {
+        setSupaGuitar(foundInCatalog);
+        setSupaLoading(false);
+        return;
+      }
+
+      // 2. ถ้าไม่เจอ ลองหาใน Supabase
+      const { data } = await supabase
         .from("products")
         .select("*")
-        .or(`name.eq.${rawCode},id.eq.${rawCode}`)
-        .maybeSingle()
-        .then(({ data }) => {
-          if (data) {
-            setSupaGuitar({
-              id: data.id,
-              code: data.name,
-              name: data.name,
-              series: data.category || "Fonzo Custom",
-              price: Number(data.price || 0),
-              image: data.image_url || "/fonzo-logo.png",
-              description: "กีตาร์คุณภาพสูงจาก Fonzo Guitar",
-              stock: data.stock,
-            });
-          }
-          setSupaLoading(false);
-        })
-        .catch(() => setSupaLoading(false));
-    }
-  }, [trpcGuitar, trpcLoading, rawCode]);
+        .ilike("name", rawCode)
+        .maybeSingle();
 
-  const guitar = trpcGuitar || supaGuitar;
-  const isLoading = trpcLoading || supaLoading;
+      if (data) {
+        setSupaGuitar({
+          id: data.id,
+          code: data.name,
+          name: data.name,
+          series: data.category || "Fonzo Custom",
+          price: Number(data.price || 0),
+          image: data.image_url || "/fonzo-logo.png",
+          description: data.description || "กีตาร์คุณภาพสูงจาก Fonzo Guitar",
+          stock: data.stock,
+        });
+      }
+      setSupaLoading(false);
+    }
+
+    if (rawCode && !catalogLoading) {
+      findGuitar();
+    }
+  }, [rawCode, catalogGuitars, catalogLoading]);
+
+  const isLoading = catalogLoading || supaLoading;
 
   if (isLoading) {
     return (
@@ -59,7 +67,7 @@ export default function GuitarDetail() {
     );
   }
 
-  if (!guitar) {
+  if (!supaGuitar) {
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center">
         <h2 className="text-2xl font-display">{t("ไม่พบรุ่นกีตาร์นี้", "Guitar model not found")}</h2>
@@ -78,18 +86,20 @@ export default function GuitarDetail() {
       </Link>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
         <div className="border border-border bg-card p-6 flex justify-center items-center min-h-[400px]">
-          <img src={guitar.image || guitar.imageUrl || "/fonzo-logo.png"} alt={guitar.name} className="w-full h-auto object-contain max-h-[500px]" />
+          <img src={supaGuitar.image || supaGuitar.image_url || "/fonzo-logo.png"} alt={supaGuitar.name} className="w-full h-auto object-contain max-h-[500px]" />
         </div>
         <div className="space-y-6">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-brand font-semibold">{guitar.series || "Fonzo Custom"}</p>
-            <h1 className="text-3xl font-display mt-2">{guitar.name}</h1>
-            <p className="text-2xl font-display text-brand mt-4">฿{Number(guitar.price || 0).toLocaleString()}</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-brand font-semibold">{supaGuitar.series || supaGuitar.category || "Fonzo Custom"}</p>
+            <h1 className="text-3xl font-display mt-2">{supaGuitar.name}</h1>
+            <p className="text-2xl font-display text-brand mt-4">
+              {supaGuitar.price > 0 ? `฿${Number(supaGuitar.price).toLocaleString()}` : t("สอบถามราคา", "Price upon request")}
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed">{guitar.description || t("กีตาร์คุณภาพสูง ออกแบบมาเพื่อเสียงอันประณีตและการเล่นที่พริ้วไหว", "Premium crafted guitar for exceptional tone and playability.")}</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{supaGuitar.description}</p>
           <div className="border-t border-border pt-6">
             <p className="text-xs text-muted-foreground uppercase tracking-widest">
-              {t("สถานะสินค้า", "Stock Status")}: <span className="font-bold text-foreground">{guitar.stock !== undefined ? (guitar.stock > 0 ? `${t("มีสินค้า", "In Stock")} (${guitar.stock} ${t("ตัว", "pcs")})` : t("สินค้าหมด", "Out of Stock")) : t("มีสินค้าพร้อมส่ง", "Available")}</span>
+              {t("สถานะสินค้า", "Stock Status")}: <span className="font-bold text-foreground">{supaGuitar.stock !== undefined ? (supaGuitar.stock > 0 ? `${t("มีสินค้า", "In Stock")} (${supaGuitar.stock} ${t("ตัว", "pcs")})` : t("สินค้าหมด", "Out of Stock")) : t("มีสินค้าพร้อมส่ง", "Available")}</span>
             </p>
           </div>
         </div>
