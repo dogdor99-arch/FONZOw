@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Loader2, Lock, Package, Plus, RefreshCw, Trash2, Database, Save } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -14,13 +14,14 @@ import { supabase } from "@/lib/supabase";
 type Tab = "stock" | "newsroom";
 
 interface Product {
-  id?: number;
+  id?: number | string;
   name: string;
   price: number;
   stock: number;
   category: string;
   image_url: string;
   description?: string;
+  isCatalogItem?: boolean;
 }
 
 export default function Admin() {
@@ -56,13 +57,13 @@ export default function Admin() {
       <PageHeading
         eyebrow={t("สำหรับทีมงาน", "Staff only")}
         title={t("จัดการร้าน", "Shop console")}
-        description={t("จัดการข้อมูลสินค้า ราคา สต็อก และรายละเอียดทั้งหมดบนเว็บไซต์อย่างรวดเร็ว", "Manage all product data, prices, stock, and details swiftly.")}
+        description={t("จัดการข้อมูลสินค้า ราคา สต็อก และรายละเอียดทั้งหมดบนเว็บไซต์", "Manage all product data, prices, stock, and details.")}
         crumbs={[{ label: t("จัดการร้าน", "Shop console") }]}
       />
       <section className="mx-auto max-w-[1300px] px-4 py-12 sm:px-6 lg:px-10">
         <div className="flex flex-wrap gap-2 border-b border-border/70 pb-5">
           {[
-            { key: "stock", label: t("จัดการสต็อกและสินค้า", "Inventory & Stock") },
+            { key: "stock", label: t("จัดการสต็อกและสินค้าทั้งหมด", "All Products & Inventory") },
             { key: "newsroom", label: t("คอนเทนต์หน้าแรก", "Newsroom") },
           ].map(item => (
             <button key={item.key} type="button" onClick={() => setTab(item.key as Tab)} className={cn("press border px-5 py-2.5 text-[11px] tracking-[0.18em] uppercase", tab === item.key ? "border-brand bg-brand text-brand-foreground" : "border-border text-muted-foreground hover:border-brand/50 hover:text-brand")}>
@@ -81,10 +82,10 @@ export default function Admin() {
 
 function StockPanel() {
   const { t } = useLocale();
-  const { data: catalogGuitars = [] } = trpc.fonzo.guitars.list.useQuery();
+  const { data: catalogGuitars = [], isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
   
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [supabaseProducts, setSupabaseProducts] = useState<Product[]>([]);
+  const [loadingSupa, setLoadingSupa] = useState(true);
   const [importing, setImporting] = useState(false);
 
   const [newProduct, setNewProduct] = useState<Product>({
@@ -96,19 +97,37 @@ function StockPanel() {
     description: ""
   });
 
-  const fetchProducts = async () => {
-    setLoading(true);
+  const fetchSupabaseProducts = async () => {
+    setLoadingSupa(true);
     const { data, error } = await supabase.from("products").select("*").order("id", { ascending: false });
     if (error) toast.error(t("ดึงข้อมูลไม่สำเร็จ: ", "Fetch failed: ") + error.message);
-    else setProducts(data || []);
-    setLoading(false);
+    else setSupabaseProducts(data || []);
+    setLoadingSupa(false);
   };
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => { fetchSupabaseProducts(); }, []);
 
-  // นำเข้าแคตตาล็อก
+  // รวมสินค้าจากแคตตาล็อก 114 ตัว และ Supabase เข้าด้วยกันในตาราง Admin
+  const allProducts = useMemo(() => {
+    const formattedCatalog = catalogGuitars.map((g: any, idx: number) => ({
+      id: `catalog-${idx}`,
+      name: g.name || g.code,
+      price: Number(g.price || 0),
+      stock: g.stock ?? 10,
+      category: g.series || "Catalog Guitar",
+      image_url: g.image || "/fonzo-logo.png",
+      description: g.description || "",
+      isCatalogItem: true,
+    }));
+
+    const supaNames = new Set(supabaseProducts.map(p => p.name.toLowerCase().trim()));
+    const uniqueCatalog = formattedCatalog.filter(c => !supaNames.has(c.name.toLowerCase().trim()));
+
+    return [...supabaseProducts, ...uniqueCatalog];
+  }, [catalogGuitars, supabaseProducts]);
+
   const handleImportCatalog = async () => {
-    if (!confirm(t("ต้องการดึงรายการสินค้าทั้งหมดเข้าสู่ฐานข้อมูลเพื่อให้แก้ไขได้?", "Import all catalog items into database?"))) return;
+    if (!confirm(t("ต้องการซิงค์สินค้าทั้งหมดเข้าสู่ฐานข้อมูลเพื่อให้สามารถแก้ไขข้อมูลได้ทั้งหมดใช่หรือไม่?", "Sync all catalog items to database for editing?"))) return;
     setImporting(true);
     try {
       const itemsToInsert = catalogGuitars.map((g: any) => ({
@@ -123,8 +142,8 @@ function StockPanel() {
       const { error } = await supabase.from("products").upsert(itemsToInsert, { onConflict: "name" });
       if (error) throw error;
 
-      toast.success(t("ซิงค์ข้อมูลสินค้าสำเร็จ!", "Catalog imported successfully!"));
-      fetchProducts();
+      toast.success(t("ซิงค์ข้อมูลสำเร็จ!", "Catalog imported successfully!"));
+      fetchSupabaseProducts();
     } catch (err: any) {
       toast.error(t("ซิงค์ไม่สำเร็จ: ", "Import failed: ") + err.message);
     } finally {
@@ -132,9 +151,13 @@ function StockPanel() {
     }
   };
 
-  // อัปเดตข้อมูลแบบไม่รีเฟรชตาราง (แก้หน่วง)
   const handleSaveRow = async (product: Product) => {
+    if (product.isCatalogItem) {
+      toast.error(t("กรุณากดปุ่ม 'ซิงค์สินค้าทั้งหมดเข้าฐานข้อมูล' ด้านบนก่อนแก้ไข", "Please click 'Sync Catalog to DB' above before editing catalog items."));
+      return;
+    }
     if (!product.id) return;
+    
     const { error } = await supabase.from("products").update({
       name: product.name,
       category: product.category,
@@ -158,31 +181,42 @@ function StockPanel() {
     else {
       toast.success(t("เพิ่มสินค้าสำเร็จ", "Product added successfully"));
       setNewProduct({ name: "", price: 0, stock: 10, category: "Fonzo Acoustic", image_url: "", description: "" });
-      fetchProducts();
+      fetchSupabaseProducts();
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: any, isCatalogItem?: boolean) => {
+    if (isCatalogItem) {
+      toast.error(t("ไม่สามารถลบสินค้าจากแคตตาล็อกหลักได้โดยตรง", "Cannot delete catalog items directly"));
+      return;
+    }
     if (!confirm(t("คุณต้องการลบสินค้านี้ใช่หรือไม่?", "Are you sure you want to delete this product?"))) return;
     const { error } = await supabase.from("products").delete().eq("id", id);
     if (error) toast.error(t("ลบไม่สำเร็จ", "Delete failed"));
     else {
       toast.success(t("ลบสินค้าเรียบร้อย", "Product deleted"));
-      fetchProducts();
+      fetchSupabaseProducts();
     }
   };
+
+  const isLoading = catalogLoading || loadingSupa;
 
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-lg font-display flex items-center gap-2">
-          <Package className="h-5 w-5 text-brand" /> {t("จัดการสต็อกและข้อมูลสินค้า", "Inventory & Stock")}
-        </h2>
+        <div>
+          <h2 className="text-lg font-display flex items-center gap-2">
+            <Package className="h-5 w-5 text-brand" /> {t("จัดการสต็อกและข้อมูลสินค้าทั้งหมด", "All Products & Inventory")}
+          </h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            {t("หากต้องการแก้ไขสินค้าจากแคตตาล็อก 114 รายการ ให้กดปุ่ม 'ซิงค์สินค้าทั้งหมด' ด้านขวา", "To edit catalog items, click 'Sync Catalog to DB' on the right.")}
+          </p>
+        </div>
         <div className="flex items-center gap-3">
           <Button onClick={handleImportCatalog} disabled={importing} variant="outline" size="sm" className="h-9 rounded-none border-brand text-brand hover:bg-brand/10">
             <Database className="mr-2 h-3.5 w-3.5" /> {importing ? t("กำลังซิงค์...", "Syncing...") : t("ซิงค์สินค้าทั้งหมดเข้าฐานข้อมูล", "Sync Catalog to DB")}
           </Button>
-          <Button onClick={fetchProducts} variant="outline" size="sm" className="h-9 rounded-none border-border">
+          <Button onClick={fetchSupabaseProducts} variant="outline" size="sm" className="h-9 rounded-none border-border">
             <RefreshCw className="mr-2 h-3.5 w-3.5" /> {t("รีเฟรช", "Refresh")}
           </Button>
         </div>
@@ -226,13 +260,14 @@ function StockPanel() {
         </Button>
       </form>
 
-      {/* ตารางแสดงสินค้า (แก้ไขแล้วกดปุ่มบันทึกแต่ละแถวเพื่อความลื่นไหล) */}
+      {/* ตารางแสดงสินค้าทั้งหมด */}
       <div className="border border-border bg-card overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead className="bg-secondary/50 border-b border-border uppercase tracking-widest text-muted-foreground">
             <tr>
               <th className="p-4">{t("รูป", "Image")}</th>
               <th className="p-4">{t("ชื่อสินค้า / รุ่น", "Name")}</th>
+              <th className="p-4">{t("สถานะ / แหล่งที่มา", "Source")}</th>
               <th className="p-4">{t("หมวดหมู่", "Category")}</th>
               <th className="p-4">{t("ราคา (บาท)", "Price")}</th>
               <th className="p-4">{t("สต็อก", "Stock")}</th>
@@ -240,12 +275,12 @@ function StockPanel() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {loading ? (
-              <tr><td colSpan={6} className="p-8 text-center text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></td></tr>
-            ) : products.length === 0 ? (
-              <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">{t("ยังไม่มีสินค้าในฐานข้อมูล กดปุ่ม 'ซิงค์สินค้าทั้งหมด' ด้านบน", "No products in DB.")}</td></tr>
+            {isLoading ? (
+              <tr><td colSpan={7} className="p-8 text-center text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></td></tr>
+            ) : allProducts.length === 0 ? (
+              <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">{t("ยังไม่มีสินค้าในระบบ", "No products found.")}</td></tr>
             ) : (
-              products.map((p, idx) => (
+              allProducts.map((p, idx) => (
                 <tr key={p.id || idx} className="hover:bg-secondary/20">
                   <td className="p-4">
                     <img src={p.image_url || "/fonzo-logo.png"} alt={p.name} className="h-10 w-10 object-cover border border-border" />
@@ -254,22 +289,29 @@ function StockPanel() {
                     <Input 
                       value={p.name} 
                       onChange={(e) => {
-                        const updated = [...products];
-                        updated[idx].name = e.target.value;
-                        setProducts(updated);
+                        allProducts[idx].name = e.target.value;
                       }} 
                       className="h-9 border-border rounded-none bg-transparent" 
                     />
                   </td>
                   <td className="p-4">
+                    {p.isCatalogItem ? (
+                      <span className="text-amber-600 bg-amber-500/10 px-2 py-0.5 text-[10px] uppercase font-semibold">
+                        {t("แคตตาล็อกหลัก (กดซิงค์เพื่อแก้)", "Catalog (Sync to edit)")}
+                      </span>
+                    ) : (
+                      <span className="text-brand bg-brand/10 px-2 py-0.5 text-[10px] uppercase font-semibold">
+                        {t("จัดการร้าน (Supabase)", "Custom Product")}
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-4">
                     <Input 
                       value={p.category} 
                       onChange={(e) => {
-                        const updated = [...products];
-                        updated[idx].category = e.target.value;
-                        setProducts(updated);
+                        allProducts[idx].category = e.target.value;
                       }} 
-                      className="h-9 border-border rounded-none bg-transparent w-36" 
+                      className="h-9 border-border rounded-none bg-transparent w-32" 
                     />
                   </td>
                   <td className="p-4">
@@ -277,11 +319,9 @@ function StockPanel() {
                       type="number" 
                       value={p.price} 
                       onChange={(e) => {
-                        const updated = [...products];
-                        updated[idx].price = Number(e.target.value);
-                        setProducts(updated);
+                        allProducts[idx].price = Number(e.target.value);
                       }} 
-                      className="h-9 border-border rounded-none bg-transparent w-28" 
+                      className="h-9 border-border rounded-none bg-transparent w-24" 
                     />
                   </td>
                   <td className="p-4">
@@ -289,11 +329,9 @@ function StockPanel() {
                       type="number" 
                       value={p.stock} 
                       onChange={(e) => {
-                        const updated = [...products];
-                        updated[idx].stock = Number(e.target.value);
-                        setProducts(updated);
+                        allProducts[idx].stock = Number(e.target.value);
                       }} 
-                      className="h-9 border-border rounded-none bg-transparent w-20 text-center font-bold" 
+                      className="h-9 border-border rounded-none bg-transparent w-16 text-center font-bold" 
                     />
                   </td>
                   <td className="p-4 text-right flex items-center justify-end gap-2">
@@ -305,15 +343,17 @@ function StockPanel() {
                     >
                       <Save className="h-3 w-3 mr-1" /> {t("บันทึก", "Save")}
                     </Button>
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleDelete(p.id!)} 
-                      className="text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 w-8 p-0"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {!p.isCatalogItem && (
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleDelete(p.id!)} 
+                        className="text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 w-8 p-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))
