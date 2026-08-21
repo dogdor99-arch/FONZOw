@@ -3,7 +3,7 @@ import { useRoute, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { supabase } from "@/lib/supabase";
-import { Loader2, ArrowLeft, CheckCircle2, ShieldCheck, Truck } from "lucide-react";
+import { Loader2, ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function GuitarDetail() {
@@ -11,7 +11,6 @@ export default function GuitarDetail() {
   const rawCode = params?.code ? decodeURIComponent(params.code).trim() : "";
   const { t } = useLocale();
 
-  // 1. ดึงรายการแคตตาล็อกทั้งหมดเพื่อมาค้นหาเทียบ
   const { data: catalogGuitars = [], isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
   
   const [guitar, setGuitar] = useState<any>(null);
@@ -21,7 +20,29 @@ export default function GuitarDetail() {
     async function resolveGuitar() {
       if (!rawCode || catalogLoading) return;
 
-      // ค้นหาแบบยืดหยุ่นจากแคตตาล็อกหลัก (เทียบทั้ง code, name แบบไม่สนตัวพิมพ์เล็ก-ใหญ่)
+      // 1. ค้นหาจาก Supabase ก่อน (เนื่องจากข้อมูลที่ซิงค์มาจะอยู่ที่นี่และแก้ไขได้)
+      const { data: supaData } = await supabase
+        .from("products")
+        .select("*")
+        .ilike("name", `%${rawCode}%`)
+        .maybeSingle();
+
+      if (supaData) {
+        setGuitar({
+          id: supaData.id,
+          code: supaData.name,
+          name: supaData.name,
+          series: supaData.category || "Fonzo Custom",
+          price: Number(supaData.price || 0),
+          image: supaData.image_url || "/fonzo-logo.png",
+          description: supaData.description || "กีตาร์คุณภาพสูงจาก Fonzo Guitar งานประกอบประณีต",
+          stock: supaData.stock,
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. ถ้าไม่เจอใน Supabase ให้หาจากแคตตาล็อกหลัก
       const found = catalogGuitars.find((g: any) => {
         const c = (g.code || "").toString().toLowerCase().trim();
         const n = (g.name || "").toString().toLowerCase().trim();
@@ -31,29 +52,6 @@ export default function GuitarDetail() {
 
       if (found) {
         setGuitar(found);
-        setIsLoading(false);
-        return;
-      }
-
-      // ถ้าไม่เจอในแคตตาล็อกหลัก ลองหาใน Supabase
-      const { data } = await supabase
-        .from("products")
-        .select("*")
-        .ilike("name", `%${rawCode}%`)
-        .maybeSingle();
-
-      if (data) {
-        setGuitar({
-          id: data.id,
-          code: data.name,
-          name: data.name,
-          series: data.category || "Fonzo Custom",
-          price: Number(data.price || 0),
-          image: data.image_url || "/fonzo-logo.png",
-          description: data.description || "กีตาร์คุณภาพสูงจาก Fonzo Guitar งานประกอบประณีต เสียงกังวานเป็นเอกลักษณ์",
-          specs: data.specs || {},
-          stock: data.stock,
-        });
       }
 
       setIsLoading(false);
@@ -114,7 +112,7 @@ export default function GuitarDetail() {
             {guitar.description || guitar.specs?.description || t("กีตาร์คุณภาพสูง ออกแบบมาเพื่อเสียงอันประณีตและการเล่นที่พริ้วไหว", "Premium crafted guitar for exceptional tone and playability.")}
           </p>
 
-          {/* รายละเอียดสเปคเชิงลึก (Specs Table) */}
+          {/* รายละเอียดสเปคทางเทคนิค (Specs) */}
           {guitar.specs && Object.keys(guitar.specs).length > 0 && (
             <div className="border-t border-border pt-6 space-y-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-foreground">{t("สเปคทางเทคนิค", "Technical Specifications")}</p>

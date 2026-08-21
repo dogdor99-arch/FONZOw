@@ -107,7 +107,6 @@ function StockPanel() {
 
   useEffect(() => { fetchSupabaseProducts(); }, []);
 
-  // รวมสินค้าจากแคตตาล็อก 114 ตัว และ Supabase เข้าด้วยกันในตาราง Admin
   const allProducts = useMemo(() => {
     const formattedCatalog = catalogGuitars.map((g: any, idx: number) => ({
       id: `catalog-${idx}`,
@@ -116,7 +115,7 @@ function StockPanel() {
       stock: g.stock ?? 10,
       category: g.series || "Catalog Guitar",
       image_url: g.image || "/fonzo-logo.png",
-      description: g.description || "",
+      description: g.description || JSON.stringify(g.specs || {}) || "",
       isCatalogItem: true,
     }));
 
@@ -127,22 +126,28 @@ function StockPanel() {
   }, [catalogGuitars, supabaseProducts]);
 
   const handleImportCatalog = async () => {
-    if (!confirm(t("ต้องการซิงค์สินค้าทั้งหมดเข้าสู่ฐานข้อมูลเพื่อให้สามารถแก้ไขข้อมูลได้ทั้งหมดใช่หรือไม่?", "Sync all catalog items to database for editing?"))) return;
+    if (!confirm(t("ต้องการซิงค์สินค้าและสเปคทั้งหมดเข้าสู่ฐานข้อมูลเพื่อให้สามารถแก้ไขข้อมูลได้ทั้งหมดใช่หรือไม่?", "Sync all catalog items and specs to database for full editing?"))) return;
     setImporting(true);
     try {
-      const itemsToInsert = catalogGuitars.map((g: any) => ({
-        name: g.name || g.code,
-        price: Number(g.price || 0),
-        stock: g.stock ?? 10,
-        category: g.series || "Fonzo Custom",
-        image_url: g.image || "/fonzo-logo.png",
-        description: g.description || "กีตาร์คุณภาพสูงจาก Fonzo Guitar"
-      }));
+      const itemsToInsert = catalogGuitars.map((g: any) => {
+        // รวบรวมสเปคและรายละเอียดทั้งหมดให้เป็นข้อความบรรยาย
+        const specText = g.specs ? Object.entries(g.specs).map(([k, v]) => `${k}: ${v}`).join("\n") : "";
+        const fullDesc = [g.description, specText].filter(Boolean).join("\n\n");
+
+        return {
+          name: g.name || g.code,
+          price: Number(g.price || 0),
+          stock: g.stock ?? 10,
+          category: g.series || "Fonzo Custom",
+          image_url: g.image || "/fonzo-logo.png",
+          description: fullDesc || "กีตาร์คุณภาพสูงจาก Fonzo Guitar งานประกอบประณีต"
+        };
+      });
 
       const { error } = await supabase.from("products").upsert(itemsToInsert, { onConflict: "name" });
       if (error) throw error;
 
-      toast.success(t("ซิงค์ข้อมูลสำเร็จ!", "Catalog imported successfully!"));
+      toast.success(t("ซิงค์ข้อมูลและสเปคทั้งหมดสำเร็จ!", "Catalog and specs imported successfully!"));
       fetchSupabaseProducts();
     } catch (err: any) {
       toast.error(t("ซิงค์ไม่สำเร็จ: ", "Import failed: ") + err.message);
@@ -162,7 +167,8 @@ function StockPanel() {
       name: product.name,
       category: product.category,
       price: product.price,
-      stock: product.stock
+      stock: product.stock,
+      description: product.description
     }).eq("id", product.id);
 
     if (error) {
@@ -209,7 +215,7 @@ function StockPanel() {
             <Package className="h-5 w-5 text-brand" /> {t("จัดการสต็อกและข้อมูลสินค้าทั้งหมด", "All Products & Inventory")}
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
-            {t("หากต้องการแก้ไขสินค้าจากแคตตาล็อก 114 รายการ ให้กดปุ่ม 'ซิงค์สินค้าทั้งหมด' ด้านขวา", "To edit catalog items, click 'Sync Catalog to DB' on the right.")}
+            {t("กดปุ่ม 'ซิงค์สินค้าทั้งหมด' เพื่อดึงสเปคและรายละเอียดของกีตาร์ทั้ง 114 รุ่นลงฐานข้อมูลเพื่อแก้ไข", "Click 'Sync Catalog to DB' to load all specs for full editing.")}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -251,7 +257,7 @@ function StockPanel() {
             <Input value={newProduct.image_url} onChange={(e) => setNewProduct({ ...newProduct, image_url: e.target.value })} placeholder="https://..." className="mt-1 h-10 rounded-none border-border" />
           </div>
           <div>
-            <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">{t("รายละเอียด", "Description")}</label>
+            <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">{t("รายละเอียดและสเปค", "Description & Specs")}</label>
             <Input value={newProduct.description || ""} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} placeholder="รายละเอียดสเปค..." className="mt-1 h-10 rounded-none border-border" />
           </div>
         </div>
@@ -267,7 +273,7 @@ function StockPanel() {
             <tr>
               <th className="p-4">{t("รูป", "Image")}</th>
               <th className="p-4">{t("ชื่อสินค้า / รุ่น", "Name")}</th>
-              <th className="p-4">{t("สถานะ / แหล่งที่มา", "Source")}</th>
+              <th className="p-4">{t("สถานะ", "Source")}</th>
               <th className="p-4">{t("หมวดหมู่", "Category")}</th>
               <th className="p-4">{t("ราคา (บาท)", "Price")}</th>
               <th className="p-4">{t("สต็อก", "Stock")}</th>
@@ -288,9 +294,7 @@ function StockPanel() {
                   <td className="p-4 font-medium text-foreground">
                     <Input 
                       value={p.name} 
-                      onChange={(e) => {
-                        allProducts[idx].name = e.target.value;
-                      }} 
+                      onChange={(e) => { allProducts[idx].name = e.target.value; }} 
                       className="h-9 border-border rounded-none bg-transparent" 
                     />
                   </td>
@@ -308,9 +312,7 @@ function StockPanel() {
                   <td className="p-4">
                     <Input 
                       value={p.category} 
-                      onChange={(e) => {
-                        allProducts[idx].category = e.target.value;
-                      }} 
+                      onChange={(e) => { allProducts[idx].category = e.target.value; }} 
                       className="h-9 border-border rounded-none bg-transparent w-32" 
                     />
                   </td>
@@ -318,9 +320,7 @@ function StockPanel() {
                     <Input 
                       type="number" 
                       value={p.price} 
-                      onChange={(e) => {
-                        allProducts[idx].price = Number(e.target.value);
-                      }} 
+                      onChange={(e) => { allProducts[idx].price = Number(e.target.value); }} 
                       className="h-9 border-border rounded-none bg-transparent w-24" 
                     />
                   </td>
@@ -328,9 +328,7 @@ function StockPanel() {
                     <Input 
                       type="number" 
                       value={p.stock} 
-                      onChange={(e) => {
-                        allProducts[idx].stock = Number(e.target.value);
-                      }} 
+                      onChange={(e) => { allProducts[idx].stock = Number(e.target.value); }} 
                       className="h-9 border-border rounded-none bg-transparent w-16 text-center font-bold" 
                     />
                   </td>
