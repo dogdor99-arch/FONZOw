@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
 import { useRoute, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
-import { supabase } from "@/lib/supabase";
-import { Loader2, ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function GuitarDetail() {
@@ -11,49 +9,23 @@ export default function GuitarDetail() {
   const rawCode = params?.code ? decodeURIComponent(params.code).trim() : "";
   const { t } = useLocale();
 
-  const { data: catalogGuitars = [], isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
-  const [guitar, setGuitar] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // ดึงรายการกีตาร์ทั้งหมดจากแคตตาล็อกหลัก (ซึ่งมีสเปคเชิงลึกครบถ้วนอยู่แล้ว)
+  const { data: catalogGuitars = [], isLoading } = trpc.fonzo.guitars.list.useQuery();
 
-  useEffect(() => {
-    async function resolveGuitar() {
-      if (!rawCode || catalogLoading) return;
+  // ค้นหารุ่นที่ตรงกันแบบแม่นยำ
+  const guitar = catalogGuitars.find((g: any) => {
+    const c = (g.code || "").toString().toLowerCase().trim();
+    const n = (g.name || "").toString().toLowerCase().trim();
+    const target = rawCode.toLowerCase();
+    return c === target || n === target || c.includes(target) || target.includes(c);
+  });
 
-      // 1. หาข้อมูลสเปคแบบเต็มจากไฟล์แคตตาล็อกหลัก
-      const baseGuitar = catalogGuitars.find((g: any) => 
-        (g.code || "").toLowerCase() === rawCode.toLowerCase() ||
-        (g.name || "").toLowerCase() === rawCode.toLowerCase()
-      );
-
-      // 2. หาข้อมูล ราคา/สต็อก ที่มีการแก้ไขจากหน้า Admin (Supabase)
-      const { data: dbData } = await supabase
-        .from("products")
-        .select("*")
-        .ilike("name", `%${rawCode}%`)
-        .maybeSingle();
-
-      // 3. รวมร่างข้อมูล (เอาสเปคหลักเป็นฐาน ทับด้วยราคาและสต็อกใหม่จาก Admin)
-      if (baseGuitar || dbData) {
-        setGuitar({
-          ...(baseGuitar || {}), 
-          ...(dbData || {}),
-          name: dbData?.name || baseGuitar?.name || rawCode,
-          price: dbData?.price ?? baseGuitar?.price ?? 0,
-          stock: dbData?.stock ?? baseGuitar?.stock ?? 10,
-          image: dbData?.image_url || baseGuitar?.image || "/fonzo-logo.png",
-          description: dbData?.description || baseGuitar?.description || "กีตาร์คุณภาพสูงจาก Fonzo Guitar",
-          specs: baseGuitar?.specs || {}, // ดึงสเปคจากไฟล์หลักเสมอ
-          features: baseGuitar?.features || [] // ดึงฟีเจอร์จากไฟล์หลักเสมอ
-        });
-      }
-      setIsLoading(false);
-    }
-
-    resolveGuitar();
-  }, [rawCode, catalogGuitars, catalogLoading]);
-
-  if (isLoading || catalogLoading) {
-    return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-brand" /></div>;
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-brand" />
+      </div>
+    );
   }
 
   if (!guitar) {
@@ -74,22 +46,32 @@ export default function GuitarDetail() {
       </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+        {/* รูปภาพ */}
         <div className="border border-border bg-card p-8 flex justify-center items-center min-h-[450px]">
-          <img src={guitar.image} alt={guitar.name} className="w-full h-auto object-contain max-h-[550px] drop-shadow-md" />
+          <img 
+            src={guitar.image || guitar.imageUrl || "/fonzo-logo.png"} 
+            alt={guitar.name || guitar.code} 
+            className="w-full h-auto object-contain max-h-[550px] drop-shadow-md" 
+          />
         </div>
 
+        {/* ข้อมูลและสเปค */}
         <div className="space-y-6">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-brand font-semibold">{guitar.series || guitar.category || "Fonzo Custom"}</p>
-            <h1 className="text-3xl font-display mt-2">{guitar.name}</h1>
+            <p className="text-xs uppercase tracking-[0.2em] text-brand font-semibold">
+              {guitar.series || "Fonzo Custom"}
+            </p>
+            <h1 className="text-3xl font-display mt-2">{guitar.name || guitar.code}</h1>
             <p className="text-2xl font-display text-brand mt-4">
-              {guitar.price > 0 ? `฿${Number(guitar.price).toLocaleString()}` : t("สอบถามราคา", "Price upon request")}
+              {guitar.price && guitar.price > 0 ? `฿${Number(guitar.price).toLocaleString()}` : t("สอบถามราคา", "Price upon request")}
             </p>
           </div>
 
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{guitar.description}</p>
+          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+            {guitar.description || t("กีตาร์คุณภาพสูง ออกแบบมาเพื่อเสียงอันประณีตและการเล่นที่พริ้วไหว", "Premium crafted guitar for exceptional tone and playability.")}
+          </p>
 
-          {/* ตารางสเปคจะกลับมา 100% */}
+          {/* สเปคทางเทคนิคแบบจัดเต็มกลับมาแล้ว */}
           {guitar.specs && Object.keys(guitar.specs).length > 0 && (
             <div className="border-t border-border pt-6 space-y-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-foreground">{t("สเปคทางเทคนิค", "Technical Specifications")}</p>
@@ -107,10 +89,22 @@ export default function GuitarDetail() {
             </div>
           )}
 
-          <div className="border-t border-border pt-6 space-y-3">
+          {/* คุณสมบัติเด่น */}
+          {guitar.features && Array.isArray(guitar.features) && guitar.features.length > 0 && (
+            <div className="border-t border-border pt-4 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-foreground">{t("คุณสมบัติเด่น", "Key Features")}</p>
+              <ul className="list-disc list-inside text-xs text-muted-foreground space-y-1">
+                {guitar.features.map((feat: string, i: number) => (
+                  <li key={i}>{feat}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="border-t border-border pt-6">
             <p className="text-xs text-muted-foreground uppercase tracking-widest flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              {t("สถานะสินค้า", "Stock Status")}: <span className="font-bold text-foreground">{guitar.stock > 0 ? `${t("มีสินค้า", "In Stock")} (${guitar.stock} ${t("ตัว", "pcs")})` : t("สินค้าหมด", "Out of Stock")}</span>
+              {t("สถานะสินค้า", "Stock Status")}: <span className="font-bold text-foreground">{t("มีสินค้าพร้อมส่ง", "Available in stock")}</span>
             </p>
           </div>
         </div>
