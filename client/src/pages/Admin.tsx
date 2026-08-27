@@ -93,12 +93,14 @@ function StockManager() {
     const formattedCatalog = catalogGuitars.map((g: any, idx: number) => {
       const existingSupa = supabaseProducts.find(p => (p.name || "").toLowerCase().trim() === (g.name || g.code || "").toLowerCase().trim());
       
-      const imgList = g.images || (g.image ? [g.image] : (g.imageUrl ? [g.imageUrl] : ["/fonzo-logo.png"]));
+      const imgList = (existingSupa?.image_urls && existingSupa.image_urls.length > 0) 
+        ? existingSupa.image_urls 
+        : (g.images || (g.image ? [g.image] : (g.imageUrl ? [g.imageUrl] : ["/fonzo-logo.png"])));
 
       if (existingSupa) {
         return { 
           ...existingSupa, 
-          image_urls: existingSupa.image_urls && existingSupa.image_urls.length > 0 ? existingSupa.image_urls : imgList,
+          image_urls: imgList,
           specs: existingSupa.specs || g.specs || {},
           isCatalogItem: false 
         };
@@ -110,7 +112,7 @@ function StockManager() {
         price: Number(g.price || 0),
         stock: g.stock ?? 10,
         category: g.series || "Catalog Guitar",
-        image_url: g.image || g.imageUrl || "/fonzo-logo.png",
+        image_url: imgList[0],
         image_urls: imgList,
         description: g.description || "",
         specs: g.specs || {},
@@ -189,7 +191,7 @@ function StockManager() {
               allProducts.map((p, idx) => (
                 <tr key={p.id || idx} className="hover:bg-secondary/20">
                   <td className="p-4">
-                    <img src={p.image_url || p.image || p.imageUrl || "/fonzo-logo.png"} alt={p.name} className="h-10 w-10 object-cover border border-border" />
+                    <img src={p.image_urls?.[0] || p.image_url || p.image || "/fonzo-logo.png"} alt={p.name} className="h-10 w-10 object-cover border border-border" />
                   </td>
                   <td className="p-4 font-medium text-foreground">{p.name}</td>
                   <td className="p-4">
@@ -230,7 +232,7 @@ function StockManager() {
   );
 }
 
-// ฟอร์มแก้ไขสินค้า พร้อมปุ่มอัปโหลดรูปจากเครื่องแบบเลือกหลายรูปเด่นชัด
+// ฟอร์มแก้ไขสินค้า (อัปโหลดรูปจากเครื่องง่ายๆ ไม่ต้องใส่ลิงก์ URL และอัปเดตตัวเดิมแม่นยำ 100%)
 function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", initialData?: any, onBack: () => void }) {
   const [productType, setProductType] = useState<string>(
     initialData?.category?.toLowerCase().includes("string") || initialData?.category?.toLowerCase().includes("accessory") ? "accessory" : "guitar"
@@ -247,7 +249,7 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
     if (single) {
       return [single];
     }
-    return ["/fonzo-logo.png"];
+    return [];
   };
 
   const [formData, setFormData] = useState({
@@ -284,7 +286,7 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
 
   const [saving, setSaving] = useState(false);
 
-  // ฟังก์ชันรองรับการอัปโหลดไฟล์จากเครื่องหลายรูปพร้อมกัน
+  // ฟังก์ชันอัปโหลดไฟล์จากเครื่อง (เลือกหลายรูปพร้อมกัน)
   const handleLocalFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -303,12 +305,6 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
       reader.readAsDataURL(file);
     });
     e.target.value = "";
-  };
-
-  const handleImageChange = (index: number, value: string) => {
-    const updatedImages = [...formData.image_urls];
-    updatedImages[index] = value;
-    setFormData({ ...formData, image_urls: updatedImages });
   };
 
   const handleRemoveImage = (index: number) => {
@@ -357,24 +353,33 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
         specs: specs
       };
 
+      // ค้นหา ID เดิมของสินค้าตัวนี้ เพื่อทำการ Update ทับตัวเดิมอย่างแม่นยำ 100%
+      const targetId = initialData && !initialData.isCatalogItem ? initialData.id : null;
       const targetName = initialData?.name || formData.name;
-      const { data: existing } = await supabase
-        .from("products")
-        .select("id")
-        .ilike("name", targetName)
-        .maybeSingle();
+
+      let existingId = targetId;
+      if (!existingId) {
+        const { data: found } = await supabase
+          .from("products")
+          .select("id")
+          .ilike("name", targetName)
+          .maybeSingle();
+        existingId = found?.id;
+      }
 
       let error = null;
-      if (existing?.id) {
-        const res = await supabase.from("products").update(payload).eq("id", existing.id);
+      if (existingId) {
+        // อัปเดตข้อมูลตัวเดิม (ไมสร้างตัวใหม่ซ้ำซ้อน)
+        const res = await supabase.from("products").update(payload).eq("id", existingId);
         error = res.error;
       } else {
+        // สร้างใหม่กรณีเป็นสินค้าเพิ่มใหม่
         const res = await supabase.from("products").insert([payload]);
         error = res.error;
       }
 
       if (error) throw error;
-      toast.success(mode === "edit" ? "บันทึกข้อมูลสำเร็จ!" : "เพิ่มสินค้าสำเร็จ!");
+      toast.success("บันทึกข้อมูลสำเร็จ!");
       onBack();
     } catch (err: any) {
       toast.error("บันทึกไม่สำเร็จ: " + err.message);
@@ -426,14 +431,14 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           </div>
         </div>
 
-        {/* 🌟 ส่วนอัปโหลดรูปภาพจากเครื่องแบบเด่นชัด (เลือกหลายรูปได้ทันที) */}
+        {/* 🌟 ส่วนอัปโหลดรูปภาพจากเครื่องแบบสมบูรณ์ (ซ่อนช่อง URL ทิ้ง เหลือแต่พรีวิวและปุ่มอัปโหลด) */}
         <div className="space-y-4 border-t border-border pt-4">
           <div className="bg-secondary/40 border border-border p-5 flex flex-wrap items-center justify-between gap-4">
             <div>
               <label className="text-xs tracking-[0.16em] text-foreground uppercase font-bold flex items-center gap-2">
-                <ImageIcon className="h-5 w-5 text-brand" /> อัปโหลดรูปภาพสินค้าหลายมุม (อัปโหลดจากเครื่อง)
+                <ImageIcon className="h-5 w-5 text-brand" /> รูปภาพสินค้าจากหลายมุม (อัปโหลดจากเครื่อง)
               </label>
-              <p className="text-xs text-muted-foreground mt-1">คลิกปุ่มด้านขวาเพื่อเลือกไฟล์รูปภาพจากเครื่องคอมพิวเตอร์ของคุณ (สามารถเลือกหลายรูปพร้อมกันได้)</p>
+              <p className="text-xs text-muted-foreground mt-1">คลิกปุ่มด้านขวาเพื่อเลือกไฟล์รูปภาพจากคอมพิวเตอร์ (เลือกหลายรูปพร้อมกันได้ทันที)</p>
             </div>
             <div>
               <input 
@@ -454,41 +459,37 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
             </div>
           </div>
 
-          {/* รายการรูปภาพที่อัปโหลดและแสดงพรีวิว */}
+          {/* รายการพรีวิวรูปภาพ */}
           <div className="space-y-3 pt-2">
-            <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">รายการรูปภาพปัจจุบัน ({formData.image_urls.length} รูป)</p>
+            <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">รายการรูปภาพที่อัปโหลด ({formData.image_urls.length} รูป)</p>
             {formData.image_urls.length === 0 ? (
               <div className="p-6 border border-dashed border-border text-center text-xs text-muted-foreground">
                 ยังไม่มีรูปภาพ กรุณากดปุ่ม "เลือกรูปจากเครื่อง (หลายรูป)" ด้านบน
               </div>
             ) : (
-              formData.image_urls.map((url, index) => (
-                <div key={index} className="flex items-center gap-3 bg-secondary/20 p-2.5 border border-border">
-                  <div className="h-14 w-14 bg-background border border-border flex items-center justify-center overflow-hidden shrink-0">
-                    <img 
-                      src={url && url.trim() !== "" ? url : "/fonzo-logo.png"} 
-                      alt={`Preview ${index + 1}`} 
-                      className="h-full w-full object-contain"
-                      onError={(e) => { (e.target as HTMLImageElement).src = "/fonzo-logo.png"; }}
-                    />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {formData.image_urls.map((url, index) => (
+                  <div key={index} className="flex items-center gap-3 bg-secondary/20 p-2.5 border border-border">
+                    <div className="h-16 w-16 bg-background border border-border flex items-center justify-center overflow-hidden shrink-0">
+                      <img 
+                        src={url && url.trim() !== "" ? url : "/fonzo-logo.png"} 
+                        alt={`Preview ${index + 1}`} 
+                        className="h-full w-full object-contain"
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/fonzo-logo.png"; }}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] text-brand uppercase tracking-widest font-bold truncate">
+                        {index === 0 ? "รูปหลักหน้าปก (Primary)" : `มุมมองที่ ${index + 1}`}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground truncate">อัปโหลดเรียบร้อย</p>
+                    </div>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveImage(index)} className="text-red-500 hover:bg-red-500/10 h-8 w-8 p-0 shrink-0">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">
-                      {index === 0 ? "รูปหลักหน้าปก (Primary Image)" : `รูปมุมมองที่ ${index + 1}`}
-                    </span>
-                    <Input 
-                      value={url.startsWith("data:") ? "[ไฟล์รูปภาพจากเครื่องอัปโหลดแล้ว]" : url} 
-                      onChange={(e) => handleImageChange(index, e.target.value)} 
-                      placeholder="https://..." 
-                      className="h-8 rounded-none border-border text-xs bg-background" 
-                      disabled={url.startsWith("data:")}
-                    />
-                  </div>
-                  <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveImage(index)} className="text-red-500 h-9 px-3 shrink-0">
-                    ลบ
-                  </Button>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
         </div>
