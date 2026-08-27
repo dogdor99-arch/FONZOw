@@ -4,15 +4,57 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// ฐานข้อมูลสเปคเฉพาะแต่ละรุ่น (ป้องกันข้อมูลซ้ำกัน)
+const SPEC_DATABASE: Record<string, any> = {
+  "Ancient Sitka": {
+    "TOP WOOD": "Solid Ancient Sitka Spruce",
+    "BACK & SIDES": "Solid Indian Rosewood",
+    "NECK": "Honduran Mahogany",
+    "FINGERBOARD": "Ebony with Custom Inlay",
+    "SCALE LENGTH": "650 mm",
+    "NUT WIDTH": "52 mm",
+    "BRIDGE": "Ebony",
+    "FINISH": "Gloss Nitrocellulose"
+  },
+  "Picasso": {
+    "TOP WOOD": "Solid Cedar",
+    "BACK & SIDES": "Solid Figured Maple",
+    "NECK": "Spanish Cedar",
+    "FINGERBOARD": "Ebony",
+    "SCALE LENGTH": "640 mm",
+    "NUT WIDTH": "50 mm",
+    "BRIDGE": "Rosewood",
+    "FINISH": "French Polish"
+  },
+  "California": {
+    "TOP WOOD": "Solid Adirondack Spruce",
+    "BACK & SIDES": "Solid Figured Mahogany",
+    "NECK": "Mahogany",
+    "FINGERBOARD": "Richlite / Ebony",
+    "SCALE LENGTH": "650 mm",
+    "NUT WIDTH": "44.5 mm",
+    "BRIDGE": "Ebony",
+    "FINISH": "Open Pore Satin"
+  },
+  "Tiger": {
+    "TOP WOOD": "Solid Tiger Myrtle",
+    "BACK & SIDES": "Solid Tiger Myrtle",
+    "NECK": "Mahogany",
+    "FINGERBOARD": "Ebony",
+    "SCALE LENGTH": "650 mm",
+    "NUT WIDTH": "48 mm",
+    "BRIDGE": "Ebony",
+    "FINISH": "High Gloss"
+  }
+};
+
 export default function GuitarDetail() {
   const [, params] = useRoute("/guitar/:code");
   const rawCode = params?.code ? decodeURIComponent(params.code).trim() : "";
   const { t } = useLocale();
 
-  // ดึงรายการแคตตาล็อกหลัก
   const { data: catalogGuitars = [], isLoading } = trpc.fonzo.guitars.list.useQuery();
 
-  // ค้นหารุ่นที่ตรงกัน
   const foundGuitar = catalogGuitars.find((g: any) => {
     const c = (g.code || "").toString().toLowerCase().trim();
     const n = (g.name || "").toString().toLowerCase().trim();
@@ -20,26 +62,14 @@ export default function GuitarDetail() {
     return c === target || n === target || c.includes(target) || target.includes(c);
   });
 
-  // สำรองข้อมูลสเปคเชิงลึกกรณีที่ข้อมูลในแคตตาล็อกไม่แสดงผล เพื่อให้มั่นใจว่าสเปคจะไม่หาย
+  // เลือกระบบสเปค: ถ้ามีในฐานข้อมูลจำเพาะ ให้ใช้ตัวนั้น ถ้าไม่มีค่อยใช้ของเดิม
+  const guitarName = foundGuitar?.name || foundGuitar?.code || rawCode;
+  const matchedKey = Object.keys(SPEC_DATABASE).find(k => guitarName.includes(k));
+  const uniqueSpecs = matchedKey ? SPEC_DATABASE[matchedKey] : (foundGuitar?.specs || {});
+
   const guitar = foundGuitar ? {
     ...foundGuitar,
-    description: foundGuitar.description || "กีตาร์อะคูสติกและคลาสสิกแฮนด์เมดระดับเวิลด์คลาส ออกแบบและควบคุมการผลิตโดย เบิร์ด เอกชัย เจียรกุล คนไทยและคนเอเชียคนแรกที่คว้าแชมป์โลก GFA International Concert Artist Competition",
-    specs: foundGuitar.specs && Object.keys(foundGuitar.specs).length > 0 ? foundGuitar.specs : {
-      "Top Wood": "Solid Engelmann Spruce / Cedar",
-      "Back & Sides": "Solid Rosewood / Mahogany",
-      "Neck": "Mahogany with Ebony Reinforcement",
-      "Fingerboard": "Ebony",
-      "Scale Length": "650 mm (Standard)",
-      "Nut Width": "52 mm / 48 mm",
-      "Bridge": "Ebony",
-      "Binding": "Maple / Rosewood",
-      "Finish": "High Gloss / Open Pore Nitrocellulose"
-    },
-    features: foundGuitar.features && foundGuitar.features.length > 0 ? foundGuitar.features : [
-      "คัดสรรไม้แท้คุณภาพสูง (All Solid) ผ่านกระบวนการอบแห้งพิเศษ",
-      "เซ็ตอัพแอคชั่นสายต่ำ เล่นง่าย สบายมือ โทนเสียงกังวานใส",
-      "งานประกอบโดยช่างฝีมือระดับสากล ปราณีตทุกรายละเอียด"
-    ]
+    specs: uniqueSpecs
   } : null;
 
   if (isLoading) {
@@ -68,7 +98,6 @@ export default function GuitarDetail() {
       </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-        {/* รูปภาพ */}
         <div className="border border-border bg-card p-8 flex justify-center items-center min-h-[450px]">
           <img 
             src={guitar.image || guitar.imageUrl || "/fonzo-logo.png"} 
@@ -77,7 +106,6 @@ export default function GuitarDetail() {
           />
         </div>
 
-        {/* ข้อมูลและสเปค */}
         <div className="space-y-6">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-brand font-semibold">
@@ -90,10 +118,10 @@ export default function GuitarDetail() {
           </div>
 
           <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-            {guitar.description}
+            {guitar.description || "กีตาร์อะคูสติกและคลาสสิกแฮนด์เมดระดับเวิลด์คลาส ออกแบบและควบคุมการผลิตโดย เบิร์ด เอกชัย เจียรกุล"}
           </p>
 
-          {/* สเปคทางเทคนิค */}
+          {/* สเปคทางเทคนิคเฉพาะรุ่น */}
           {guitar.specs && Object.keys(guitar.specs).length > 0 && (
             <div className="border-t border-border pt-6 space-y-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-foreground">{t("สเปคทางเทคนิค", "Technical Specifications")}</p>
@@ -108,18 +136,6 @@ export default function GuitarDetail() {
                   );
                 })}
               </div>
-            </div>
-          )}
-
-          {/* คุณสมบัติเด่น */}
-          {guitar.features && Array.isArray(guitar.features) && guitar.features.length > 0 && (
-            <div className="border-t border-border pt-4 space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-widest text-foreground">{t("คุณสมบัติเด่น", "Key Features")}</p>
-              <ul className="list-disc list-inside text-xs text-muted-foreground space-y-1">
-                {guitar.features.map((feat: string, i: number) => (
-                  <li key={i}>{feat}</li>
-                ))}
-              </ul>
             </div>
           )}
 
