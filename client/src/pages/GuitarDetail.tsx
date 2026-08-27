@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { PageHeading } from "@/components/site/SiteLayout";
 import { supabase } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
-import { Check, ShieldCheck, Truck, ArrowLeft, Loader2 } from "lucide-react";
+import { ShieldCheck, Truck, ArrowLeft, Loader2 } from "lucide-react";
 
 export default function GuitarDetail() {
   const { code } = useParams();
@@ -18,7 +17,6 @@ export default function GuitarDetail() {
   const [supabaseProduct, setSupabaseProduct] = useState<any>(null);
   const [loadingSupa, setLoadingSupa] = useState(true);
 
-  // ถอดรหัส URL code เพื่อค้นหาชื่อรุ่นให้ตรงกัน
   const decodedCode = decodeURIComponent(code || "").trim();
 
   useEffect(() => {
@@ -49,30 +47,39 @@ export default function GuitarDetail() {
     return gName === decodedCode.toLowerCase();
   });
 
-  // ผสานข้อมูล: หากมีข้อมูลใน Supabase ให้ใช้ข้อมูลจาก Supabase ทับทันที (รวมถึงรูปภาพหลายมุม)
-  const guitar = supabaseProduct ? {
-    ...catalogItem,
-    ...supabaseProduct,
-    name: supabaseProduct.name || catalogItem?.name,
-    price: supabaseProduct.price !== undefined ? supabaseProduct.price : catalogItem?.price,
-    description: supabaseProduct.description || catalogItem?.description,
-    specs: supabaseProduct.specs || catalogItem?.specs,
-    // ดึงรูปภาพหลายมุมจาก Supabase (ถ้ามี) ถ้าไม่มีให้ใช้รูปเดิม
-    images: supabaseProduct.image_urls && supabaseProduct.image_urls.length > 0 
-      ? supabaseProduct.image_urls 
-      : (catalogItem?.images || [supabaseProduct.image_url || catalogItem?.image || "/fonzo-logo.png"]),
-    image: supabaseProduct.image_urls?.[0] || supabaseProduct.image_url || catalogItem?.image || "/fonzo-logo.png",
-  } : catalogItem;
+  // ใช้ useMemo ตรึงข้อมูลกีตาร์ไม่ให้รีเฟรชออปjects ซ้ำซ้อน
+  const guitar = useMemo(() => {
+    if (supabaseProduct) {
+      return {
+        ...catalogItem,
+        ...supabaseProduct,
+        name: supabaseProduct.name || catalogItem?.name,
+        price: supabaseProduct.price !== undefined ? supabaseProduct.price : catalogItem?.price,
+        description: supabaseProduct.description || catalogItem?.description,
+        specs: supabaseProduct.specs || catalogItem?.specs,
+        images: supabaseProduct.image_urls && supabaseProduct.image_urls.length > 0 
+          ? supabaseProduct.image_urls 
+          : (catalogItem?.images || [supabaseProduct.image_url || catalogItem?.image || "/fonzo-logo.png"]),
+        image: supabaseProduct.image_urls?.[0] || supabaseProduct.image_url || catalogItem?.image || "/fonzo-logo.png",
+      };
+    }
+    return catalogItem;
+  }, [catalogItem, supabaseProduct]);
+
+  // ตรึงรายการรูปภาพให้อยู่กับที่
+  const imagesList = useMemo(() => {
+    if (!guitar) return ["/fonzo-logo.png"];
+    return guitar.images && guitar.images.length > 0 ? guitar.images : [guitar.image || "/fonzo-logo.png"];
+  }, [guitar]);
 
   const [selectedImage, setSelectedImage] = useState<string>("");
 
-  // ตั้งค่ารูปแรกเป็นรูปเริ่มต้นเมื่อโหลดข้อมูลเสร็จ
+  // ตั้งค่ารูปแรกเป็นค่าเริ่มต้นเฉพาะตอนโหลดครั้งแรกเท่านั้น (ไม่รีเซ็ตซ้ำตอนกดเปลี่ยนรูป)
   useEffect(() => {
-    if (guitar) {
-      const firstImg = guitar.images?.[0] || guitar.image || "/fonzo-logo.png";
-      setSelectedImage(firstImg);
+    if (imagesList.length > 0 && (!selectedImage || !imagesList.includes(selectedImage))) {
+      setSelectedImage(imagesList[0]);
     }
-  }, [guitar]);
+  }, [imagesList]);
 
   const isLoading = catalogLoading || loadingSupa;
 
@@ -96,7 +103,6 @@ export default function GuitarDetail() {
     );
   }
 
-  const imagesList = guitar.images && guitar.images.length > 0 ? guitar.images : [guitar.image || "/fonzo-logo.png"];
   const specsEntries = guitar.specs ? Object.entries(guitar.specs) : [];
 
   return (
@@ -117,7 +123,7 @@ export default function GuitarDetail() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* ส่วนแสดงรูปภาพหลายมุม */}
+          {/* ส่วนแสดงรูปภาพหลักและแกลเลอรี */}
           <div className="lg:col-span-7 space-y-4">
             <div className="border border-border bg-card p-4 flex items-center justify-center h-[450px] sm:h-[550px] overflow-hidden">
               <img 
@@ -197,7 +203,6 @@ export default function GuitarDetail() {
   );
 }
 
-// Helper utility ป้องกัน cn error หากในไฟล์ยังไม่มี
 function cn(...classes: any[]) {
   return classes.filter(Boolean).join(" ");
 }
