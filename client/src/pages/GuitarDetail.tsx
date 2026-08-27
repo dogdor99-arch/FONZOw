@@ -47,7 +47,7 @@ export default function GuitarDetail() {
     return gName === decodedCode.toLowerCase();
   });
 
-  // ใช้ useMemo ตรึงข้อมูลกีตาร์ไม่ให้รีเฟรชออปjects ซ้ำซ้อน
+  // ผสานข้อมูล (ดึง specs และ images จาก Supabase มาแสดงผลทับอย่างแม่นยำ)
   const guitar = useMemo(() => {
     if (supabaseProduct) {
       return {
@@ -56,7 +56,9 @@ export default function GuitarDetail() {
         name: supabaseProduct.name || catalogItem?.name,
         price: supabaseProduct.price !== undefined ? supabaseProduct.price : catalogItem?.price,
         description: supabaseProduct.description || catalogItem?.description,
-        specs: supabaseProduct.specs || catalogItem?.specs,
+        specs: supabaseProduct.specs && Object.keys(supabaseProduct.specs).length > 0 
+          ? supabaseProduct.specs 
+          : catalogItem?.specs,
         images: supabaseProduct.image_urls && supabaseProduct.image_urls.length > 0 
           ? supabaseProduct.image_urls 
           : (catalogItem?.images || [supabaseProduct.image_url || catalogItem?.image || "/fonzo-logo.png"]),
@@ -66,7 +68,6 @@ export default function GuitarDetail() {
     return catalogItem;
   }, [catalogItem, supabaseProduct]);
 
-  // ตรึงรายการรูปภาพให้อยู่กับที่
   const imagesList = useMemo(() => {
     if (!guitar) return ["/fonzo-logo.png"];
     return guitar.images && guitar.images.length > 0 ? guitar.images : [guitar.image || "/fonzo-logo.png"];
@@ -74,7 +75,6 @@ export default function GuitarDetail() {
 
   const [selectedImage, setSelectedImage] = useState<string>("");
 
-  // ตั้งค่ารูปแรกเป็นค่าเริ่มต้นเฉพาะตอนโหลดครั้งแรกเท่านั้น (ไม่รีเซ็ตซ้ำตอนกดเปลี่ยนรูป)
   useEffect(() => {
     if (imagesList.length > 0 && (!selectedImage || !imagesList.includes(selectedImage))) {
       setSelectedImage(imagesList[0]);
@@ -103,7 +103,7 @@ export default function GuitarDetail() {
     );
   }
 
-  const specsEntries = guitar.specs ? Object.entries(guitar.specs) : [];
+  const specsEntries = guitar.specs ? Object.entries(guitar.specs).filter(([_, val]) => val !== null && val !== undefined && val !== "") : [];
 
   return (
     <>
@@ -134,7 +134,6 @@ export default function GuitarDetail() {
               />
             </div>
 
-            {/* แกลเลอรีรูปภาพย่อยด้านล่าง */}
             {imagesList.length > 1 && (
               <div className="flex gap-3 overflow-x-auto pb-2">
                 {imagesList.map((img: string, idx: number) => (
@@ -181,7 +180,7 @@ export default function GuitarDetail() {
                   {specsEntries.map(([key, val]: [string, any], idx) => (
                     <div key={idx} className="flex justify-between p-3">
                       <span className="text-muted-foreground uppercase font-medium">{key}</span>
-                      <span className="text-foreground font-semibold text-right">{val || "—"}</span>
+                      <span className="text-foreground font-semibold text-right">{val}</span>
                     </div>
                   ))}
                 </div>
