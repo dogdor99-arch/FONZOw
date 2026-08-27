@@ -1,9 +1,80 @@
+import { useState, useEffect } from "react";
+import { Loader2, Lock, Package, RefreshCw, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
+import { useLocale } from "@/contexts/LocaleContext";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { PageHeading } from "@/components/site/SiteLayout";
+import { NewsroomAdmin } from "@/components/site/NewsroomAdmin";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+
+type Tab = "stock" | "newsroom";
+
+export default function Admin() {
+  const { t } = useLocale();
+  const { user, isAuthenticated, loading } = useAuth();
+  const [tab, setTab] = useState<Tab>("stock");
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-brand" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || user?.role !== "admin") {
+    return (
+      <>
+        <PageHeading eyebrow={t("สำหรับทีมงาน", "Staff only")} title={t("จัดการร้าน", "Shop console")} crumbs={[{ label: t("จัดการร้าน", "Shop console") }]} />
+        <section className="mx-auto max-w-lg px-4 py-16 text-center sm:px-6">
+          <Lock className="mx-auto h-7 w-7 text-brand" strokeWidth={1.4} />
+          <p className="mt-5 text-sm text-muted-foreground">{t("กรุณาเข้าสู่ระบบด้วยบัญชีทีมงาน", "Please sign in with a staff account.")}</p>
+          <Button type="button" onClick={() => { window.location.href = "/api/oauth/login"; }} className="press mt-6 h-11 rounded-none bg-brand px-8 text-[11px] tracking-[0.18em] text-brand-foreground uppercase">
+            {t("เข้าสู่ระบบ", "Sign in")}
+          </Button>
+        </section>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <PageHeading
+        eyebrow={t("สำหรับทีมงาน", "Staff only")}
+        title={t("จัดการร้าน", "Shop console")}
+        description={t("จัดการข้อมูลสินค้า ราคา สต็อก และรายละเอียดทั้งหมดบนเว็บไซต์", "Manage all product data, prices, stock, and details.")}
+        crumbs={[{ label: t("จัดการร้าน", "Shop console") }]}
+      />
+      <section className="mx-auto max-w-[1300px] px-4 py-12 sm:px-6 lg:px-10">
+        <div className="flex flex-wrap gap-2 border-b border-border/70 pb-5">
+          {[
+            { key: "stock", label: t("จัดการสต็อกและสินค้าทั้งหมด", "All Products & Inventory") },
+            { key: "newsroom", label: t("คอนเทนต์หน้าแรก", "Newsroom") },
+          ].map(item => (
+            <button key={item.key} type="button" onClick={() => setTab(item.key as Tab)} className={cn("press border px-5 py-2.5 text-[11px] tracking-[0.18em] uppercase", tab === item.key ? "border-brand bg-brand text-brand-foreground" : "border-border text-muted-foreground hover:border-brand/50 hover:text-brand")}>
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <div className="mt-8">
+          {tab === "stock" && <StockPanel />}
+          {tab === "newsroom" && <NewsroomAdmin />}
+        </div>
+      </section>
+    </>
+  );
+}
+
 function StockPanel() {
   const { t } = useLocale();
   const { data: catalogGuitars = [], isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
   
   const [supabaseProducts, setSupabaseProducts] = useState<any[]>([]);
-  const [tableData, setTableData] = useState<any[]>([]); // สร้าง State ไว้ให้พิมพ์ได้อิสระ
+  const [tableData, setTableData] = useState<any[]>([]);
   const [loadingSupa, setLoadingSupa] = useState(true);
 
   const fetchSupabaseProducts = async () => {
@@ -15,7 +86,6 @@ function StockPanel() {
 
   useEffect(() => { fetchSupabaseProducts(); }, []);
 
-  // รวมข้อมูลแคตตาล็อกและ Supabase ให้ตาราง
   useEffect(() => {
     const formattedCatalog = catalogGuitars.map((g: any, idx: number) => ({
       id: `catalog-${idx}`,
@@ -27,33 +97,44 @@ function StockPanel() {
       isCatalogItem: true,
     }));
 
-    const supaNames = new Set(supabaseProducts.map(p => p.name.toLowerCase().trim()));
-    const uniqueCatalog = formattedCatalog.filter(c => !supaNames.has(c.name.toLowerCase().trim()));
+    const supaNames = new Set(supabaseProducts.map(p => (p.name || "").toLowerCase().trim()));
+    const uniqueCatalog = formattedCatalog.filter(c => !supaNames.has((c.name || "").toLowerCase().trim()));
     
     setTableData([...supabaseProducts, ...uniqueCatalog]);
   }, [catalogGuitars, supabaseProducts]);
 
   const handleSaveRow = async (idx: number, product: any) => {
     try {
-      // ไม่ว่าจะเป็นของใหม่ หรือของเก่า ให้บันทึกลง Supabase เสมอ
       const { error } = await supabase.from("products").upsert({
-        id: product.isCatalogItem ? undefined : product.id, // ถ้าเป็นแคตตาล็อกให้สร้าง id ใหม่
+        id: product.isCatalogItem ? undefined : product.id,
         name: product.name,
         category: product.category,
         price: product.price,
         stock: product.stock,
         image_url: product.image_url
-      }, { onConflict: "name" }); // ใช้ชื่อกีตาร์เป็นตัวอ้างอิงเพื่ออัปเดต
+      }, { onConflict: "name" });
 
       if (error) throw error;
       toast.success(t("บันทึกข้อมูลเรียบร้อย", "Saved successfully"));
-      fetchSupabaseProducts(); // โหลดข้อมูลใหม่
+      fetchSupabaseProducts();
     } catch (err: any) {
       toast.error(t("บันทึกไม่สำเร็จ", "Save failed"));
     }
   };
 
-  // ... (โค้ดฟอร์มเพิ่มสินค้า handleAddProduct คงเดิมไว้ได้เลยครับ) ...
+  const handleDelete = async (id: any, isCatalogItem?: boolean) => {
+    if (isCatalogItem) {
+      toast.error(t("ไม่สามารถลบสินค้าจากแคตตาล็อกหลักได้", "Cannot delete catalog items directly"));
+      return;
+    }
+    if (!confirm(t("คุณต้องการลบสินค้านี้ใช่หรือไม่?", "Are you sure you want to delete this product?"))) return;
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) toast.error(t("ลบไม่สำเร็จ", "Delete failed"));
+    else {
+      toast.success(t("ลบสินค้าเรียบร้อย", "Product deleted"));
+      fetchSupabaseProducts();
+    }
+  };
 
   const isLoading = catalogLoading || loadingSupa;
 
@@ -137,8 +218,19 @@ function StockPanel() {
                       onClick={() => handleSaveRow(idx, p)} 
                       className="h-8 rounded-none bg-brand text-brand-foreground px-3 text-[10px] uppercase"
                     >
-                      บันทึก
+                      {t("บันทึก", "Save")}
                     </Button>
+                    {!p.isCatalogItem && (
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleDelete(p.id, p.isCatalogItem)} 
+                        className="text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 w-8 p-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}
