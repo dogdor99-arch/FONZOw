@@ -10,63 +10,63 @@ export default function GuitarDetail() {
   const { code } = useParams();
   const { t } = useLocale();
 
-  // 1. ดึงข้อมูลจากแคตตาล็อกหลัก
   const { data: catalogGuitars = [], isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
-  
-  // 2. ดึงข้อมูลที่แก้ไขจาก Supabase
-  const [supabaseProduct, setSupabaseProduct] = useState<any>(null);
+  const [supabaseProducts, setSupabaseProducts] = useState<any[]>([]);
   const [loadingSupa, setLoadingSupa] = useState(true);
 
-  const decodedCode = decodeURIComponent(code || "").trim();
+  const decodedCode = decodeURIComponent(code || "").trim().toLowerCase();
 
   useEffect(() => {
-    async function fetchSupabaseProduct() {
-      if (!decodedCode) return;
+    async function fetchSupabaseProducts() {
       try {
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .ilike("name", decodedCode)
-          .maybeSingle();
-        
+        const { data, error } = await supabase.from("products").select("*");
         if (!error && data) {
-          setSupabaseProduct(data);
+          setSupabaseProducts(data);
         }
       } catch (err) {
-        console.error("Error fetching product override:", err);
+        console.error("Error fetching supabase products:", err);
       } finally {
         setLoadingSupa(false);
       }
     }
-    fetchSupabaseProduct();
-  }, [decodedCode]);
+    fetchSupabaseProducts();
+  }, []);
 
-  // ค้นหารุ่นจากแคตตาล็อกหลัก
-  const catalogItem = catalogGuitars.find((g: any) => {
-    const gName = (g.name || g.code || "").toLowerCase().trim();
-    return gName === decodedCode.toLowerCase();
-  });
-
-  // ผสานข้อมูล (ดึง specs และ images จาก Supabase มาแสดงผลทับอย่างแม่นยำ)
+  // ค้นหาและผสานข้อมูลรุ่นกีตาร์
   const guitar = useMemo(() => {
-    if (supabaseProduct) {
+    const supaMatch = supabaseProducts.find((p) => {
+      const pName = (p.name || "").toLowerCase().trim();
+      return pName === decodedCode || p.id?.toString() === decodedCode;
+    });
+
+    const catalogMatch = catalogGuitars.find((g: any) => {
+      const gName = (g.name || "").toLowerCase().trim();
+      const gCode = (g.code || "").toLowerCase().trim();
+      return gName === decodedCode || gCode === decodedCode || g.id?.toString() === decodedCode;
+    });
+
+    if (supaMatch) {
+      // ดึงสเปคจาก Supabase ถ้าไม่มีให้ดึงจากแคตตาล็อกหลัก
+      const mergedSpecs = (supaMatch.specs && Object.keys(supaMatch.specs).length > 0)
+        ? supaMatch.specs
+        : (catalogMatch?.specs || {});
+
       return {
-        ...catalogItem,
-        ...supabaseProduct,
-        name: supabaseProduct.name || catalogItem?.name,
-        price: supabaseProduct.price !== undefined ? supabaseProduct.price : catalogItem?.price,
-        description: supabaseProduct.description || catalogItem?.description,
-        specs: supabaseProduct.specs && Object.keys(supabaseProduct.specs).length > 0 
-          ? supabaseProduct.specs 
-          : catalogItem?.specs,
-        images: supabaseProduct.image_urls && supabaseProduct.image_urls.length > 0 
-          ? supabaseProduct.image_urls 
-          : (catalogItem?.images || [supabaseProduct.image_url || catalogItem?.image || "/fonzo-logo.png"]),
-        image: supabaseProduct.image_urls?.[0] || supabaseProduct.image_url || catalogItem?.image || "/fonzo-logo.png",
+        ...catalogMatch,
+        ...supaMatch,
+        name: supaMatch.name || catalogMatch?.name,
+        price: supaMatch.price !== undefined ? supaMatch.price : catalogMatch?.price,
+        description: supaMatch.description || catalogMatch?.description,
+        specs: mergedSpecs,
+        images: supaMatch.image_urls && supaMatch.image_urls.length > 0 
+          ? supaMatch.image_urls 
+          : (catalogMatch?.images || [supaMatch.image_url || catalogMatch?.image || "/fonzo-logo.png"]),
+        image: supaMatch.image_urls?.[0] || supaMatch.image_url || catalogMatch?.image || "/fonzo-logo.png",
       };
     }
-    return catalogItem;
-  }, [catalogItem, supabaseProduct]);
+
+    return catalogMatch || null;
+  }, [catalogGuitars, supabaseProducts, decodedCode]);
 
   const imagesList = useMemo(() => {
     if (!guitar) return ["/fonzo-logo.png"];
@@ -76,7 +76,7 @@ export default function GuitarDetail() {
   const [selectedImage, setSelectedImage] = useState<string>("");
 
   useEffect(() => {
-    if (imagesList.length > 0 && (!selectedImage || !imagesList.includes(selectedImage))) {
+    if (imagesList.length > 0) {
       setSelectedImage(imagesList[0]);
     }
   }, [imagesList]);
@@ -103,15 +103,16 @@ export default function GuitarDetail() {
     );
   }
 
+  // แปลงสเปคให้อยู่ในรูปแบบที่แสดงผลได้อย่างสมบูรณ์ รองรับทุกชื่อคีย์
   const specsEntries = guitar.specs ? Object.entries(guitar.specs).filter(([_, val]) => val !== null && val !== undefined && val !== "") : [];
 
   return (
     <>
       <PageHeading
         eyebrow={t("รายละเอียดกีตาร์", "Guitar details")}
-        title={guitar.name}
+        title={guitar.name || guitar.code}
         description={guitar.description || t("กีตาร์งานฝีมือระดับพรีเมียมจาก Fonzo", "Premium handcrafted guitar by Fonzo.")}
-        crumbs={[{ label: "Guitar", href: "/guitar" }, { label: guitar.name }]}
+        crumbs={[{ label: "Guitar", href: "/guitar" }, { label: guitar.name || guitar.code }]}
         index="03"
       />
 
@@ -128,7 +129,7 @@ export default function GuitarDetail() {
             <div className="border border-border bg-card p-4 flex items-center justify-center h-[450px] sm:h-[550px] overflow-hidden">
               <img 
                 src={selectedImage || imagesList[0]} 
-                alt={guitar.name} 
+                alt={guitar.name || guitar.code} 
                 className="max-h-full max-w-full object-contain transition-all duration-300"
                 onError={(e) => { (e.target as HTMLImageElement).src = "/fonzo-logo.png"; }}
               />
@@ -159,7 +160,7 @@ export default function GuitarDetail() {
               <span className="text-[11px] tracking-[0.2em] uppercase text-brand font-semibold">
                 {guitar.series || guitar.category || "Fonzo Acoustic"}
               </span>
-              <h1 className="text-2xl sm:text-3xl font-display mt-1">{guitar.name}</h1>
+              <h1 className="text-2xl sm:text-3xl font-display mt-1">{guitar.name || guitar.code}</h1>
             </div>
 
             <div className="text-2xl font-bold font-display text-foreground">
