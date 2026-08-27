@@ -89,44 +89,56 @@ function StockManager() {
 
   useEffect(() => { fetchSupabaseProducts(); }, []);
 
-  // รวมรายการและตัดตัวซ้ำออก ป้องกันสินค้าเบิ้ล
+  // ระบบผสานข้อมูล ป้องกันกีตาร์ซ้ำซ้อน และแสดงผลรวมเป็นหนึ่งเดียว
   useEffect(() => {
-    const supaNameMap = new Map();
+    const supaMap = new Map();
     supabaseProducts.forEach(p => {
-      if (p.name) supaNameMap.set(p.name.toLowerCase().trim(), p);
+      if (p.name) supaMap.set(p.name.toLowerCase().trim(), p);
     });
 
-    const formattedCatalog = catalogGuitars
-      .filter((g: any) => {
-        const name = (g.name || g.code || "").toLowerCase().trim();
-        // ถ้ามีอยู่ใน Supabase แล้ว ให้ซ่อนตัวในแคตตาล็อกหลักเพื่อไม่ให้ซ้ำกัน
-        return !supaNameMap.has(name);
-      })
-      .map((g: any, idx: number) => {
-        const imgList = g.images || (g.image ? [g.image] : (g.imageUrl ? [g.imageUrl] : ["/fonzo-logo.png"]));
-        return {
-          id: `catalog-${idx}`,
-          name: g.name || g.code,
-          price: Number(g.price || 0),
-          stock: g.stock ?? 10,
-          category: g.series || "Catalog Guitar",
-          image_url: imgList[0],
-          image_urls: imgList,
-          description: g.description || "",
-          specs: g.specs || {},
-          features: g.features || [],
-          isCatalogItem: true,
-        };
-      });
+    // แปลงแคตตาล็อกหลัก แต่ถ้าอันไหนมีใน Supabase ให้ดึงข้อมูลจาก Supabase มาทับทันที
+    const mergedList = catalogGuitars.map((g: any, idx: number) => {
+      const name = (g.name || g.code || "").toLowerCase().trim();
+      const supaMatch = supaMap.get(name);
 
-    // นำสินค้าจาก Supabase เป็นตัวหลัก (รวมตัวที่ถูกแก้ไขแล้ว)
-    const formattedSupaProducts = supabaseProducts.map(p => ({
+      if (supaMatch) {
+        // ลบออกจาก Map เพื่อเก็บตัวที่เหลือไว้เป็นสินค้า Custom เพิ่มเติม
+        supaMap.delete(name);
+        return {
+          ...g,
+          ...supaMatch,
+          id: supaMatch.id, // ใช้ ID จริงใน Supabase
+          image_urls: supaMatch.image_urls && supaMatch.image_urls.length > 0 
+            ? supaMatch.image_urls 
+            : (g.images || [g.image || "/fonzo-logo.png"]),
+          isCatalogItem: false
+        };
+      }
+
+      const imgList = g.images || (g.image ? [g.image] : (g.imageUrl ? [g.imageUrl] : ["/fonzo-logo.png"]));
+      return {
+        id: `catalog-${idx}`,
+        name: g.name || g.code,
+        price: Number(g.price || 0),
+        stock: g.stock ?? 10,
+        category: g.series || "Catalog Guitar",
+        image_url: imgList[0],
+        image_urls: imgList,
+        description: g.description || "",
+        specs: g.specs || {},
+        features: g.features || [],
+        isCatalogItem: true,
+      };
+    });
+
+    // นำสินค้า Custom ที่เหลือใน Supabase (ที่ไม่มีในแคตตาล็อกหลัก) มาต่อท้าย
+    const remainingCustomProducts = Array.from(supaMap.values()).map(p => ({
       ...p,
       image_urls: p.image_urls && p.image_urls.length > 0 ? p.image_urls : [p.image_url || "/fonzo-logo.png"],
       isCatalogItem: false
     }));
 
-    setAllProducts([...formattedSupaProducts, ...formattedCatalog]);
+    setAllProducts([...remainingCustomProducts, ...mergedList]);
   }, [catalogGuitars, supabaseProducts]);
 
   const handleDelete = async (id: any, isCatalogItem?: boolean) => {
@@ -354,8 +366,8 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
         specs: specs
       };
 
-      // ค้นหา ID เดิม หรือค้นหาด้วยชื่อเพื่อทำการ Update ทับตัวเดิม 100% ไม่สร้างเบิ้ล
-      const targetId = initialData && !initialData.isCatalogItem ? initialData.id : null;
+      // ค้นหา ID เดิม หรือค้นหาด้วยชื่อรุ่นเพื่ออัปเดตทับตัวเดิม 100% ไม่สร้างเบิ้ล
+      const targetId = initialData && !initialData.isCatalogItem && !initialData.id?.toString().startsWith("catalog-") ? initialData.id : null;
       const targetName = initialData?.name || formData.name;
 
       let existingId = targetId;
