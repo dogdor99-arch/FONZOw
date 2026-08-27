@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon } from "lucide-react";
+import { Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -89,14 +89,19 @@ function StockManager() {
 
   useEffect(() => { fetchSupabaseProducts(); }, []);
 
-  // รวมรายการจากแคตตาล็อกหลัก (114 ตัว) และ Supabase เข้าด้วยกัน
   useEffect(() => {
     const formattedCatalog = catalogGuitars.map((g: any, idx: number) => {
-      // ตรวจสอบว่ามีบันทึกทับใน Supabase หรือยัง
       const existingSupa = supabaseProducts.find(p => (p.name || "").toLowerCase().trim() === (g.name || g.code || "").toLowerCase().trim());
       
+      const imgList = g.images || (g.image ? [g.image] : (g.imageUrl ? [g.imageUrl] : ["/fonzo-logo.png"]));
+
       if (existingSupa) {
-        return { ...existingSupa, isCatalogItem: false };
+        return { 
+          ...existingSupa, 
+          image_urls: existingSupa.image_urls && existingSupa.image_urls.length > 0 ? existingSupa.image_urls : imgList,
+          specs: existingSupa.specs || g.specs || {},
+          isCatalogItem: false 
+        };
       }
 
       return {
@@ -105,8 +110,8 @@ function StockManager() {
         price: Number(g.price || 0),
         stock: g.stock ?? 10,
         category: g.series || "Catalog Guitar",
-        image_url: g.image || "/fonzo-logo.png",
-        image_urls: g.images || [g.image || "/fonzo-logo.png"],
+        image_url: g.image || g.imageUrl || "/fonzo-logo.png",
+        image_urls: imgList,
         description: g.description || "",
         specs: g.specs || {},
         features: g.features || [],
@@ -114,7 +119,6 @@ function StockManager() {
       };
     });
 
-    // นำสินค้าที่เพิ่มเองใน Supabase แต่ไม่มีในแคตตาล็อกมารวมด้วย
     const catalogNames = new Set(catalogGuitars.map((g: any) => (g.name || g.code || "").toLowerCase().trim()));
     const customProducts = supabaseProducts.filter(p => !catalogNames.has((p.name || "").toLowerCase().trim()));
 
@@ -185,7 +189,7 @@ function StockManager() {
               allProducts.map((p, idx) => (
                 <tr key={p.id || idx} className="hover:bg-secondary/20">
                   <td className="p-4">
-                    <img src={p.image_url || p.image || "/fonzo-logo.png"} alt={p.name} className="h-10 w-10 object-cover border border-border" />
+                    <img src={p.image_url || p.image || p.imageUrl || "/fonzo-logo.png"} alt={p.name} className="h-10 w-10 object-cover border border-border" />
                   </td>
                   <td className="p-4 font-medium text-foreground">{p.name}</td>
                   <td className="p-4">
@@ -226,30 +230,40 @@ function StockManager() {
   );
 }
 
-// ฟอร์มกรอกข้อมูลจำเพาะ (รองรับหลายรูปภาพ แสดงพรีวิว และหน่วย mm อัตโนมัติ)
+// ฟอร์มแก้ไขสินค้า พร้อมปุ่มอัปโหลดรูปจากเครื่องแบบเลือกหลายรูปเด่นชัด
 function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", initialData?: any, onBack: () => void }) {
   const [productType, setProductType] = useState<string>(
     initialData?.category?.toLowerCase().includes("string") || initialData?.category?.toLowerCase().includes("accessory") ? "accessory" : "guitar"
   );
   
+  const getInitialImages = () => {
+    if (initialData?.image_urls && Array.isArray(initialData.image_urls) && initialData.image_urls.length > 0) {
+      return initialData.image_urls;
+    }
+    if (initialData?.images && Array.isArray(initialData.images) && initialData.images.length > 0) {
+      return initialData.images;
+    }
+    const single = initialData?.image_url || initialData?.imageUrl || initialData?.image;
+    if (single) {
+      return [single];
+    }
+    return ["/fonzo-logo.png"];
+  };
+
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     price: initialData?.price || 0,
     stock: initialData?.stock || 10,
     category: initialData?.category || "Fonzo Acoustic",
     description: initialData?.description || "",
-    image_urls: initialData?.image_urls && initialData.image_urls.length > 0 
-      ? initialData.image_urls 
-      : [initialData?.image_url || initialData?.image || ""]
+    image_urls: getInitialImages()
   });
 
-  // ฟังก์ชันช่วยดึงเฉพาะตัวเลขออกจากข้อความที่มี " mm"
   const cleanMm = (val: string) => {
     if (!val) return "";
     return val.toString().replace(/mm/gi, "").trim();
   };
 
-  // สเปคกีตาร์
   const [guitarSpecs, setGuitarSpecs] = useState({
     top_wood: initialData?.specs?.["TOP WOOD"] || initialData?.specs?.["Top Wood"] || "",
     back_sides: initialData?.specs?.["BACK & SIDES"] || initialData?.specs?.["Back & Sides"] || "",
@@ -261,7 +275,6 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
     finish: initialData?.specs?.["FINISH"] || initialData?.specs?.["Finish"] || "",
   });
 
-  // สเปคอุปกรณ์เสริม / สายกีตาร์
   const [accessorySpecs, setAccessorySpecs] = useState({
     string_gauge: initialData?.specs?.["String Gauge"] || initialData?.specs?.["เบอร์สาย"] || "",
     material: initialData?.specs?.["Material"] || initialData?.specs?.["ชนิดสาย"] || "",
@@ -271,8 +284,25 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
 
   const [saving, setSaving] = useState(false);
 
-  const handleAddImageUrl = () => {
-    setFormData({ ...formData, image_urls: [...formData.image_urls, ""] });
+  // ฟังก์ชันรองรับการอัปโหลดไฟล์จากเครื่องหลายรูปพร้อมกัน
+  const handleLocalFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        const result = uploadEvent.target?.result as string;
+        if (result) {
+          setFormData(prev => ({
+            ...prev,
+            image_urls: [...prev.image_urls, result]
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = "";
   };
 
   const handleImageChange = (index: number, value: string) => {
@@ -283,7 +313,7 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
 
   const handleRemoveImage = (index: number) => {
     const updatedImages = formData.image_urls.filter((_, i) => i !== index);
-    setFormData({ ...formData, image_urls: updatedImages.length > 0 ? updatedImages : [""] });
+    setFormData({ ...formData, image_urls: updatedImages });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -327,20 +357,18 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
         specs: specs
       };
 
-      // ตรวจสอบว่ามีสินค้านี้ในฐานข้อมูล Supabase หรือยัง (เช็คจากชื่อ)
+      const targetName = initialData?.name || formData.name;
       const { data: existing } = await supabase
         .from("products")
         .select("id")
-        .ilike("name", formData.name)
+        .ilike("name", targetName)
         .maybeSingle();
 
       let error = null;
       if (existing?.id) {
-        // ถ้ามีอยู่แล้วให้อัปเดตตาม ID
         const res = await supabase.from("products").update(payload).eq("id", existing.id);
         error = res.error;
       } else {
-        // ถ้ายังไม่มีให้สร้างใหม่
         const res = await supabase.from("products").insert([payload]);
         error = res.error;
       }
@@ -365,7 +393,6 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* เลือกประเภทสินค้า */}
         <div className="p-4 bg-secondary/30 border border-border space-y-2">
           <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase font-semibold">ประเภทสินค้า (กำหนดฟอร์มสเปคเฉพาะด้าน)</label>
           <div className="flex gap-6">
@@ -380,7 +407,6 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           </div>
         </div>
 
-        {/* ข้อมูลพื้นฐาน */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">ชื่อสินค้า / รุ่น</label>
@@ -400,43 +426,70 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           </div>
         </div>
 
-        {/* จัดการรูปภาพหลายมุม พร้อมแสดงภาพพรีวิว */}
+        {/* 🌟 ส่วนอัปโหลดรูปภาพจากเครื่องแบบเด่นชัด (เลือกหลายรูปได้ทันที) */}
         <div className="space-y-4 border-t border-border pt-4">
-          <div className="flex items-center justify-between">
-            <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase font-semibold flex items-center gap-2">
-              <ImageIcon className="h-4 w-4 text-brand" /> รูปภาพสินค้าจากหลายมุม (Image URLs & Preview)
-            </label>
-            <Button type="button" onClick={handleAddImageUrl} variant="outline" size="sm" className="h-8 rounded-none text-xs border-brand text-brand">
-              + เพิ่มช่องใส่รูป
-            </Button>
+          <div className="bg-secondary/40 border border-border p-5 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <label className="text-xs tracking-[0.16em] text-foreground uppercase font-bold flex items-center gap-2">
+                <ImageIcon className="h-5 w-5 text-brand" /> อัปโหลดรูปภาพสินค้าหลายมุม (อัปโหลดจากเครื่อง)
+              </label>
+              <p className="text-xs text-muted-foreground mt-1">คลิกปุ่มด้านขวาเพื่อเลือกไฟล์รูปภาพจากเครื่องคอมพิวเตอร์ของคุณ (สามารถเลือกหลายรูปพร้อมกันได้)</p>
+            </div>
+            <div>
+              <input 
+                type="file" 
+                id="local-images-upload-btn" 
+                multiple 
+                accept="image/*" 
+                className="hidden" 
+                onChange={handleLocalFilesUpload} 
+              />
+              <Button 
+                type="button" 
+                onClick={() => document.getElementById("local-images-upload-btn")?.click()}
+                className="h-11 rounded-none bg-brand text-brand-foreground text-xs uppercase tracking-wider px-6 font-bold shadow-sm hover:opacity-90"
+              >
+                <Upload className="mr-2 h-4 w-4" /> เลือกรูปจากเครื่อง (หลายรูป)
+              </Button>
+            </div>
           </div>
-          <p className="text-[11px] text-muted-foreground">ใส่ลิงก์รูปภาพและดูตัวอย่างภาพด้านข้าง เพื่อให้มั่นใจว่าแก้ไขไม่ผิดตัว</p>
-          
-          <div className="space-y-3">
-            {formData.image_urls.map((url, index) => (
-              <div key={index} className="flex items-center gap-3 bg-secondary/20 p-2 border border-border">
-                {/* พรีวิวรูปภาพ */}
-                <div className="h-12 w-12 bg-background border border-border flex items-center justify-center overflow-hidden shrink-0">
-                  <img 
-                    src={url && url.trim() !== "" ? url : "/fonzo-logo.png"} 
-                    alt={`Preview ${index + 1}`} 
-                    className="h-full w-full object-contain"
-                    onError={(e) => { (e.target as HTMLImageElement).src = "/fonzo-logo.png"; }}
-                  />
-                </div>
-                <Input 
-                  value={url} 
-                  onChange={(e) => handleImageChange(index, e.target.value)} 
-                  placeholder={`https://... (ลิงก์รูปภาพมุมที่ ${index + 1})`} 
-                  className="h-9 rounded-none border-border flex-1 bg-background" 
-                />
-                {formData.image_urls.length > 1 && (
-                  <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveImage(index)} className="text-red-500 h-9 px-3">
+
+          {/* รายการรูปภาพที่อัปโหลดและแสดงพรีวิว */}
+          <div className="space-y-3 pt-2">
+            <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">รายการรูปภาพปัจจุบัน ({formData.image_urls.length} รูป)</p>
+            {formData.image_urls.length === 0 ? (
+              <div className="p-6 border border-dashed border-border text-center text-xs text-muted-foreground">
+                ยังไม่มีรูปภาพ กรุณากดปุ่ม "เลือกรูปจากเครื่อง (หลายรูป)" ด้านบน
+              </div>
+            ) : (
+              formData.image_urls.map((url, index) => (
+                <div key={index} className="flex items-center gap-3 bg-secondary/20 p-2.5 border border-border">
+                  <div className="h-14 w-14 bg-background border border-border flex items-center justify-center overflow-hidden shrink-0">
+                    <img 
+                      src={url && url.trim() !== "" ? url : "/fonzo-logo.png"} 
+                      alt={`Preview ${index + 1}`} 
+                      className="h-full w-full object-contain"
+                      onError={(e) => { (e.target as HTMLImageElement).src = "/fonzo-logo.png"; }}
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">
+                      {index === 0 ? "รูปหลักหน้าปก (Primary Image)" : `รูปมุมมองที่ ${index + 1}`}
+                    </span>
+                    <Input 
+                      value={url.startsWith("data:") ? "[ไฟล์รูปภาพจากเครื่องอัปโหลดแล้ว]" : url} 
+                      onChange={(e) => handleImageChange(index, e.target.value)} 
+                      placeholder="https://..." 
+                      className="h-8 rounded-none border-border text-xs bg-background" 
+                      disabled={url.startsWith("data:")}
+                    />
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveImage(index)} className="text-red-500 h-9 px-3 shrink-0">
                     ลบ
                   </Button>
-                )}
-              </div>
-            ))}
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -445,7 +498,6 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} placeholder="รายละเอียดสเปครวม..." className="w-full mt-1 p-3 text-xs bg-transparent border border-border rounded-none focus:outline-none focus:border-brand" />
         </div>
 
-        {/* ฟอร์มสเปคแยกตามประเภท (ช่อง mm พิมพ์แค่ตัวเลข มีหน่วยต่อท้ายอัตโนมัติ) */}
         {productType === "guitar" ? (
           <div className="border-t border-border pt-6 space-y-4">
             <p className="text-xs uppercase tracking-widest font-semibold text-brand">สเปคชิ้นส่วนและชนิดไม้ (Guitar Specifications)</p>
