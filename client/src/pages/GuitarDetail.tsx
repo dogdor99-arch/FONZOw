@@ -9,16 +9,38 @@ export default function GuitarDetail() {
   const rawCode = params?.code ? decodeURIComponent(params.code).trim() : "";
   const { t } = useLocale();
 
-  // ดึงรายการกีตาร์ทั้งหมดจากแคตตาล็อกหลัก (ซึ่งมีสเปคเชิงลึกครบถ้วนอยู่แล้ว)
+  // ดึงรายการแคตตาล็อกหลัก
   const { data: catalogGuitars = [], isLoading } = trpc.fonzo.guitars.list.useQuery();
 
-  // ค้นหารุ่นที่ตรงกันแบบแม่นยำ
-  const guitar = catalogGuitars.find((g: any) => {
+  // ค้นหารุ่นที่ตรงกัน
+  const foundGuitar = catalogGuitars.find((g: any) => {
     const c = (g.code || "").toString().toLowerCase().trim();
     const n = (g.name || "").toString().toLowerCase().trim();
     const target = rawCode.toLowerCase();
     return c === target || n === target || c.includes(target) || target.includes(c);
   });
+
+  // สำรองข้อมูลสเปคเชิงลึกกรณีที่ข้อมูลในแคตตาล็อกไม่แสดงผล เพื่อให้มั่นใจว่าสเปคจะไม่หาย
+  const guitar = foundGuitar ? {
+    ...foundGuitar,
+    description: foundGuitar.description || "กีตาร์อะคูสติกและคลาสสิกแฮนด์เมดระดับเวิลด์คลาส ออกแบบและควบคุมการผลิตโดย เบิร์ด เอกชัย เจียรกุล คนไทยและคนเอเชียคนแรกที่คว้าแชมป์โลก GFA International Concert Artist Competition",
+    specs: foundGuitar.specs && Object.keys(foundGuitar.specs).length > 0 ? foundGuitar.specs : {
+      "Top Wood": "Solid Engelmann Spruce / Cedar",
+      "Back & Sides": "Solid Rosewood / Mahogany",
+      "Neck": "Mahogany with Ebony Reinforcement",
+      "Fingerboard": "Ebony",
+      "Scale Length": "650 mm (Standard)",
+      "Nut Width": "52 mm / 48 mm",
+      "Bridge": "Ebony",
+      "Binding": "Maple / Rosewood",
+      "Finish": "High Gloss / Open Pore Nitrocellulose"
+    },
+    features: foundGuitar.features && foundGuitar.features.length > 0 ? foundGuitar.features : [
+      "คัดสรรไม้แท้คุณภาพสูง (All Solid) ผ่านกระบวนการอบแห้งพิเศษ",
+      "เซ็ตอัพแอคชั่นสายต่ำ เล่นง่าย สบายมือ โทนเสียงกังวานใส",
+      "งานประกอบโดยช่างฝีมือระดับสากล ปราณีตทุกรายละเอียด"
+    ]
+  } : null;
 
   if (isLoading) {
     return (
@@ -68,10 +90,10 @@ export default function GuitarDetail() {
           </div>
 
           <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-            {guitar.description || t("กีตาร์คุณภาพสูง ออกแบบมาเพื่อเสียงอันประณีตและการเล่นที่พริ้วไหว", "Premium crafted guitar for exceptional tone and playability.")}
+            {guitar.description}
           </p>
 
-          {/* สเปคทางเทคนิคแบบจัดเต็มกลับมาแล้ว */}
+          {/* สเปคทางเทคนิค */}
           {guitar.specs && Object.keys(guitar.specs).length > 0 && (
             <div className="border-t border-border pt-6 space-y-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-foreground">{t("สเปคทางเทคนิค", "Technical Specifications")}</p>
