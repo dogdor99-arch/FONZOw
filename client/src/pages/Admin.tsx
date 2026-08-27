@@ -89,42 +89,44 @@ function StockManager() {
 
   useEffect(() => { fetchSupabaseProducts(); }, []);
 
+  // รวมรายการและตัดตัวซ้ำออก ป้องกันสินค้าเบิ้ล
   useEffect(() => {
-    const formattedCatalog = catalogGuitars.map((g: any, idx: number) => {
-      const existingSupa = supabaseProducts.find(p => (p.name || "").toLowerCase().trim() === (g.name || g.code || "").toLowerCase().trim());
-      
-      const imgList = (existingSupa?.image_urls && existingSupa.image_urls.length > 0) 
-        ? existingSupa.image_urls 
-        : (g.images || (g.image ? [g.image] : (g.imageUrl ? [g.imageUrl] : ["/fonzo-logo.png"])));
-
-      if (existingSupa) {
-        return { 
-          ...existingSupa, 
-          image_urls: imgList,
-          specs: existingSupa.specs || g.specs || {},
-          isCatalogItem: false 
-        };
-      }
-
-      return {
-        id: `catalog-${idx}`,
-        name: g.name || g.code,
-        price: Number(g.price || 0),
-        stock: g.stock ?? 10,
-        category: g.series || "Catalog Guitar",
-        image_url: imgList[0],
-        image_urls: imgList,
-        description: g.description || "",
-        specs: g.specs || {},
-        features: g.features || [],
-        isCatalogItem: true,
-      };
+    const supaNameMap = new Map();
+    supabaseProducts.forEach(p => {
+      if (p.name) supaNameMap.set(p.name.toLowerCase().trim(), p);
     });
 
-    const catalogNames = new Set(catalogGuitars.map((g: any) => (g.name || g.code || "").toLowerCase().trim()));
-    const customProducts = supabaseProducts.filter(p => !catalogNames.has((p.name || "").toLowerCase().trim()));
+    const formattedCatalog = catalogGuitars
+      .filter((g: any) => {
+        const name = (g.name || g.code || "").toLowerCase().trim();
+        // ถ้ามีอยู่ใน Supabase แล้ว ให้ซ่อนตัวในแคตตาล็อกหลักเพื่อไม่ให้ซ้ำกัน
+        return !supaNameMap.has(name);
+      })
+      .map((g: any, idx: number) => {
+        const imgList = g.images || (g.image ? [g.image] : (g.imageUrl ? [g.imageUrl] : ["/fonzo-logo.png"]));
+        return {
+          id: `catalog-${idx}`,
+          name: g.name || g.code,
+          price: Number(g.price || 0),
+          stock: g.stock ?? 10,
+          category: g.series || "Catalog Guitar",
+          image_url: imgList[0],
+          image_urls: imgList,
+          description: g.description || "",
+          specs: g.specs || {},
+          features: g.features || [],
+          isCatalogItem: true,
+        };
+      });
 
-    setAllProducts([...customProducts, ...formattedCatalog]);
+    // นำสินค้าจาก Supabase เป็นตัวหลัก (รวมตัวที่ถูกแก้ไขแล้ว)
+    const formattedSupaProducts = supabaseProducts.map(p => ({
+      ...p,
+      image_urls: p.image_urls && p.image_urls.length > 0 ? p.image_urls : [p.image_url || "/fonzo-logo.png"],
+      isCatalogItem: false
+    }));
+
+    setAllProducts([...formattedSupaProducts, ...formattedCatalog]);
   }, [catalogGuitars, supabaseProducts]);
 
   const handleDelete = async (id: any, isCatalogItem?: boolean) => {
@@ -232,7 +234,7 @@ function StockManager() {
   );
 }
 
-// ฟอร์มแก้ไขสินค้า (อัปโหลดรูปจากเครื่องง่ายๆ ไม่ต้องใส่ลิงก์ URL และอัปเดตตัวเดิมแม่นยำ 100%)
+// ฟอร์มแก้ไขสินค้า
 function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", initialData?: any, onBack: () => void }) {
   const [productType, setProductType] = useState<string>(
     initialData?.category?.toLowerCase().includes("string") || initialData?.category?.toLowerCase().includes("accessory") ? "accessory" : "guitar"
@@ -286,7 +288,6 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
 
   const [saving, setSaving] = useState(false);
 
-  // ฟังก์ชันอัปโหลดไฟล์จากเครื่อง (เลือกหลายรูปพร้อมกัน)
   const handleLocalFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -353,7 +354,7 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
         specs: specs
       };
 
-      // ค้นหา ID เดิมของสินค้าตัวนี้ เพื่อทำการ Update ทับตัวเดิมอย่างแม่นยำ 100%
+      // ค้นหา ID เดิม หรือค้นหาด้วยชื่อเพื่อทำการ Update ทับตัวเดิม 100% ไม่สร้างเบิ้ล
       const targetId = initialData && !initialData.isCatalogItem ? initialData.id : null;
       const targetName = initialData?.name || formData.name;
 
@@ -369,11 +370,9 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
 
       let error = null;
       if (existingId) {
-        // อัปเดตข้อมูลตัวเดิม (ไมสร้างตัวใหม่ซ้ำซ้อน)
         const res = await supabase.from("products").update(payload).eq("id", existingId);
         error = res.error;
       } else {
-        // สร้างใหม่กรณีเป็นสินค้าเพิ่มใหม่
         const res = await supabase.from("products").insert([payload]);
         error = res.error;
       }
@@ -423,7 +422,7 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           </div>
           <div>
             <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">ราคา (บาท)</label>
-            <Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value)})} placeholder="0" className="mt-1 h-10 rounded-none border-border" />
+            <Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value.replace(/^0+/, ''))})} placeholder="0" className="mt-1 h-10 rounded-none border-border" />
           </div>
           <div>
             <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">จำนวนสต็อก</label>
@@ -431,7 +430,7 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           </div>
         </div>
 
-        {/* 🌟 ส่วนอัปโหลดรูปภาพจากเครื่องแบบสมบูรณ์ (ซ่อนช่อง URL ทิ้ง เหลือแต่พรีวิวและปุ่มอัปโหลด) */}
+        {/* ส่วนอัปโหลดรูปภาพจากเครื่อง */}
         <div className="space-y-4 border-t border-border pt-4">
           <div className="bg-secondary/40 border border-border p-5 flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -459,7 +458,6 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
             </div>
           </div>
 
-          {/* รายการพรีวิวรูปภาพ */}
           <div className="space-y-3 pt-2">
             <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">รายการรูปภาพที่อัปโหลด ({formData.image_urls.length} รูป)</p>
             {formData.image_urls.length === 0 ? (
