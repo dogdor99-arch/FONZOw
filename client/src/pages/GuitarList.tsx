@@ -32,13 +32,20 @@ export default function GuitarList() {
     fetchSupabaseProducts();
   }, []);
 
-  // 3. จัด Format สินค้า ป้องกันรูปภาพแตก และแมปหมวดหมู่ให้ตรงกับ CatalogBrowser
+  // 3. ผสานข้อมูล: แทนที่จะเอามาต่อกันโต้งๆ เราจะกรองตัวเก่าในแคตตาล็อกออก ถ้ารุ่นนั้นถูกแก้ไขอยู่ใน Supabase แล้ว
   const allGuitars = useMemo(() => {
+    const supaNameMap = new Map();
+    supabaseProducts.forEach((item) => {
+      if (item.name) {
+        supaNameMap.set(item.name.toLowerCase().trim(), item);
+      }
+    });
+
+    // แปลงข้อมูลสินค้าจาก Supabase เป็นรูปแบบที่ CatalogBrowser รองรับ
     const formattedSupabaseProducts = supabaseProducts.map((item) => {
-      // ตรวจสอบรูปภาพ หากไม่มีรูปหรือเป็นค่าว่าง ให้ใช้รูปโลโก้แทนกันรูปแตก
-      const validImage = item.image_url && item.image_url.trim() !== "" 
-        ? item.image_url 
-        : "/fonzo-logo.png";
+      const validImages = item.image_urls && item.image_urls.length > 0 
+        ? item.image_urls 
+        : (item.image_url ? [item.image_url] : ["/fonzo-logo.png"]);
 
       return {
         id: item.id || `supa-${item.name}`,
@@ -47,13 +54,21 @@ export default function GuitarList() {
         series: item.category || "Fonzo Custom",
         type: "Acoustic",
         price: Number(item.price || 0),
-        image: validImage,
+        image: validImages[0], // รูปหลักหน้าปก
+        images: validImages,   // รูปภาพหลายมุมทั้งหมด
         inStock: Number(item.stock || 0) > 0,
         raw: item,
       };
     });
 
-    return [...formattedSupabaseProducts, ...catalogGuitars];
+    // กรองแคตตาล็อกเดิม: ถ้ารุ่นไหนมีชื่อตรงกับใน Supabase แล้ว ให้ซ่อนตัวเก่าทิ้งทันที (ป้องกันตัวซ้ำ)
+    const filteredCatalog = catalogGuitars.filter((g: any) => {
+      const gName = (g.name || g.code || "").toLowerCase().trim();
+      return !supaNameMap.has(gName);
+    });
+
+    // รวมรายชื่อโดยให้สินค้าจาก Supabase (ที่แก้ไขแล้ว) ขึ้นแสดงแทนที่ตัวเก่าอย่างสะอาดตา
+    return [...formattedSupabaseProducts, ...filteredCatalog];
   }, [catalogGuitars, supabaseProducts]);
 
   const isLoading = isLoadingCatalog || isLoadingSupabase;
