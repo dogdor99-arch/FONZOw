@@ -91,24 +91,34 @@ function StockManager() {
 
   // รวมรายการจากแคตตาล็อกหลัก (114 ตัว) และ Supabase เข้าด้วยกัน
   useEffect(() => {
-    const formattedCatalog = catalogGuitars.map((g: any, idx: number) => ({
-      id: `catalog-${idx}`,
-      name: g.name || g.code,
-      price: Number(g.price || 0),
-      stock: g.stock ?? 10,
-      category: g.series || "Catalog Guitar",
-      image_url: g.image || "/fonzo-logo.png",
-      image_urls: g.images || [g.image || "/fonzo-logo.png"],
-      description: g.description || "",
-      specs: g.specs || {},
-      features: g.features || [],
-      isCatalogItem: true,
-    }));
+    const formattedCatalog = catalogGuitars.map((g: any, idx: number) => {
+      // ตรวจสอบว่ามีบันทึกทับใน Supabase หรือยัง
+      const existingSupa = supabaseProducts.find(p => (p.name || "").toLowerCase().trim() === (g.name || g.code || "").toLowerCase().trim());
+      
+      if (existingSupa) {
+        return { ...existingSupa, isCatalogItem: false };
+      }
 
-    const supaNames = new Set(supabaseProducts.map(p => (p.name || "").toLowerCase().trim()));
-    const uniqueCatalog = formattedCatalog.filter(c => !supaNames.has((c.name || "").toLowerCase().trim()));
-    
-    setAllProducts([...supabaseProducts, ...uniqueCatalog]);
+      return {
+        id: `catalog-${idx}`,
+        name: g.name || g.code,
+        price: Number(g.price || 0),
+        stock: g.stock ?? 10,
+        category: g.series || "Catalog Guitar",
+        image_url: g.image || "/fonzo-logo.png",
+        image_urls: g.images || [g.image || "/fonzo-logo.png"],
+        description: g.description || "",
+        specs: g.specs || {},
+        features: g.features || [],
+        isCatalogItem: true,
+      };
+    });
+
+    // นำสินค้าที่เพิ่มเองใน Supabase แต่ไม่มีในแคตตาล็อกมารวมด้วย
+    const catalogNames = new Set(catalogGuitars.map((g: any) => (g.name || g.code || "").toLowerCase().trim()));
+    const customProducts = supabaseProducts.filter(p => !catalogNames.has((p.name || "").toLowerCase().trim()));
+
+    setAllProducts([...customProducts, ...formattedCatalog]);
   }, [catalogGuitars, supabaseProducts]);
 
   const handleDelete = async (id: any, isCatalogItem?: boolean) => {
@@ -216,7 +226,7 @@ function StockManager() {
   );
 }
 
-// ฟอร์มกรอกข้อมูลจำเพาะ (รองรับหลายรูปภาพและแยกหมวดหมู่)
+// ฟอร์มกรอกข้อมูลจำเพาะ (รองรับหลายรูปภาพ แสดงพรีวิว และหน่วย mm อัตโนมัติ)
 function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", initialData?: any, onBack: () => void }) {
   const [productType, setProductType] = useState<string>(
     initialData?.category?.toLowerCase().includes("string") || initialData?.category?.toLowerCase().includes("accessory") ? "accessory" : "guitar"
@@ -228,11 +238,16 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
     stock: initialData?.stock || 10,
     category: initialData?.category || "Fonzo Acoustic",
     description: initialData?.description || "",
-    // รองรับหลายรูปภาพ (Array ของ URL)
     image_urls: initialData?.image_urls && initialData.image_urls.length > 0 
       ? initialData.image_urls 
       : [initialData?.image_url || initialData?.image || ""]
   });
+
+  // ฟังก์ชันช่วยดึงเฉพาะตัวเลขออกจากข้อความที่มี " mm"
+  const cleanMm = (val: string) => {
+    if (!val) return "";
+    return val.toString().replace(/mm/gi, "").trim();
+  };
 
   // สเปคกีตาร์
   const [guitarSpecs, setGuitarSpecs] = useState({
@@ -240,8 +255,8 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
     back_sides: initialData?.specs?.["BACK & SIDES"] || initialData?.specs?.["Back & Sides"] || "",
     neck: initialData?.specs?.["NECK"] || initialData?.specs?.["Neck"] || "",
     fingerboard: initialData?.specs?.["FINGERBOARD"] || initialData?.specs?.["Fingerboard"] || "",
-    scale_length: initialData?.specs?.["SCALE LENGTH"] || initialData?.specs?.["Scale Length"] || "",
-    nut_width: initialData?.specs?.["NUT WIDTH"] || initialData?.specs?.["Nut Width"] || "",
+    scale_length: cleanMm(initialData?.specs?.["SCALE LENGTH"] || initialData?.specs?.["Scale Length"] || ""),
+    nut_width: cleanMm(initialData?.specs?.["NUT WIDTH"] || initialData?.specs?.["Nut Width"] || ""),
     bridge: initialData?.specs?.["BRIDGE"] || initialData?.specs?.["Bridge"] || "",
     finish: initialData?.specs?.["FINISH"] || initialData?.specs?.["Finish"] || "",
   });
@@ -287,8 +302,8 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           "BACK & SIDES": guitarSpecs.back_sides,
           "NECK": guitarSpecs.neck,
           "FINGERBOARD": guitarSpecs.fingerboard,
-          "SCALE LENGTH": guitarSpecs.scale_length,
-          "NUT WIDTH": guitarSpecs.nut_width,
+          "SCALE LENGTH": guitarSpecs.scale_length ? `${guitarSpecs.scale_length} mm` : "",
+          "NUT WIDTH": guitarSpecs.nut_width ? `${guitarSpecs.nut_width} mm` : "",
           "BRIDGE": guitarSpecs.bridge,
           "FINISH": guitarSpecs.finish
         };
@@ -312,14 +327,23 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
         specs: specs
       };
 
-      let error = null;
-      // ถ้าเป็นการแก้ไขสินค้าจากแคตตาล็อกหลัก ให้บันทึกเป็นสินค้าใหม่ใน Supabase (Upsert โดยอิงจากชื่อ)
-      const { error: upsertError } = await supabase.from("products").upsert({
-        id: initialData && !initialData.isCatalogItem ? initialData.id : undefined,
-        ...payload
-      }, { onConflict: "name" });
+      // ตรวจสอบว่ามีสินค้านี้ในฐานข้อมูล Supabase หรือยัง (เช็คจากชื่อ)
+      const { data: existing } = await supabase
+        .from("products")
+        .select("id")
+        .ilike("name", formData.name)
+        .maybeSingle();
 
-      error = upsertError;
+      let error = null;
+      if (existing?.id) {
+        // ถ้ามีอยู่แล้วให้อัปเดตตาม ID
+        const res = await supabase.from("products").update(payload).eq("id", existing.id);
+        error = res.error;
+      } else {
+        // ถ้ายังไม่มีให้สร้างใหม่
+        const res = await supabase.from("products").insert([payload]);
+        error = res.error;
+      }
 
       if (error) throw error;
       toast.success(mode === "edit" ? "บันทึกข้อมูลสำเร็จ!" : "เพิ่มสินค้าสำเร็จ!");
@@ -376,26 +400,35 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           </div>
         </div>
 
-        {/* จัดการรูปภาพหลายมุม (Multiple Images) */}
-        <div className="space-y-3 border-t border-border pt-4">
+        {/* จัดการรูปภาพหลายมุม พร้อมแสดงภาพพรีวิว */}
+        <div className="space-y-4 border-t border-border pt-4">
           <div className="flex items-center justify-between">
             <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase font-semibold flex items-center gap-2">
-              <ImageIcon className="h-4 w-4 text-brand" /> รูปภาพสินค้าจากหลายมุม (Image URLs)
+              <ImageIcon className="h-4 w-4 text-brand" /> รูปภาพสินค้าจากหลายมุม (Image URLs & Preview)
             </label>
             <Button type="button" onClick={handleAddImageUrl} variant="outline" size="sm" className="h-8 rounded-none text-xs border-brand text-brand">
               + เพิ่มช่องใส่รูป
             </Button>
           </div>
-          <p className="text-[11px] text-muted-foreground">รูปแรกจะเป็นรูปหลักหน้าปกสินค้า รูปถัดไปจะเป็นมุมมองเสริม</p>
+          <p className="text-[11px] text-muted-foreground">ใส่ลิงก์รูปภาพและดูตัวอย่างภาพด้านข้าง เพื่อให้มั่นใจว่าแก้ไขไม่ผิดตัว</p>
           
-          <div className="space-y-2">
+          <div className="space-y-3">
             {formData.image_urls.map((url, index) => (
-              <div key={index} className="flex items-center gap-2">
+              <div key={index} className="flex items-center gap-3 bg-secondary/20 p-2 border border-border">
+                {/* พรีวิวรูปภาพ */}
+                <div className="h-12 w-12 bg-background border border-border flex items-center justify-center overflow-hidden shrink-0">
+                  <img 
+                    src={url && url.trim() !== "" ? url : "/fonzo-logo.png"} 
+                    alt={`Preview ${index + 1}`} 
+                    className="h-full w-full object-contain"
+                    onError={(e) => { (e.target as HTMLImageElement).src = "/fonzo-logo.png"; }}
+                  />
+                </div>
                 <Input 
                   value={url} 
                   onChange={(e) => handleImageChange(index, e.target.value)} 
-                  placeholder={`https://... (รูปที่ ${index + 1})`} 
-                  className="h-9 rounded-none border-border flex-1" 
+                  placeholder={`https://... (ลิงก์รูปภาพมุมที่ ${index + 1})`} 
+                  className="h-9 rounded-none border-border flex-1 bg-background" 
                 />
                 {formData.image_urls.length > 1 && (
                   <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveImage(index)} className="text-red-500 h-9 px-3">
@@ -412,7 +445,7 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} placeholder="รายละเอียดสเปครวม..." className="w-full mt-1 p-3 text-xs bg-transparent border border-border rounded-none focus:outline-none focus:border-brand" />
         </div>
 
-        {/* ฟอร์มสเปคแยกตามประเภท */}
+        {/* ฟอร์มสเปคแยกตามประเภท (ช่อง mm พิมพ์แค่ตัวเลข มีหน่วยต่อท้ายอัตโนมัติ) */}
         {productType === "guitar" ? (
           <div className="border-t border-border pt-6 space-y-4">
             <p className="text-xs uppercase tracking-widest font-semibold text-brand">สเปคชิ้นส่วนและชนิดไม้ (Guitar Specifications)</p>
@@ -434,12 +467,18 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
                 <Input value={guitarSpecs.fingerboard} onChange={(e) => setGuitarSpecs({...guitarSpecs, fingerboard: e.target.value})} placeholder="Ebony" className="mt-1 h-9 rounded-none border-border" />
               </div>
               <div>
-                <label className="text-[11px] text-muted-foreground uppercase">Scale Length (สเกล)</label>
-                <Input value={guitarSpecs.scale_length} onChange={(e) => setGuitarSpecs({...guitarSpecs, scale_length: e.target.value})} placeholder="650 mm" className="mt-1 h-9 rounded-none border-border" />
+                <label className="text-[11px] text-muted-foreground uppercase">Scale Length (สเกล - หน่วย mm)</label>
+                <div className="relative mt-1">
+                  <Input value={guitarSpecs.scale_length} onChange={(e) => setGuitarSpecs({...guitarSpecs, scale_length: e.target.value})} placeholder="650" className="h-9 rounded-none border-border pr-12" />
+                  <span className="absolute right-3 top-2 text-xs text-muted-foreground font-semibold">mm</span>
+                </div>
               </div>
               <div>
-                <label className="text-[11px] text-muted-foreground uppercase">Nut Width (ความกว้างนัท)</label>
-                <Input value={guitarSpecs.nut_width} onChange={(e) => setGuitarSpecs({...guitarSpecs, nut_width: e.target.value})} placeholder="52 mm" className="mt-1 h-9 rounded-none border-border" />
+                <label className="text-[11px] text-muted-foreground uppercase">Nut Width (ความกว้างนัท - หน่วย mm)</label>
+                <div className="relative mt-1">
+                  <Input value={guitarSpecs.nut_width} onChange={(e) => setGuitarSpecs({...guitarSpecs, nut_width: e.target.value})} placeholder="52" className="h-9 rounded-none border-border pr-12" />
+                  <span className="absolute right-3 top-2 text-xs text-muted-foreground font-semibold">mm</span>
+                </div>
               </div>
               <div>
                 <label className="text-[11px] text-muted-foreground uppercase">Bridge (สะพานสาย)</label>
