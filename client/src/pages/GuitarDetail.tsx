@@ -46,7 +46,6 @@ export default function GuitarDetail() {
     });
 
     if (supaMatch) {
-      // ดึงสเปคจาก Supabase ถ้าไม่มีให้ดึงจากแคตตาล็อกหลัก
       const mergedSpecs = (supaMatch.specs && Object.keys(supaMatch.specs).length > 0)
         ? supaMatch.specs
         : (catalogMatch?.specs || {});
@@ -103,8 +102,29 @@ export default function GuitarDetail() {
     );
   }
 
-  // แปลงสเปคให้อยู่ในรูปแบบที่แสดงผลได้อย่างสมบูรณ์ รองรับทุกชื่อคีย์
-  const specsEntries = guitar.specs ? Object.entries(guitar.specs).filter(([_, val]) => val !== null && val !== undefined && val !== "") : [];
+  // แปลงสเปคให้อยู่ในรูปแบบที่รองรับทั้งแคตตาล็อกเดิมและ Supabase ได้อย่างสมบูรณ์
+  const specsEntries = useMemo(() => {
+    if (!guitar.specs) return [];
+    
+    // ถ้าเป็นสเปคจากแคตตาล็อกเดิม (มักเป็น object camelCase เช่น topWood, backSides)
+    if (guitar.specs.topWood || guitar.specs.neck || guitar.specs.fingerboard || guitar.specs.scaleLength || guitar.specs.nutWidth || guitar.specs.bridge || guitar.specs.finish) {
+      const s = guitar.specs;
+      const formatted = [
+        ["Top Wood (ไม้หน้า)", s.topWood],
+        ["Back & Sides (ไม้ข้างและหลัง)", s.backSides],
+        ["Neck (คอกีตาร์)", s.neck],
+        ["Fingerboard (ฟิงเกอร์บอร์ด)", s.fingerboard],
+        ["Scale Length (สเกล)", s.scaleLength],
+        ["Nut Width (ความกว้างนัท)", s.nutWidth],
+        ["Bridge (สะพานสาย)", s.bridge],
+        ["Finish (เคลือบผิว)", s.finish],
+      ];
+      return formatted.filter(([_, val]) => val !== null && val !== undefined && val !== "");
+    }
+
+    // ถ้าเป็นสเปคจาก Supabase (ที่เป็นตัวพิมพ์ใหญ่หรือคีย์ทั่วไป)
+    return Object.entries(guitar.specs).filter(([_, val]) => val !== null && val !== undefined && val !== "");
+  }, [guitar.specs]);
 
   return (
     <>
