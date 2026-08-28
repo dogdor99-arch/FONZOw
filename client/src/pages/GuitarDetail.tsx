@@ -80,6 +80,28 @@ export default function GuitarDetail() {
     }
   }, [imagesList]);
 
+  // ย้าย useMemo นี้ขึ้นมาไว้ก่อนเงื่อนไข if เพื่อไม่ให้ผิดกฎของ React Hooks
+  const specsEntries = useMemo(() => {
+    if (!guitar || !guitar.specs) return [];
+    
+    if (guitar.specs.topWood || guitar.specs.neck || guitar.specs.fingerboard || guitar.specs.scaleLength || guitar.specs.nutWidth || guitar.specs.bridge || guitar.specs.finish) {
+      const s = guitar.specs;
+      const formatted = [
+        ["Top Wood (ไม้หน้า)", s.topWood],
+        ["Back & Sides (ไม้ข้างและหลัง)", s.backSides],
+        ["Neck (คอกีตาร์)", s.neck],
+        ["Fingerboard (ฟิงเกอร์บอร์ด)", s.fingerboard],
+        ["Scale Length (สเกล)", s.scaleLength],
+        ["Nut Width (ความกว้างนัท)", s.nutWidth],
+        ["Bridge (สะพานสาย)", s.bridge],
+        ["Finish (เคลือบผิว)", s.finish],
+      ];
+      return formatted.filter(([_, val]) => val !== null && val !== undefined && val !== "");
+    }
+
+    return Object.entries(guitar.specs).filter(([_, val]) => val !== null && val !== undefined && val !== "");
+  }, [guitar]);
+
   const isLoading = catalogLoading || loadingSupa;
 
   if (isLoading) {
@@ -101,30 +123,6 @@ export default function GuitarDetail() {
       </div>
     );
   }
-
-  // แปลงสเปคให้อยู่ในรูปแบบที่รองรับทั้งแคตตาล็อกเดิมและ Supabase ได้อย่างสมบูรณ์
-  const specsEntries = useMemo(() => {
-    if (!guitar.specs) return [];
-    
-    // ถ้าเป็นสเปคจากแคตตาล็อกเดิม (มักเป็น object camelCase เช่น topWood, backSides)
-    if (guitar.specs.topWood || guitar.specs.neck || guitar.specs.fingerboard || guitar.specs.scaleLength || guitar.specs.nutWidth || guitar.specs.bridge || guitar.specs.finish) {
-      const s = guitar.specs;
-      const formatted = [
-        ["Top Wood (ไม้หน้า)", s.topWood],
-        ["Back & Sides (ไม้ข้างและหลัง)", s.backSides],
-        ["Neck (คอกีตาร์)", s.neck],
-        ["Fingerboard (ฟิงเกอร์บอร์ด)", s.fingerboard],
-        ["Scale Length (สเกล)", s.scaleLength],
-        ["Nut Width (ความกว้างนัท)", s.nutWidth],
-        ["Bridge (สะพานสาย)", s.bridge],
-        ["Finish (เคลือบผิว)", s.finish],
-      ];
-      return formatted.filter(([_, val]) => val !== null && val !== undefined && val !== "");
-    }
-
-    // ถ้าเป็นสเปคจาก Supabase (ที่เป็นตัวพิมพ์ใหญ่หรือคีย์ทั่วไป)
-    return Object.entries(guitar.specs).filter(([_, val]) => val !== null && val !== undefined && val !== "");
-  }, [guitar.specs]);
 
   return (
     <>
