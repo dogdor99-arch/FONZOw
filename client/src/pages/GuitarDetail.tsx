@@ -80,26 +80,36 @@ export default function GuitarDetail() {
     }
   }, [imagesList]);
 
-  // ย้าย useMemo นี้ขึ้นมาไว้ก่อนเงื่อนไข if เพื่อไม่ให้ผิดกฎของ React Hooks
+  // ระบบดึงสเปคที่รองรับทุกรูปแบบคีย์ (ทั้ง Supabase และ Catalog) อย่างแม่นยำ
   const specsEntries = useMemo(() => {
     if (!guitar || !guitar.specs) return [];
-    
-    if (guitar.specs.topWood || guitar.specs.neck || guitar.specs.fingerboard || guitar.specs.scaleLength || guitar.specs.nutWidth || guitar.specs.bridge || guitar.specs.finish) {
-      const s = guitar.specs;
-      const formatted = [
-        ["Top Wood (ไม้หน้า)", s.topWood],
-        ["Back & Sides (ไม้ข้างและหลัง)", s.backSides],
-        ["Neck (คอกีตาร์)", s.neck],
-        ["Fingerboard (ฟิงเกอร์บอร์ด)", s.fingerboard],
-        ["Scale Length (สเกล)", s.scaleLength],
-        ["Nut Width (ความกว้างนัท)", s.nutWidth],
-        ["Bridge (สะพานสาย)", s.bridge],
-        ["Finish (เคลือบผิว)", s.finish],
-      ];
-      return formatted.filter(([_, val]) => val !== null && val !== undefined && val !== "");
+    const s = guitar.specs;
+
+    const getVal = (...keys: string[]) => {
+      for (const k of keys) {
+        if (s[k] !== undefined && s[k] !== null && s[k] !== "" && s[k] !== "—") {
+          return s[k];
+        }
+      }
+      return null;
+    };
+
+    const rawList = [
+      ["Top Wood (ไม้หน้า)", getVal("TOP WOOD", "Top Wood", "topWood", "top_wood")],
+      ["Back & Sides (ไม้ข้างและหลัง)", getVal("BACK & SIDES", "Back & Sides", "backSides", "back_sides")],
+      ["Neck (คอกีตาร์)", getVal("NECK", "Neck", "neck")],
+      ["Fingerboard (ฟิงเกอร์บอร์ด)", getVal("FINGERBOARD", "Fingerboard", "fingerboard")],
+      ["Scale Length (สเกล)", getVal("SCALE LENGTH", "Scale Length", "scaleLength", "scale_length")],
+      ["Nut Width (ความกว้างนัท)", getVal("NUT WIDTH", "Nut Width", "nutWidth", "nut_width")],
+      ["Bridge (สะพานสาย)", getVal("BRIDGE", "Bridge", "bridge")],
+      ["Finish (เคลือบผิว)", getVal("FINISH", "Finish", "finish")],
+    ].filter(([_, val]) => val !== null && val !== undefined && val !== "");
+
+    if (rawList.length === 0 && typeof s === "object") {
+      return Object.entries(s).filter(([_, val]) => val !== null && val !== undefined && val !== "");
     }
 
-    return Object.entries(guitar.specs).filter(([_, val]) => val !== null && val !== undefined && val !== "");
+    return rawList;
   }, [guitar]);
 
   const isLoading = catalogLoading || loadingSupa;
