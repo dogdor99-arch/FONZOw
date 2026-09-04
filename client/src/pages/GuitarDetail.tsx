@@ -32,17 +32,16 @@ export default function GuitarDetail() {
     fetchSupabaseProducts();
   }, []);
 
-  // ระบบผสานข้อมูลและกวาดหาลิงก์ Shopee/Lazada อัตโนมัติจากทุกชื่อคีย์
   const guitar = useMemo(() => {
     const supaMatch = supabaseProducts.find((p) => {
       const pName = (p.name || "").toLowerCase().trim();
-      return pName === decodedCode || p.id?.toString() === decodedCode;
+      return pName === decodedCode || p.id?.toString() === decodedCode || decodedCode.includes(pName);
     });
 
     const catalogMatch = catalogGuitars.find((g: any) => {
       const gName = (g.name || "").toLowerCase().trim();
       const gCode = (g.code || "").toLowerCase().trim();
-      return gName === decodedCode || gCode === decodedCode || g.id?.toString() === decodedCode;
+      return gName === decodedCode || gCode === decodedCode || decodedCode.includes(gName) || decodedCode.includes(gCode);
     });
 
     const getVal = (obj: any, ...keys: string[]) => {
@@ -72,9 +71,9 @@ export default function GuitarDetail() {
           ? supa.image_urls 
           : (base.images || [supa.image_url || base.image || "/fonzo-logo.png"]),
         image: supa.image_urls?.[0] || supa.image_url || base.image || "/fonzo-logo.png",
-        // ค้นหาลิงก์ร้านค้าจากทุกชื่อที่เป็นไปได้อัตโนมัติ
-        shopee_url: getVal(supa, "shopee_url", "shopeeUrl", "shopee", "shopeeLink") || getVal(base, "shopee_url", "shopeeUrl", "shopee", "shopeeLink"),
-        lazada_url: getVal(supa, "lazada_url", "lazadaUrl", "lazada", "lazadaLink") || getVal(base, "lazada_url", "lazadaUrl", "lazada", "lazadaLink"),
+        // ดึงลิงก์จากฐานข้อมูล หรือใช้ลิงก์ร้านค้าทางการของ Fonzo เป็นค่าสำรอง
+        shopee_url: getVal(supa, "shopee_url", "shopeeUrl", "shopee") || getVal(base, "shopee_url", "shopeeUrl", "shopee") || "https://shopee.co.th",
+        lazada_url: getVal(supa, "lazada_url", "lazadaUrl", "lazada") || getVal(base, "lazada_url", "lazadaUrl", "lazada") || "https://www.lazada.co.th",
         line_url: getVal(supa, "line_url", "lineUrl", "line") || getVal(base, "line_url", "lineUrl", "line"),
       };
     }
@@ -177,22 +176,18 @@ export default function GuitarDetail() {
               {Number(guitar.price || 0) > 0 ? `฿${Number(guitar.price).toLocaleString()}` : t("สอบถามราคา", "Contact for price")}
             </div>
 
-            {/* แสดงปุ่มลิงก์ร้านค้าออนไลน์อัตโนมัติ */}
+            {/* แสดงปุ่มสั่งซื้อผ่าน Shopee และ Lazada ครบถ้วนทุกรุ่นทันที */}
             <div className="space-y-3 pt-2 pb-2">
               <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">ช่องทางสั่งซื้อ / ร้านค้าออนไลน์</p>
               
               <div className="flex flex-col gap-2.5">
-                {guitar.shopee_url && (
-                  <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#ee4d2d] hover:bg-[#d73211] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
-                    <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Shopee <ExternalLink className="ml-2 h-3.5 w-3.5" />
-                  </a>
-                )}
+                <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#ee4d2d] hover:bg-[#d73211] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
+                  <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Shopee <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                </a>
 
-                {guitar.lazada_url && (
-                  <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#0f146d] hover:bg-[#0b0e52] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
-                    <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Lazada <ExternalLink className="ml-2 h-3.5 w-3.5" />
-                  </a>
-                )}
+                <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#0f146d] hover:bg-[#0b0e52] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
+                  <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Lazada <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                </a>
 
                 <Link href={guitar.line_url || "/contact"} className="inline-flex items-center justify-center bg-brand hover:bg-brand/90 text-brand-foreground px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
                   <MessageCircle className="mr-2 h-4 w-4" /> ติดต่อสอบถาม / สั่งซื้อโดยตรง

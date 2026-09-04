@@ -80,7 +80,6 @@ function StockManager() {
   const [loadingSupa, setLoadingSupa] = useState(true);
   const [editingItem, setEditingItem] = useState<any>(null);
 
-  // เพิ่ม State สำหรับสลับแท็บสินค้าย่อย (กีตาร์ / อุปกรณ์เสริม)
   const [categoryTab, setCategoryTab] = useState<"guitars" | "accessories">("guitars");
 
   const fetchSupabaseProducts = async () => {
@@ -92,12 +91,20 @@ function StockManager() {
 
   useEffect(() => { fetchSupabaseProducts(); }, []);
 
-  // ระบบผสานข้อมูล ป้องกันกีตาร์ซ้ำซ้อน และแสดงผลรวมเป็นหนึ่งเดียว
+  // ระบบผสานข้อมูลและดึงลิงก์ร้านค้าออนไลน์อัตโนมัติจากทุกชื่อฟิลด์
   useEffect(() => {
     const supaMap = new Map();
     supabaseProducts.forEach(p => {
       if (p.name) supaMap.set(p.name.toLowerCase().trim(), p);
     });
+
+    const getVal = (obj: any, ...keys: string[]) => {
+      if (!obj) return "";
+      for (const k of keys) {
+        if (obj[k]) return obj[k];
+      }
+      return "";
+    };
 
     const mergedList = catalogGuitars.map((g: any, idx: number) => {
       const name = (g.name || g.code || "").toLowerCase().trim();
@@ -112,6 +119,8 @@ function StockManager() {
           image_urls: supaMatch.image_urls && supaMatch.image_urls.length > 0 
             ? supaMatch.image_urls 
             : (g.images || [g.image || "/fonzo-logo.png"]),
+          shopee_url: getVal(supaMatch, "shopee_url", "shopeeUrl", "shopee") || getVal(g, "shopee_url", "shopeeUrl", "shopee"),
+          lazada_url: getVal(supaMatch, "lazada_url", "lazadaUrl", "lazada") || getVal(g, "lazada_url", "lazadaUrl", "lazada"),
           isCatalogItem: false
         };
       }
@@ -128,6 +137,8 @@ function StockManager() {
         description: g.description || "",
         specs: g.specs || {},
         features: g.features || [],
+        shopee_url: getVal(g, "shopee_url", "shopeeUrl", "shopee"),
+        lazada_url: getVal(g, "lazada_url", "lazadaUrl", "lazada"),
         isCatalogItem: true,
       };
     });
@@ -135,6 +146,8 @@ function StockManager() {
     const remainingCustomProducts = Array.from(supaMap.values()).map(p => ({
       ...p,
       image_urls: p.image_urls && p.image_urls.length > 0 ? p.image_urls : [p.image_url || "/fonzo-logo.png"],
+      shopee_url: getVal(p, "shopee_url", "shopeeUrl", "shopee"),
+      lazada_url: getVal(p, "lazada_url", "lazadaUrl", "lazada"),
       isCatalogItem: false
     }));
 
@@ -165,7 +178,6 @@ function StockManager() {
 
   const isLoading = catalogLoading || loadingSupa;
 
-  // กรองสินค้าตามแท็บที่เลือก (กีตาร์ / อุปกรณ์เสริม)
   const displayProducts = allProducts.filter((p) => {
     const cat = (p.category || "").toLowerCase();
     const isAcc = cat.includes("accessor") || cat.includes("string") || cat.includes("สาย");
@@ -191,7 +203,6 @@ function StockManager() {
         </div>
       </div>
 
-      {/* แท็บสลับดูกีตาร์ และ อุปกรณ์เสริม */}
       <div className="flex border-b border-border gap-6">
         <button 
           type="button"
@@ -290,12 +301,22 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
     return [];
   };
 
+  const getInitVal = (...keys: string[]) => {
+    if (!initialData) return "";
+    for (const k of keys) {
+      if (initialData[k]) return initialData[k];
+    }
+    return "";
+  };
+
   const [formData, setFormData] = useState({
     name: initialData?.name || "",
     price: initialData?.price || 0,
     stock: initialData?.stock || 10,
     category: initialData?.category || (isAccInitial ? "Accessories & Strings" : "Fonzo Acoustic"),
     description: initialData?.description || "",
+    shopee_url: getInitVal("shopee_url", "shopeeUrl", "shopee"),
+    lazada_url: getInitVal("lazada_url", "lazadaUrl", "lazada"),
     image_urls: getInitialImages()
   });
 
@@ -385,6 +406,8 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
         stock: Number(formData.stock),
         category: formData.category,
         description: formData.description,
+        shopee_url: formData.shopee_url,
+        lazada_url: formData.lazada_url,
         image_url: primaryImage,
         image_urls: validImages,
         specs: specs
@@ -462,6 +485,18 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           <div>
             <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">จำนวนสต็อก</label>
             <Input type="number" value={formData.stock} onChange={(e) => setFormData({...formData, stock: Number(e.target.value)})} placeholder="10" className="mt-1 h-10 rounded-none border-border" />
+          </div>
+        </div>
+
+        {/* ช่องใส่ลิงก์ Shopee และ Lazada (ดึงค่าเดิมมาแสดงอัตโนมัติ) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border pt-4">
+          <div>
+            <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase font-bold text-[#ee4d2d]">ลิงก์ร้านค้า Shopee</label>
+            <Input value={formData.shopee_url} onChange={(e) => setFormData({...formData, shopee_url: e.target.value})} placeholder="https://shopee.co.th/..." className="mt-1 h-10 rounded-none border-border" />
+          </div>
+          <div>
+            <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase font-bold text-[#0f146d]">ลิงก์ร้านค้า Lazada</label>
+            <Input value={formData.lazada_url} onChange={(e) => setFormData({...formData, lazada_url: e.target.value})} placeholder="https://www.lazada.co.th/..." className="mt-1 h-10 rounded-none border-border" />
           </div>
         </div>
 
