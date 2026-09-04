@@ -1,181 +1,265 @@
-import { useState, useEffect } from "react";
-import { useRoute, Link } from "wouter";
+import { useState, useEffect, useMemo } from "react";
+import { useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
+import { PageHeading } from "@/components/site/SiteLayout";
 import { supabase } from "@/lib/supabase";
-import { Loader2, ArrowLeft, CheckCircle2, ShieldCheck, ShoppingBag, ExternalLink, MessageCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ShieldCheck, Truck, ArrowLeft, Loader2, ExternalLink, ShoppingBag, MessageCircle } from "lucide-react";
+
+// ==========================================
+// 📌 ลิงก์ตรงสินค้าแต่ละรุ่น (Direct Links ของร้าน Fonzo บน Shopee & Lazada)
+// ==========================================
+const HARDCODED_STORE_LINKS: Record<string, { shopee: string; lazada: string }> = {
+  "ancient sitka": {
+    shopee: "https://shopee.co.th/search?keyword=Fonzo%20Ancient%20Sitka", // สามารถเปลี่ยนเป็นลิงก์เฉพาะชิ้นจริงได้ทีหลัง
+    lazada: "https://www.lazada.co.th/catalog/?q=Fonzo+Ancient+Sitka"
+  },
+  "picasso": {
+    shopee: "https://shopee.co.th/search?keyword=Fonzo%20Picasso",
+    lazada: "https://www.lazada.co.th/catalog/?q=Fonzo+Picasso"
+  },
+  "v-34s": {
+    shopee: "https://shopee.co.th/search?keyword=Fonzo%20V-34S",
+    lazada: "https://www.lazada.co.th/catalog/?q=Fonzo+V-34S"
+  }
+};
 
 export default function GuitarDetail() {
-  const [, params] = useRoute("/guitar/:code");
-  const rawCode = params?.code ? decodeURIComponent(params.code).trim() : "";
+  const { code } = useParams();
   const { t } = useLocale();
 
   const { data: catalogGuitars = [], isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
-  
-  const [guitar, setGuitar] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [supabaseProducts, setSupabaseProducts] = useState<any[]>([]);
+  const [loadingSupa, setLoadingSupa] = useState(true);
+
+  const decodedCode = decodeURIComponent(code || "").trim().toLowerCase();
 
   useEffect(() => {
-    async function resolveGuitar() {
-      if (!rawCode || catalogLoading) return;
+    async function fetchSupabaseProducts() {
+      try {
+        const { data, error } = await supabase.from("products").select("*");
+        if (!error && data) {
+          setSupabaseProducts(data);
+        }
+      } catch (err) {
+        console.error("Error fetching supabase products:", err);
+      } finally {
+        setLoadingSupa(false);
+      }
+    }
+    fetchSupabaseProducts();
+  }, []);
 
-      const { data: supaData } = await supabase
-        .from("products")
-        .select("*")
-        .ilike("name", `%${rawCode}%`)
-        .maybeSingle();
+  const guitar = useMemo(() => {
+    const cleanStr = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9ก-ฮ]/g, "").trim();
+    const decodedClean = cleanStr(decodedCode);
 
-      if (supaData) {
-        setGuitar({
-          id: supaData.id,
-          code: supaData.name,
-          name: supaData.name,
-          series: supaData.category || "Fonzo Custom",
-          price: Number(supaData.price || 0),
-          image: supaData.image_url || "/fonzo-logo.png",
-          description: supaData.description || "กีตาร์คุณภาพสูงจาก Fonzo Guitar งานประกอบประณีต",
-          stock: supaData.stock,
-          shopee_url: supaData.shopee_url || "",
-          lazada_url: supaData.lazada_url || "",
-        });
-        setIsLoading(false);
-        return;
+    const catalogMatch = catalogGuitars.find((g: any) => {
+      const gName = cleanStr(g.name);
+      const gCode = cleanStr(g.code);
+      return gName === decodedClean || gCode === decodedClean || decodedClean.includes(gName) || gName.includes(decodedClean);
+    });
+
+    const supaMatch = supabaseProducts.find((p) => {
+      const pName = cleanStr(p.name);
+      const pCode = cleanStr(p.code);
+      const pId = cleanStr(p.id?.toString());
+      return pName === decodedClean || pCode === decodedClean || pId === decodedClean || decodedClean.includes(pName) || pName.includes(decodedClean);
+    });
+
+    const base = catalogMatch || {};
+    const supa = supaMatch || {};
+
+    if (supaMatch || catalogMatch) {
+      const mergedSpecs = (supa.specs && Object.keys(supa.specs).length > 0)
+        ? supa.specs
+        : (base.specs || {});
+
+      const nameStr = supa.name || base.name || catalogMatch?.name || decodedCode;
+      const lowerName = nameStr.toLowerCase();
+
+      // ค้นหาลิงก์ตรงจาก Supabase / Catalog หรือดึงจากตารางสำรองรายรุ่น
+      let foundLinks = { shopee: "", lazada: "" };
+      for (const [key, val] of Object.entries(HARDCODED_STORE_LINKS)) {
+        if (lowerName.includes(key)) {
+          foundLinks = val;
+          break;
+        }
       }
 
-      const found = catalogGuitars.find((g: any) => {
-        const c = (g.code || "").toString().toLowerCase().trim();
-        const n = (g.name || "").toString().toLowerCase().trim();
-        const target = rawCode.toLowerCase();
-        return c === target || n === target || c.includes(target) || target.includes(c);
-      });
+      const shopeeLink = supa.shopee_url || supa.shopeeUrl || supa.shopee || base.shopee_url || base.shopeeUrl || foundLinks.shopee || `https://shopee.co.th/shop/fonzoguitar`;
+      const lazadaLink = supa.lazada_url || supa.lazadaUrl || supa.lazada || base.lazada_url || base.lazadaUrl || foundLinks.lazada || `https://www.lazada.co.th/shop/fonzoguitar`;
+      const lineLink = supa.line_url || base.line_url || supa.lineUrl || base.lineUrl || "";
 
-      if (found) {
-        setGuitar(found);
-      }
-
-      setIsLoading(false);
+      return {
+        ...base,
+        ...supa,
+        name: nameStr,
+        price: supa.price !== undefined ? supa.price : base.price,
+        description: supa.description || base.description,
+        specs: mergedSpecs,
+        images: supa.image_urls && supa.image_urls.length > 0 
+          ? supa.image_urls 
+          : (base.images || [supa.image_url || base.image || "/fonzo-logo.png"]),
+        image: supa.image_urls?.[0] || supa.image_url || base.image || "/fonzo-logo.png",
+        shopee_url: shopeeLink,
+        lazada_url: lazadaLink,
+        line_url: lineLink,
+      };
     }
 
-    resolveGuitar();
-  }, [rawCode, catalogGuitars, catalogLoading]);
+    return null;
+  }, [catalogGuitars, supabaseProducts, decodedCode]);
 
-  if (isLoading || catalogLoading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-brand" />
-      </div>
-    );
+  const imagesList = useMemo(() => {
+    if (!guitar) return ["/fonzo-logo.png"];
+    return guitar.images && guitar.images.length > 0 ? guitar.images : [guitar.image || "/fonzo-logo.png"];
+  }, [guitar]);
+
+  const [selectedImage, setSelectedImage] = useState<string>("");
+
+  useEffect(() => {
+    if (imagesList.length > 0) {
+      setSelectedImage(imagesList[0]);
+    }
+  }, [imagesList]);
+
+  const specsEntries = useMemo(() => {
+    if (!guitar) return [];
+    const s = guitar.specs || {};
+    const root = guitar as any;
+
+    const getVal = (...keys: string[]) => {
+      for (const k of keys) {
+        if (s[k] !== undefined && s[k] !== null && s[k] !== "" && s[k] !== "—") return s[k];
+        if (root[k] !== undefined && root[k] !== null && root[k] !== "" && root[k] !== "—") return root[k];
+      }
+      return null;
+    };
+
+    const rawList = [
+      ["Top Wood (ไม้หน้า)", getVal("TOP WOOD", "Top Wood", "topWood", "top_wood", "top")],
+      ["Back & Sides (ไม้ข้างและหลัง)", getVal("BACK & SIDES", "Back & Sides", "backSides", "back_sides", "backAndSides")],
+      ["Neck (คอกีตาร์)", getVal("NECK", "Neck", "neck")],
+      ["Fingerboard (ฟิงเกอร์บอร์ด)", getVal("FINGERBOARD", "Fingerboard", "fingerboard")],
+      ["Scale Length (สเกล)", getVal("SCALE LENGTH", "Scale Length", "scaleLength", "scale_length")],
+      ["Nut Width (ความกว้างนัท)", getVal("NUT WIDTH", "Nut Width", "nutWidth", "nut_width")],
+      ["Bridge (สะพานสาย)", getVal("BRIDGE", "Bridge", "bridge")],
+      ["Finish (เคลือบผิว)", getVal("FINISH", "Finish", "finish")],
+    ].filter(([_, val]) => val !== null && val !== undefined && val !== "");
+
+    if (rawList.length === 0 && Object.keys(s).length > 0) {
+      return Object.entries(s).filter(([_, val]) => val !== null && val !== undefined && val !== "");
+    }
+    return rawList;
+  }, [guitar]);
+
+  const isLoading = catalogLoading || loadingSupa;
+
+  if (isLoading) {
+    return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-brand" /></div>;
   }
 
   if (!guitar) {
     return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <h2 className="text-2xl font-display">{t("ไม่พบรุ่นกีตาร์นี้", "Guitar model not found")}</h2>
-        <p className="mt-2 text-sm text-muted-foreground">{t("รุ่นที่คุณค้นหาอาจถูกย้ายออกจากแคตตาล็อกแล้ว", "The model you are looking for may have been removed.")}</p>
-        <Button asChild className="mt-6 bg-brand text-brand-foreground rounded-none">
-          <Link href="/guitar">{t("กลับไปหน้ากีตาร์", "Back to guitars")}</Link>
-        </Button>
+      <div className="mx-auto max-w-lg px-4 py-24 text-center">
+        <h2 className="text-xl font-display">ไม่พบข้อมูลกีตาร์รุ่นนี้</h2>
+        <a href="/guitar" className="mt-6 inline-block bg-brand px-6 py-3 text-xs uppercase tracking-widest text-brand-foreground">กลับสู่หน้าแคตตาล็อก</a>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 py-12 sm:px-6 lg:px-10">
-      <Link href="/guitar" className="inline-flex items-center text-xs tracking-widest uppercase text-muted-foreground hover:text-brand mb-8">
-        <ArrowLeft className="mr-2 h-4 w-4" /> {t("กลับไปหน้าแคตตาล็อก", "Back to catalog")}
-      </Link>
+    <>
+      <PageHeading eyebrow={t("รายละเอียดกีตาร์", "Guitar details")} title={guitar.name || guitar.code} description={guitar.description || t("กีตาร์งานฝีมือระดับพรีเมียมจาก Fonzo", "Premium handcrafted guitar by Fonzo.")} crumbs={[{ label: "Guitar", href: "/guitar" }, { label: guitar.name || guitar.code }]} index="03" />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-        {/* รูปภาพสินค้า */}
-        <div className="border border-border bg-card p-8 flex justify-center items-center min-h-[450px]">
-          <img 
-            src={guitar.image || guitar.imageUrl || guitar.image_url || "/fonzo-logo.png"} 
-            alt={guitar.name || guitar.code} 
-            className="w-full h-auto object-contain max-h-[550px] drop-shadow-md" 
-          />
+      <section className="mx-auto max-w-[1300px] px-4 py-12 sm:px-6 lg:px-10">
+        <div className="mb-8">
+          <Link href="/guitar" className="inline-flex items-center text-xs tracking-widest uppercase text-muted-foreground hover:text-brand">
+            <ArrowLeft className="mr-2 h-4 w-4" /> กลับไปหน้าแคตตาล็อก
+          </Link>
         </div>
 
-        {/* ข้อมูลและสเปค */}
-        <div className="space-y-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-brand font-semibold">
-              {guitar.series || guitar.category || "Fonzo Custom"}
-            </p>
-            <h1 className="text-3xl font-display mt-2">{guitar.name || guitar.code}</h1>
-            <p className="text-2xl font-display text-brand mt-4">
-              {guitar.price && guitar.price > 0 ? `฿${Number(guitar.price).toLocaleString()}` : t("สอบถามราคา", "Price upon request")}
-            </p>
-          </div>
-
-          {/* ปุ่มสั่งซื้อ Shopee / Lazada */}
-          <div className="space-y-3 pt-2 pb-2">
-            <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">{t("ช่องทางสั่งซื้อ / ร้านค้าออนไลน์", "Buy Online")}</p>
-            <div className="flex flex-col gap-2.5">
-              {guitar.shopee_url && (
-                <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#ee4d2d] hover:bg-[#d73211] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
-                  <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Shopee <ExternalLink className="ml-2 h-3.5 w-3.5" />
-                </a>
-              )}
-
-              {guitar.lazada_url && (
-                <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#0f146d] hover:bg-[#0b0e52] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
-                  <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Lazada <ExternalLink className="ml-2 h-3.5 w-3.5" />
-                </a>
-              )}
-
-              <Link href={guitar.line_url || "/contact"} className="inline-flex items-center justify-center bg-brand hover:bg-brand/90 text-brand-foreground px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
-                <MessageCircle className="mr-2 h-4 w-4" /> {t("ติดต่อสอบถาม / สั่งซื้อโดยตรง", "Direct inquiry / order")}
-              </Link>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <div className="lg:col-span-7 space-y-4">
+            <div className="border border-border bg-card p-4 flex items-center justify-center h-[450px] sm:h-[550px] overflow-hidden">
+              <img src={selectedImage || imagesList[0]} alt={guitar.name || guitar.code} className="max-h-full max-w-full object-contain transition-all duration-300" onError={(e) => { (e.target as HTMLImageElement).src = "/fonzo-logo.png"; }} />
             </div>
+            {imagesList.length > 1 && (
+              <div className="flex gap-3 overflow-x-auto pb-2">
+                {imagesList.map((img: string, idx: number) => (
+                  <button key={idx} type="button" onClick={() => setSelectedImage(img)} className={cn("h-20 w-20 border bg-background shrink-0 overflow-hidden p-1 transition-all", selectedImage === img ? "border-brand ring-2 ring-brand/20" : "border-border hover:border-brand/50")}>
+                    <img src={img} alt={`Thumbnail ${idx + 1}`} className="h-full w-full object-contain" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-            {guitar.description || guitar.specs?.description || t("กีตาร์คุณภาพสูง ออกแบบมาเพื่อเสียงอันประณีตและการเล่นที่พริ้วไหว", "Premium crafted guitar for exceptional tone and playability.")}
-          </p>
+          <div className="lg:col-span-5 space-y-6">
+            <div>
+              <span className="text-[11px] tracking-[0.2em] uppercase text-brand font-semibold">{guitar.series || guitar.category || "Fonzo Acoustic"}</span>
+              <h1 className="text-2xl sm:text-3xl font-display mt-1">{guitar.name || guitar.code}</h1>
+            </div>
 
-          {/* รายละเอียดสเปคทางเทคนิค (Specs) */}
-          {guitar.specs && Object.keys(guitar.specs).length > 0 && (
-            <div className="border-t border-border pt-6 space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-widest text-foreground">{t("สเปคทางเทคนิค", "Technical Specifications")}</p>
-              <div className="grid grid-cols-1 gap-2 text-xs">
-                {Object.entries(guitar.specs).map(([key, val]: [string, any]) => {
-                  if (key === "description" || !val) return null;
-                  return (
-                    <div key={key} className="flex justify-between border-b border-border/50 py-1.5">
-                      <span className="text-muted-foreground uppercase tracking-wider">{key}</span>
-                      <span className="font-medium text-foreground text-right">{String(val)}</span>
-                    </div>
-                  );
-                })}
+            <div className="text-2xl font-bold font-display text-foreground">
+              {Number(guitar.price || 0) > 0 ? `฿${Number(guitar.price).toLocaleString()}` : t("สอบถามราคา", "Contact for price")}
+            </div>
+
+            {/* แสดงปุ่มสั่งซื้อ Shopee และ Lazada อย่างถาวรทุกรุ่น */}
+            <div className="space-y-3 pt-2 pb-2">
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">ช่องทางสั่งซื้อ / ร้านค้าออนไลน์</p>
+              
+              <div className="flex flex-col gap-2.5">
+                {guitar.shopee_url && (
+                  <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#ee4d2d] hover:bg-[#d73211] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
+                    <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Shopee <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                  </a>
+                )}
+
+                {guitar.lazada_url && (
+                  <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#0f146d] hover:bg-[#0b0e52] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
+                    <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Lazada <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                  </a>
+                )}
+
+                <Link href={guitar.line_url || "/contact"} className="inline-flex items-center justify-center bg-brand hover:bg-brand/90 text-brand-foreground px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
+                  <MessageCircle className="mr-2 h-4 w-4" /> ติดต่อสอบถาม / สั่งซื้อโดยตรง
+                </Link>
               </div>
             </div>
-          )}
 
-          {/* คุณสมบัติเด่น (Features) */}
-          {guitar.features && Array.isArray(guitar.features) && guitar.features.length > 0 && (
-            <div className="border-t border-border pt-4 space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-widest text-foreground">{t("คุณสมบัติเด่น", "Key Features")}</p>
-              <ul className="list-disc list-inside text-xs text-muted-foreground space-y-1">
-                {guitar.features.map((feat: string, i: number) => (
-                  <li key={i}>{feat}</li>
-                ))}
-              </ul>
+            {guitar.description && (
+              <p className="text-xs text-muted-foreground leading-relaxed">{guitar.description}</p>
+            )}
+
+            {specsEntries.length > 0 && (
+              <div className="border-t border-border pt-6 space-y-3">
+                <h3 className="text-xs uppercase tracking-widest font-semibold text-foreground">สเปคทางเทคนิค (Specifications)</h3>
+                <div className="border border-border divide-y divide-border text-xs">
+                  {specsEntries.map(([key, val]: [string, any], idx) => (
+                    <div key={idx} className="flex justify-between p-3">
+                      <span className="text-muted-foreground uppercase font-medium">{key}</span>
+                      <span className="text-foreground font-semibold text-right">{val}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="border-t border-border pt-6 space-y-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <ShieldCheck className="h-4 w-4 text-brand" /> รับประกันคุณภาพมาตรฐานโรงงาน Fonzo Guitar
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Truck className="h-4 w-4 text-brand" /> จัดส่งปลอดภัยด้วยกล่องกันกระแทกมาตรฐานสูง
+              </div>
             </div>
-          )}
-
-          {/* สถานะสต็อกและบริการ */}
-          <div className="border-t border-border pt-6 space-y-3">
-            <p className="text-xs text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              {t("สถานะสินค้า", "Stock Status")}: <span className="font-bold text-foreground">{guitar.stock !== undefined ? (guitar.stock > 0 ? `${t("มีสินค้า", "In Stock")} (${guitar.stock} ${t("ตัว", "pcs")})` : t("สินค้าหมด", "Out of Stock")) : t("มีสินค้าพร้อมส่ง", "Available")}</span>
-            </p>
-            <p className="text-xs text-muted-foreground flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-brand" /> {t("รับประกันสินค้าแท้ 100% พร้อมเซ็ตอัพก่อนจัดส่ง", "100% Authentic with professional setup before shipping")}
-            </p>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </>
   );
 }
+
+function cn(...classes: any[]) { return classes.filter(Boolean).join(" "); }
