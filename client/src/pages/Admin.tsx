@@ -73,6 +73,7 @@ export default function Admin() {
 function StockManager() {
   const { t } = useLocale();
   const { data: catalogGuitars = [], isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
+  const { data: catalogAccessories = [], isLoading: accessoriesLoading } = trpc.fonzo.accessories.list.useQuery();
   
   const [view, setView] = useState<SubView>("list");
   const [supabaseProducts, setSupabaseProducts] = useState<any[]>([]);
@@ -91,7 +92,7 @@ function StockManager() {
 
   useEffect(() => { fetchSupabaseProducts(); }, []);
 
-  // ระบบผสานข้อมูลและดึงลิงก์ร้านค้าออนไลน์อัตโนมัติจากทุกชื่อฟิลด์
+  // ระบบผสานข้อมูลกีตาร์และอุปกรณ์เสริมจากหลังบ้านและ Supabase
   useEffect(() => {
     const supaMap = new Map();
     supabaseProducts.forEach(p => {
@@ -106,7 +107,12 @@ function StockManager() {
       return "";
     };
 
-    const mergedList = catalogGuitars.map((g: any, idx: number) => {
+    const combinedCatalog = [
+      ...catalogGuitars.map((g: any) => ({ ...g, itemKind: "guitar" })),
+      ...catalogAccessories.map((a: any) => ({ ...a, itemKind: "accessory" }))
+    ];
+
+    const mergedList = combinedCatalog.map((g: any, idx: number) => {
       const name = (g.name || g.code || "").toLowerCase().trim();
       const supaMatch = supaMap.get(name);
 
@@ -131,7 +137,7 @@ function StockManager() {
         name: g.name || g.code,
         price: Number(g.price || 0),
         stock: g.stock ?? 10,
-        category: g.series || "Catalog Guitar",
+        category: g.series || (g.itemKind === "accessory" ? "Accessories & Strings" : "Catalog Guitar"),
         image_url: imgList[0],
         image_urls: imgList,
         description: g.description || "",
@@ -152,7 +158,7 @@ function StockManager() {
     }));
 
     setAllProducts([...remainingCustomProducts, ...mergedList]);
-  }, [catalogGuitars, supabaseProducts]);
+  }, [catalogGuitars, catalogAccessories, supabaseProducts]);
 
   const handleDelete = async (id: any, isCatalogItem?: boolean) => {
     if (isCatalogItem) {
@@ -176,7 +182,7 @@ function StockManager() {
     return <ProductForm mode="edit" initialData={editingItem} onBack={() => { setView("list"); fetchSupabaseProducts(); }} />;
   }
 
-  const isLoading = catalogLoading || loadingSupa;
+  const isLoading = catalogLoading || accessoriesLoading || loadingSupa;
 
   const displayProducts = allProducts.filter((p) => {
     const cat = (p.category || "").toLowerCase();
@@ -488,7 +494,6 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           </div>
         </div>
 
-        {/* ช่องใส่ลิงก์ Shopee และ Lazada (ดึงค่าเดิมมาแสดงอัตโนมัติ) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border pt-4">
           <div>
             <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase font-bold text-[#ee4d2d]">ลิงก์ร้านค้า Shopee</label>
@@ -500,7 +505,6 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           </div>
         </div>
 
-        {/* ส่วนอัปโหลดรูปภาพจากเครื่อง */}
         <div className="space-y-4 border-t border-border pt-4">
           <div className="bg-secondary/40 border border-border p-5 flex flex-wrap items-center justify-between gap-4">
             <div>
