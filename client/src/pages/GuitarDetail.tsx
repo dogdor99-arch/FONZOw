@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams } from "wouter";
+import { useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { PageHeading } from "@/components/site/SiteLayout";
 import { supabase } from "@/lib/supabase";
-import { ShieldCheck, Truck, ArrowLeft, Loader2 } from "lucide-react";
+import { ShieldCheck, Truck, ArrowLeft, Loader2, MessageCircle } from "lucide-react";
 
 export default function GuitarDetail() {
   const { code } = useParams();
@@ -32,7 +32,6 @@ export default function GuitarDetail() {
     fetchSupabaseProducts();
   }, []);
 
-  // ค้นหาและผสานข้อมูลรุ่นกีตาร์
   const guitar = useMemo(() => {
     const supaMatch = supabaseProducts.find((p) => {
       const pName = (p.name || "").toLowerCase().trim();
@@ -80,23 +79,23 @@ export default function GuitarDetail() {
     }
   }, [imagesList]);
 
-  // ระบบดึงสเปคที่รองรับทุกรูปแบบคีย์ (ทั้ง Supabase และ Catalog) อย่างแม่นยำ
+  // ระบบกวาดหาสเปคจากทุกรูปแบบ
   const specsEntries = useMemo(() => {
-    if (!guitar || !guitar.specs) return [];
-    const s = guitar.specs;
+    if (!guitar) return [];
+    const s = guitar.specs || {};
+    const root = guitar as any;
 
     const getVal = (...keys: string[]) => {
       for (const k of keys) {
-        if (s[k] !== undefined && s[k] !== null && s[k] !== "" && s[k] !== "—") {
-          return s[k];
-        }
+        if (s[k] !== undefined && s[k] !== null && s[k] !== "" && s[k] !== "—") return s[k];
+        if (root[k] !== undefined && root[k] !== null && root[k] !== "" && root[k] !== "—") return root[k];
       }
       return null;
     };
 
     const rawList = [
-      ["Top Wood (ไม้หน้า)", getVal("TOP WOOD", "Top Wood", "topWood", "top_wood")],
-      ["Back & Sides (ไม้ข้างและหลัง)", getVal("BACK & SIDES", "Back & Sides", "backSides", "back_sides")],
+      ["Top Wood (ไม้หน้า)", getVal("TOP WOOD", "Top Wood", "topWood", "top_wood", "top")],
+      ["Back & Sides (ไม้ข้างและหลัง)", getVal("BACK & SIDES", "Back & Sides", "backSides", "back_sides", "backAndSides")],
       ["Neck (คอกีตาร์)", getVal("NECK", "Neck", "neck")],
       ["Fingerboard (ฟิงเกอร์บอร์ด)", getVal("FINGERBOARD", "Fingerboard", "fingerboard")],
       ["Scale Length (สเกล)", getVal("SCALE LENGTH", "Scale Length", "scaleLength", "scale_length")],
@@ -105,76 +104,47 @@ export default function GuitarDetail() {
       ["Finish (เคลือบผิว)", getVal("FINISH", "Finish", "finish")],
     ].filter(([_, val]) => val !== null && val !== undefined && val !== "");
 
-    if (rawList.length === 0 && typeof s === "object") {
+    if (rawList.length === 0 && Object.keys(s).length > 0) {
       return Object.entries(s).filter(([_, val]) => val !== null && val !== undefined && val !== "");
     }
-
     return rawList;
   }, [guitar]);
 
   const isLoading = catalogLoading || loadingSupa;
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-brand" />
-      </div>
-    );
+    return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-brand" /></div>;
   }
 
   if (!guitar) {
     return (
       <div className="mx-auto max-w-lg px-4 py-24 text-center">
         <h2 className="text-xl font-display">ไม่พบข้อมูลกีตาร์รุ่นนี้</h2>
-        <p className="mt-2 text-xs text-muted-foreground">กรุณากลับไปเลือกดูรุ่นอื่นในแคตตาล็อก</p>
-        <a href="/guitar" className="mt-6 inline-block bg-brand px-6 py-3 text-xs uppercase tracking-widest text-brand-foreground">
-          กลับสู่หน้าแคตตาล็อก
-        </a>
+        <a href="/guitar" className="mt-6 inline-block bg-brand px-6 py-3 text-xs uppercase tracking-widest text-brand-foreground">กลับสู่หน้าแคตตาล็อก</a>
       </div>
     );
   }
 
   return (
     <>
-      <PageHeading
-        eyebrow={t("รายละเอียดกีตาร์", "Guitar details")}
-        title={guitar.name || guitar.code}
-        description={guitar.description || t("กีตาร์งานฝีมือระดับพรีเมียมจาก Fonzo", "Premium handcrafted guitar by Fonzo.")}
-        crumbs={[{ label: "Guitar", href: "/guitar" }, { label: guitar.name || guitar.code }]}
-        index="03"
-      />
+      <PageHeading eyebrow={t("รายละเอียดกีตาร์", "Guitar details")} title={guitar.name || guitar.code} description={guitar.description || t("กีตาร์งานฝีมือระดับพรีเมียมจาก Fonzo", "Premium handcrafted guitar by Fonzo.")} crumbs={[{ label: "Guitar", href: "/guitar" }, { label: guitar.name || guitar.code }]} index="03" />
 
       <section className="mx-auto max-w-[1300px] px-4 py-12 sm:px-6 lg:px-10">
         <div className="mb-8">
-          <a href="/guitar" className="inline-flex items-center text-xs tracking-widest uppercase text-muted-foreground hover:text-brand">
+          <Link href="/guitar" className="inline-flex items-center text-xs tracking-widest uppercase text-muted-foreground hover:text-brand">
             <ArrowLeft className="mr-2 h-4 w-4" /> กลับไปหน้าแคตตาล็อก
-          </a>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* ส่วนแสดงรูปภาพหลักและแกลเลอรี */}
           <div className="lg:col-span-7 space-y-4">
             <div className="border border-border bg-card p-4 flex items-center justify-center h-[450px] sm:h-[550px] overflow-hidden">
-              <img 
-                src={selectedImage || imagesList[0]} 
-                alt={guitar.name || guitar.code} 
-                className="max-h-full max-w-full object-contain transition-all duration-300"
-                onError={(e) => { (e.target as HTMLImageElement).src = "/fonzo-logo.png"; }}
-              />
+              <img src={selectedImage || imagesList[0]} alt={guitar.name || guitar.code} className="max-h-full max-w-full object-contain transition-all duration-300" onError={(e) => { (e.target as HTMLImageElement).src = "/fonzo-logo.png"; }} />
             </div>
-
             {imagesList.length > 1 && (
               <div className="flex gap-3 overflow-x-auto pb-2">
                 {imagesList.map((img: string, idx: number) => (
-                  <button 
-                    key={idx}
-                    type="button"
-                    onClick={() => setSelectedImage(img)}
-                    className={cn(
-                      "h-20 w-20 border bg-background shrink-0 overflow-hidden p-1 transition-all",
-                      selectedImage === img ? "border-brand ring-2 ring-brand/20" : "border-border hover:border-brand/50"
-                    )}
-                  >
+                  <button key={idx} type="button" onClick={() => setSelectedImage(img)} className={cn("h-20 w-20 border bg-background shrink-0 overflow-hidden p-1 transition-all", selectedImage === img ? "border-brand ring-2 ring-brand/20" : "border-border hover:border-brand/50")}>
                     <img src={img} alt={`Thumbnail ${idx + 1}`} className="h-full w-full object-contain" />
                   </button>
                 ))}
@@ -182,12 +152,9 @@ export default function GuitarDetail() {
             )}
           </div>
 
-          {/* ส่วนข้อมูลรายละเอียดและราคา */}
           <div className="lg:col-span-5 space-y-6">
             <div>
-              <span className="text-[11px] tracking-[0.2em] uppercase text-brand font-semibold">
-                {guitar.series || guitar.category || "Fonzo Acoustic"}
-              </span>
+              <span className="text-[11px] tracking-[0.2em] uppercase text-brand font-semibold">{guitar.series || guitar.category || "Fonzo Acoustic"}</span>
               <h1 className="text-2xl sm:text-3xl font-display mt-1">{guitar.name || guitar.code}</h1>
             </div>
 
@@ -195,13 +162,17 @@ export default function GuitarDetail() {
               {Number(guitar.price || 0) > 0 ? `฿${Number(guitar.price).toLocaleString()}` : t("สอบถามราคา", "Contact for price")}
             </div>
 
+            {/* ปุ่มติดต่อสอบถาม / สั่งซื้อ */}
+            <div className="pt-2 pb-4">
+              <Link href="/contact" className="inline-flex w-full sm:w-auto items-center justify-center bg-brand px-8 py-3.5 text-xs font-bold uppercase tracking-widest text-brand-foreground transition-all hover:bg-brand/90 shadow-sm">
+                <MessageCircle className="mr-2 h-4 w-4" /> ติดต่อสอบถาม / สั่งซื้อ
+              </Link>
+            </div>
+
             {guitar.description && (
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {guitar.description}
-              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{guitar.description}</p>
             )}
 
-            {/* สเปคสินค้า */}
             {specsEntries.length > 0 && (
               <div className="border-t border-border pt-6 space-y-3">
                 <h3 className="text-xs uppercase tracking-widest font-semibold text-foreground">สเปคทางเทคนิค (Specifications)</h3>
@@ -231,6 +202,4 @@ export default function GuitarDetail() {
   );
 }
 
-function cn(...classes: any[]) {
-  return classes.filter(Boolean).join(" ");
-}
+function cn(...classes: any[]) { return classes.filter(Boolean).join(" "); }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload } from "lucide-react";
+import { Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload, Guitar, Headphones } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -80,6 +80,9 @@ function StockManager() {
   const [loadingSupa, setLoadingSupa] = useState(true);
   const [editingItem, setEditingItem] = useState<any>(null);
 
+  // เพิ่ม State สำหรับสลับแท็บสินค้าย่อย (กีตาร์ / อุปกรณ์เสริม)
+  const [categoryTab, setCategoryTab] = useState<"guitars" | "accessories">("guitars");
+
   const fetchSupabaseProducts = async () => {
     setLoadingSupa(true);
     const { data, error } = await supabase.from("products").select("*").order("id", { ascending: false });
@@ -96,18 +99,16 @@ function StockManager() {
       if (p.name) supaMap.set(p.name.toLowerCase().trim(), p);
     });
 
-    // แปลงแคตตาล็อกหลัก แต่ถ้าอันไหนมีใน Supabase ให้ดึงข้อมูลจาก Supabase มาทับทันที
     const mergedList = catalogGuitars.map((g: any, idx: number) => {
       const name = (g.name || g.code || "").toLowerCase().trim();
       const supaMatch = supaMap.get(name);
 
       if (supaMatch) {
-        // ลบออกจาก Map เพื่อเก็บตัวที่เหลือไว้เป็นสินค้า Custom เพิ่มเติม
         supaMap.delete(name);
         return {
           ...g,
           ...supaMatch,
-          id: supaMatch.id, // ใช้ ID จริงใน Supabase
+          id: supaMatch.id,
           image_urls: supaMatch.image_urls && supaMatch.image_urls.length > 0 
             ? supaMatch.image_urls 
             : (g.images || [g.image || "/fonzo-logo.png"]),
@@ -131,7 +132,6 @@ function StockManager() {
       };
     });
 
-    // นำสินค้า Custom ที่เหลือใน Supabase (ที่ไม่มีในแคตตาล็อกหลัก) มาต่อท้าย
     const remainingCustomProducts = Array.from(supaMap.values()).map(p => ({
       ...p,
       image_urls: p.image_urls && p.image_urls.length > 0 ? p.image_urls : [p.image_url || "/fonzo-logo.png"],
@@ -165,8 +165,15 @@ function StockManager() {
 
   const isLoading = catalogLoading || loadingSupa;
 
+  // กรองสินค้าตามแท็บที่เลือก (กีตาร์ / อุปกรณ์เสริม)
+  const displayProducts = allProducts.filter((p) => {
+    const cat = (p.category || "").toLowerCase();
+    const isAcc = cat.includes("accessor") || cat.includes("string") || cat.includes("สาย");
+    return categoryTab === "accessories" ? isAcc : !isAcc;
+  });
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-display flex items-center gap-2">
@@ -184,11 +191,29 @@ function StockManager() {
         </div>
       </div>
 
+      {/* แท็บสลับดูกีตาร์ และ อุปกรณ์เสริม */}
+      <div className="flex border-b border-border gap-6">
+        <button 
+          type="button"
+          onClick={() => setCategoryTab("guitars")} 
+          className={cn("pb-3 text-xs uppercase tracking-widest font-semibold flex items-center gap-2 transition-all", categoryTab === "guitars" ? "text-brand border-b-2 border-brand" : "text-muted-foreground hover:text-foreground")}
+        >
+          <Guitar className="h-4 w-4" /> กีตาร์ทั้งหมด (Guitars)
+        </button>
+        <button 
+          type="button"
+          onClick={() => setCategoryTab("accessories")} 
+          className={cn("pb-3 text-xs uppercase tracking-widest font-semibold flex items-center gap-2 transition-all", categoryTab === "accessories" ? "text-brand border-b-2 border-brand" : "text-muted-foreground hover:text-foreground")}
+        >
+          <Headphones className="h-4 w-4" /> อุปกรณ์เสริม (Accessories & Strings)
+        </button>
+      </div>
+
       <div className="border border-border bg-card overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead className="bg-secondary/50 border-b border-border uppercase tracking-widest text-muted-foreground">
             <tr>
-              <th className="p-4">รูปภาพ</th>
+              <th className="p-4 w-20">รูปภาพ</th>
               <th className="p-4">ชื่อสินค้า / รุ่น</th>
               <th className="p-4">หมวดหมู่</th>
               <th className="p-4">ราคา (บาท)</th>
@@ -199,17 +224,17 @@ function StockManager() {
           <tbody className="divide-y divide-border">
             {isLoading ? (
               <tr><td colSpan={6} className="p-8 text-center text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin mx-auto" /></td></tr>
-            ) : allProducts.length === 0 ? (
-              <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">ยังไม่มีสินค้าในระบบ</td></tr>
+            ) : displayProducts.length === 0 ? (
+              <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">ยังไม่มีสินค้าในหมวดหมู่นี้</td></tr>
             ) : (
-              allProducts.map((p, idx) => (
+              displayProducts.map((p, idx) => (
                 <tr key={p.id || idx} className="hover:bg-secondary/20">
                   <td className="p-4">
-                    <img src={p.image_urls?.[0] || p.image_url || p.image || "/fonzo-logo.png"} alt={p.name} className="h-10 w-10 object-cover border border-border" />
+                    <img src={p.image_urls?.[0] || p.image_url || p.image || "/fonzo-logo.png"} alt={p.name} className="h-10 w-10 object-cover border border-border" onError={(e) => { (e.target as HTMLImageElement).src = "/fonzo-logo.png"; }} />
                   </td>
                   <td className="p-4 font-medium text-foreground">{p.name}</td>
                   <td className="p-4">
-                    <span className={cn("px-2 py-0.5 text-[10px] uppercase font-semibold", p.isCatalogItem ? "bg-amber-500/10 text-amber-600" : "bg-brand/10 text-brand")}>
+                    <span className={cn("px-2 py-0.5 text-[10px] uppercase font-semibold", p.isCatalogItem ? "bg-amber-500/10 text-amber-600" : (categoryTab === "accessories" ? "bg-purple-500/10 text-purple-600" : "bg-brand/10 text-brand"))}>
                       {p.category || "Acoustic Guitar"}
                     </span>
                   </td>
@@ -246,11 +271,10 @@ function StockManager() {
   );
 }
 
-// ฟอร์มแก้ไขสินค้า
+// ฟอร์มเพิ่ม/แก้ไขสินค้า
 function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", initialData?: any, onBack: () => void }) {
-  const [productType, setProductType] = useState<string>(
-    initialData?.category?.toLowerCase().includes("string") || initialData?.category?.toLowerCase().includes("accessory") ? "accessory" : "guitar"
-  );
+  const isAccInitial = initialData?.category?.toLowerCase().includes("string") || initialData?.category?.toLowerCase().includes("accessor") || initialData?.category?.toLowerCase().includes("สาย");
+  const [productType, setProductType] = useState<string>(isAccInitial ? "accessory" : "guitar");
   
   const getInitialImages = () => {
     if (initialData?.image_urls && Array.isArray(initialData.image_urls) && initialData.image_urls.length > 0) {
@@ -270,7 +294,7 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
     name: initialData?.name || "",
     price: initialData?.price || 0,
     stock: initialData?.stock || 10,
-    category: initialData?.category || "Fonzo Acoustic",
+    category: initialData?.category || (isAccInitial ? "Accessories & Strings" : "Fonzo Acoustic"),
     description: initialData?.description || "",
     image_urls: getInitialImages()
   });
@@ -281,14 +305,14 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
   };
 
   const [guitarSpecs, setGuitarSpecs] = useState({
-    top_wood: initialData?.specs?.["TOP WOOD"] || initialData?.specs?.["Top Wood"] || "",
-    back_sides: initialData?.specs?.["BACK & SIDES"] || initialData?.specs?.["Back & Sides"] || "",
-    neck: initialData?.specs?.["NECK"] || initialData?.specs?.["Neck"] || "",
-    fingerboard: initialData?.specs?.["FINGERBOARD"] || initialData?.specs?.["Fingerboard"] || "",
-    scale_length: cleanMm(initialData?.specs?.["SCALE LENGTH"] || initialData?.specs?.["Scale Length"] || ""),
-    nut_width: cleanMm(initialData?.specs?.["NUT WIDTH"] || initialData?.specs?.["Nut Width"] || ""),
-    bridge: initialData?.specs?.["BRIDGE"] || initialData?.specs?.["Bridge"] || "",
-    finish: initialData?.specs?.["FINISH"] || initialData?.specs?.["Finish"] || "",
+    top_wood: initialData?.specs?.["TOP WOOD"] || initialData?.specs?.["Top Wood"] || initialData?.specs?.topWood || "",
+    back_sides: initialData?.specs?.["BACK & SIDES"] || initialData?.specs?.["Back & Sides"] || initialData?.specs?.backSides || "",
+    neck: initialData?.specs?.["NECK"] || initialData?.specs?.["Neck"] || initialData?.specs?.neck || "",
+    fingerboard: initialData?.specs?.["FINGERBOARD"] || initialData?.specs?.["Fingerboard"] || initialData?.specs?.fingerboard || "",
+    scale_length: cleanMm(initialData?.specs?.["SCALE LENGTH"] || initialData?.specs?.["Scale Length"] || initialData?.specs?.scaleLength || ""),
+    nut_width: cleanMm(initialData?.specs?.["NUT WIDTH"] || initialData?.specs?.["Nut Width"] || initialData?.specs?.nutWidth || ""),
+    bridge: initialData?.specs?.["BRIDGE"] || initialData?.specs?.["Bridge"] || initialData?.specs?.bridge || "",
+    finish: initialData?.specs?.["FINISH"] || initialData?.specs?.["Finish"] || initialData?.specs?.finish || "",
   });
 
   const [accessorySpecs, setAccessorySpecs] = useState({
@@ -366,7 +390,6 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
         specs: specs
       };
 
-      // ค้นหา ID เดิม หรือค้นหาด้วยชื่อรุ่นเพื่ออัปเดตทับตัวเดิม 100% ไม่สร้างเบิ้ล
       const targetId = initialData && !initialData.isCatalogItem && !initialData.id?.toString().startsWith("catalog-") ? initialData.id : null;
       const targetName = initialData?.name || formData.name;
 
