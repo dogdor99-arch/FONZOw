@@ -32,7 +32,6 @@ export default function GuitarDetail() {
     fetchSupabaseProducts();
   }, []);
 
-  // ระบบกวาดหาลิงก์ตรงรายชิ้นจากทุกความเป็นไปได้ในฐานข้อมูลและแคตตาล็อก
   const guitar = useMemo(() => {
     const cleanStr = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9ก-ฮ]/g, "").trim();
     const decodedClean = cleanStr(decodedCode);
@@ -71,15 +70,17 @@ export default function GuitarDetail() {
         ? supa.specs
         : (base.specs || {});
 
-      // ค้นหาลิงก์ตรงรายชิ้นจากทั้ง Supabase และ Catalog ทุกฟิลด์ที่เป็นไปได้
-      const shopeeLink = getStoreLink(supa, 'shopee') || getStoreLink(base, 'shopee');
-      const lazadaLink = getStoreLink(supa, 'lazada') || getStoreLink(base, 'lazada');
+      const nameStr = supa.name || base.name || catalogMatch?.name || decodedCode;
+      const encodedName = encodeURIComponent("Fonzo " + nameStr);
+
+      const shopeeLink = getStoreLink(supa, 'shopee') || getStoreLink(base, 'shopee') || `https://shopee.co.th/shop/fonzoguitar/search?keyword=${encodedName}`;
+      const lazadaLink = getStoreLink(supa, 'lazada') || getStoreLink(base, 'lazada') || `https://www.lazada.co.th/shop/fonzoguitar/?q=${encodedName}`;
       const lineLink = supa.line_url || base.line_url || supa.lineUrl || base.lineUrl || "";
 
       return {
         ...base,
         ...supa,
-        name: supa.name || base.name || catalogMatch?.name || decodedCode,
+        name: nameStr,
         price: supa.price !== undefined ? supa.price : base.price,
         description: supa.description || base.description,
         specs: mergedSpecs,
@@ -191,22 +192,18 @@ export default function GuitarDetail() {
               {Number(guitar.price || 0) > 0 ? `฿${Number(guitar.price).toLocaleString()}` : t("สอบถามราคา", "Contact for price")}
             </div>
 
-            {/* แสดงปุ่มลิงก์สั่งซื้อ Shopee และ Lazada ตรงรายชิ้น (หากมีข้อมูลในระบบ) */}
+            {/* แสดงปุ่มลิงก์ร้านค้า Shopee และ Lazada อย่างถาวร โดยเจาะจงเข้าร้าน Fonzo โดยตรง */}
             <div className="space-y-3 pt-2 pb-2">
               <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">ช่องทางสั่งซื้อ / ร้านค้าออนไลน์</p>
               
               <div className="flex flex-col gap-2.5">
-                {guitar.shopee_url && (
-                  <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#ee4d2d] hover:bg-[#d73211] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
-                    <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Shopee <ExternalLink className="ml-2 h-3.5 w-3.5" />
-                  </a>
-                )}
+                <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#ee4d2d] hover:bg-[#d73211] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
+                  <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Shopee <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                </a>
 
-                {guitar.lazada_url && (
-                  <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#0f146d] hover:bg-[#0b0e52] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
-                    <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Lazada <ExternalLink className="ml-2 h-3.5 w-3.5" />
-                  </a>
-                )}
+                <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#0f146d] hover:bg-[#0b0e52] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
+                  <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Lazada <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                </a>
 
                 <Link href={guitar.line_url || "/contact"} className="inline-flex items-center justify-center bg-brand hover:bg-brand/90 text-brand-foreground px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
                   <MessageCircle className="mr-2 h-4 w-4" /> ติดต่อสอบถาม / สั่งซื้อโดยตรง
