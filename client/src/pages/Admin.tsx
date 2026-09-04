@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload, Guitar, Headphones } from "lucide-react";
+import { Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload, Guitar, Headphones, Download } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -174,6 +174,30 @@ function StockManager() {
     }
   };
 
+  const handleDownloadJSON = async () => {
+    try {
+      const { data, error } = await supabase.from("products").select("*");
+      if (error) throw error;
+
+      const exportData = {
+        products: allProducts,
+        supabaseCustomProducts: data || [],
+        exportedAt: new Date().toISOString(),
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fonzo-products-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("ดาวน์โหลดข้อมูลสำเร็จ!");
+    } catch (err: any) {
+      toast.error("ดาวน์โหลดไม่สำเร็จ: " + err.message);
+    }
+  };
+
   if (view === "add") {
     return <ProductForm mode="add" onBack={() => { setView("list"); fetchSupabaseProducts(); }} />;
   }
@@ -200,6 +224,9 @@ function StockManager() {
           <p className="text-xs text-muted-foreground mt-1">จัดการสต็อก ราคา และเลือกแก้ไขสเปครายตัวได้ครบทุกรุ่น</p>
         </div>
         <div className="flex items-center gap-3">
+          <Button onClick={handleDownloadJSON} variant="outline" size="sm" className="h-9 rounded-none border-border">
+            <Download className="mr-2 h-3.5 w-3.5" /> ดาวน์โหลด JSON
+          </Button>
           <Button onClick={() => setView("add")} className="h-9 rounded-none bg-brand text-brand-foreground text-[11px] tracking-widest uppercase">
             <Plus className="mr-2 h-4 w-4" /> {t("เพิ่มสินค้าใหม่", "Add New Product")}
           </Button>
