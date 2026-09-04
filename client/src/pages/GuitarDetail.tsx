@@ -32,7 +32,7 @@ export default function GuitarDetail() {
     fetchSupabaseProducts();
   }, []);
 
-  // ระบบจับคู่ชื่อรุ่นแบบแม่นยำ (ตัดช่องว่างและตัวอักษรพิเศษออกเพื่อป้องกันชื่อไม่ตรงกัน)
+  // ระบบจับคู่สินค้าและกวาดหาลิงก์ร้านค้าจากทุกรูปแบบชื่อฟิลด์ที่เป็นไปได้
   const guitar = useMemo(() => {
     const cleanStr = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
     const decodedClean = cleanStr(decodedCode);
@@ -78,7 +78,7 @@ export default function GuitarDetail() {
           ? supa.image_urls 
           : (base.images || [supa.image_url || base.image || "/fonzo-logo.png"]),
         image: supa.image_urls?.[0] || supa.image_url || base.image || "/fonzo-logo.png",
-        // ดึงลิงก์ตรงของสินค้าจากฐานข้อมูลแบบครบทุกรูปแบบชื่อฟิลด์
+        // รองรับทุกชื่อฟิลด์ลิงก์ทั้งแบบเก่าและแบบใหม่ (shopee, shopeeUrl, shopee_url, lazada, lazadaUrl, lazada_url ฯลฯ)
         shopee_url: getVal(supa, "shopee_url", "shopeeUrl", "shopee", "shopeeLink", "shopee_link") || getVal(base, "shopee_url", "shopeeUrl", "shopee", "shopeeLink", "shopee_link"),
         lazada_url: getVal(supa, "lazada_url", "lazadaUrl", "lazada", "lazadaLink", "lazada_link") || getVal(base, "lazada_url", "lazadaUrl", "lazada", "lazadaLink", "lazada_link"),
         line_url: getVal(supa, "line_url", "lineUrl", "line") || getVal(base, "line_url", "lineUrl", "line"),
@@ -183,7 +183,7 @@ export default function GuitarDetail() {
               {Number(guitar.price || 0) > 0 ? `฿${Number(guitar.price).toLocaleString()}` : t("สอบถามราคา", "Contact for price")}
             </div>
 
-            {/* แสดงปุ่มเฉพาะสินค้าที่มีลิงก์ตรงในระบบเท่านั้น */}
+            {/* แสดงปุ่มลิงก์ Shopee / Lazada เฉพาะชิ้นที่มีข้อมูลลิงก์เชื่อมต่อไว้ */}
             <div className="space-y-3 pt-2 pb-2">
               <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">ช่องทางสั่งซื้อ / ร้านค้าออนไลน์</p>
               
