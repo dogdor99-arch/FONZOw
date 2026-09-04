@@ -79,6 +79,7 @@ export default function GuitarDetail() {
     }
   }, [imagesList]);
 
+  // ระบบกวาดหาสเปคจากทุกรูปแบบโครงสร้างข้อมูลอย่างแม่นยำ
   const specsEntries = useMemo(() => {
     if (!guitar) return [];
     const s = guitar.specs || {};
@@ -119,7 +120,7 @@ export default function GuitarDetail() {
     return (
       <div className="mx-auto max-w-lg px-4 py-24 text-center">
         <h2 className="text-xl font-display">ไม่พบข้อมูลกีตาร์รุ่นนี้</h2>
-        <Link href="/guitar" className="mt-6 inline-block bg-brand px-6 py-3 text-xs uppercase tracking-widest text-brand-foreground">กลับสู่หน้าแคตตาล็อก</Link>
+        <a href="/guitar" className="mt-6 inline-block bg-brand px-6 py-3 text-xs uppercase tracking-widest text-brand-foreground">กลับสู่หน้าแคตตาล็อก</a>
       </div>
     );
   }
