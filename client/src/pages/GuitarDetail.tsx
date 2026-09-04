@@ -49,19 +49,6 @@ export default function GuitarDetail() {
       return pName === decodedClean || pCode === decodedClean || pId === decodedClean || decodedClean.includes(pName) || pName.includes(decodedClean);
     });
 
-    const getStoreLink = (obj: any, type: 'shopee' | 'lazada') => {
-      if (!obj) return "";
-      const keys = type === 'shopee' 
-        ? ["shopee_url", "shopeeUrl", "shopee", "shopeeLink", "shopee_link", "shopee_store"] 
-        : ["lazada_url", "lazadaUrl", "lazada", "lazadaLink", "lazada_link", "lazada_store"];
-      
-      for (const k of keys) {
-        if (obj[k] && typeof obj[k] === 'string' && obj[k].trim() !== "") return obj[k].trim();
-        if (obj.specs && obj.specs[k] && typeof obj.specs[k] === 'string' && obj.specs[k].trim() !== "") return obj.specs[k].trim();
-      }
-      return "";
-    };
-
     const base = catalogMatch || {};
     const supa = supaMatch || {};
 
@@ -70,17 +57,25 @@ export default function GuitarDetail() {
         ? supa.specs
         : (base.specs || {});
 
-      const nameStr = supa.name || base.name || catalogMatch?.name || decodedCode;
-      const encodedName = encodeURIComponent("Fonzo " + nameStr);
+      const getLink = (...keys: string[]) => {
+        for (const k of keys) {
+          if (supa[k] && typeof supa[k] === 'string' && supa[k].trim() !== "") return supa[k].trim();
+          if (base[k] && typeof base[k] === 'string' && base[k].trim() !== "") return base[k].trim();
+          if (supa.specs && supa.specs[k] && typeof supa.specs[k] === 'string' && supa.specs[k].trim() !== "") return supa.specs[k].trim();
+          if (base.specs && base.specs[k] && typeof base.specs[k] === 'string' && base.specs[k].trim() !== "") return base.specs[k].trim();
+        }
+        return "";
+      };
 
-      const shopeeLink = getStoreLink(supa, 'shopee') || getStoreLink(base, 'shopee') || `https://shopee.co.th/shop/fonzoguitar/search?keyword=${encodedName}`;
-      const lazadaLink = getStoreLink(supa, 'lazada') || getStoreLink(base, 'lazada') || `https://www.lazada.co.th/shop/fonzoguitar/?q=${encodedName}`;
-      const lineLink = supa.line_url || base.line_url || supa.lineUrl || base.lineUrl || "";
+      // ใช้ลิงก์ร้านค้าทางการที่ถูกต้องของ Fonzo เป็นค่าสำรอง (Shopee: fonzo_guitar, Lazada: shop/fonzo-guitar)
+      const shopeeLink = getLink("shopee_url", "shopeeUrl", "shopee", "shopeeLink", "shopee_link") || "https://shopee.co.th/fonzo_guitar";
+      const lazadaLink = getLink("lazada_url", "lazadaUrl", "lazada", "lazadaLink", "lazada_link") || "https://www.lazada.co.th/shop/fonzo-guitar";
+      const lineLink = getLink("line_url", "lineUrl", "line");
 
       return {
         ...base,
         ...supa,
-        name: nameStr,
+        name: supa.name || base.name || catalogMatch?.name || decodedCode,
         price: supa.price !== undefined ? supa.price : base.price,
         description: supa.description || base.description,
         specs: mergedSpecs,
@@ -192,18 +187,22 @@ export default function GuitarDetail() {
               {Number(guitar.price || 0) > 0 ? `฿${Number(guitar.price).toLocaleString()}` : t("สอบถามราคา", "Contact for price")}
             </div>
 
-            {/* แสดงปุ่มลิงก์ร้านค้า Shopee และ Lazada อย่างถาวร โดยเจาะจงเข้าร้าน Fonzo โดยตรง */}
+            {/* แสดงปุ่มลิงก์ร้านค้า Shopee และ Lazada ทางการของ Fonzo โดยตรง */}
             <div className="space-y-3 pt-2 pb-2">
               <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">ช่องทางสั่งซื้อ / ร้านค้าออนไลน์</p>
               
               <div className="flex flex-col gap-2.5">
-                <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#ee4d2d] hover:bg-[#d73211] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
-                  <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Shopee <ExternalLink className="ml-2 h-3.5 w-3.5" />
-                </a>
+                {guitar.shopee_url && (
+                  <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#ee4d2d] hover:bg-[#d73211] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
+                    <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Shopee <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                  </a>
+                )}
 
-                <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#0f146d] hover:bg-[#0b0e52] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
-                  <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Lazada <ExternalLink className="ml-2 h-3.5 w-3.5" />
-                </a>
+                {guitar.lazada_url && (
+                  <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#0f146d] hover:bg-[#0b0e52] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
+                    <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Lazada <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                  </a>
+                )}
 
                 <Link href={guitar.line_url || "/contact"} className="inline-flex items-center justify-center bg-brand hover:bg-brand/90 text-brand-foreground px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
                   <MessageCircle className="mr-2 h-4 w-4" /> ติดต่อสอบถาม / สั่งซื้อโดยตรง
@@ -234,7 +233,7 @@ export default function GuitarDetail() {
                 <ShieldCheck className="h-4 w-4 text-brand" /> รับประกันคุณภาพมาตรฐานโรงงาน Fonzo Guitar
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Truck className="h-4 w-4 text-brand" /> จัดส่งปลอดภัยด้วยกล่องกันกระแทกมาตรฐานสูง
+                <Truck className="h-4 w-4 text-brand" /> สะดวกรวดเร็วและปลอดภัย
               </div>
             </div>
           </div>
