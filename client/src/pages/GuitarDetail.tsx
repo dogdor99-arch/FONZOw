@@ -6,22 +6,6 @@ import { PageHeading } from "@/components/site/SiteLayout";
 import { supabase } from "@/lib/supabase";
 import { ShieldCheck, Truck, ArrowLeft, Loader2, ExternalLink, ShoppingBag, MessageCircle } from "lucide-react";
 
-// ตารางลิงก์รายชิ้นสำรอง (กรณีฐานข้อมูลไม่ได้บันทึกไว้ เพื่อให้ปุ่มสินค้าแต่ละรุ่นแสดงผลและลิงก์ตรงรุ่นทันที)
-const PRODUCT_STORE_LINKS: Record<string, { shopee?: string; lazada?: string }> = {
-  "picasso": {
-    shopee: "https://shopee.co.th/search?keyword=Fonzo%20Picasso",
-    lazada: "https://www.lazada.co.th/catalog/?q=Fonzo+Picasso"
-  },
-  "ancient sitka": {
-    shopee: "https://shopee.co.th/search?keyword=Fonzo%20Ancient%20Sitka",
-    lazada: "https://www.lazada.co.th/catalog/?q=Fonzo+Ancient+Sitka"
-  },
-  "v-34s": {
-    shopee: "https://shopee.co.th/search?keyword=Fonzo%20V-34S",
-    lazada: "https://www.lazada.co.th/catalog/?q=Fonzo+V-34S"
-  }
-};
-
 export default function GuitarDetail() {
   const { code } = useParams();
   const { t } = useLocale();
@@ -48,6 +32,7 @@ export default function GuitarDetail() {
     fetchSupabaseProducts();
   }, []);
 
+  // ระบบกวาดหาลิงก์ตรงรายชิ้นจากทุกความเป็นไปได้ในฐานข้อมูลและแคตตาล็อก
   const guitar = useMemo(() => {
     const cleanStr = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9ก-ฮ]/g, "").trim();
     const decodedClean = cleanStr(decodedCode);
@@ -65,11 +50,15 @@ export default function GuitarDetail() {
       return pName === decodedClean || pCode === decodedClean || pId === decodedClean || decodedClean.includes(pName) || pName.includes(decodedClean);
     });
 
-    const getVal = (obj: any, ...keys: string[]) => {
+    const getStoreLink = (obj: any, type: 'shopee' | 'lazada') => {
       if (!obj) return "";
+      const keys = type === 'shopee' 
+        ? ["shopee_url", "shopeeUrl", "shopee", "shopeeLink", "shopee_link", "shopee_store"] 
+        : ["lazada_url", "lazadaUrl", "lazada", "lazadaLink", "lazada_link", "lazada_store"];
+      
       for (const k of keys) {
-        if (obj[k]) return obj[k];
-        if (obj.specs && obj.specs[k]) return obj.specs[k];
+        if (obj[k] && typeof obj[k] === 'string' && obj[k].trim() !== "") return obj[k].trim();
+        if (obj.specs && obj.specs[k] && typeof obj.specs[k] === 'string' && obj.specs[k].trim() !== "") return obj.specs[k].trim();
       }
       return "";
     };
@@ -82,32 +71,15 @@ export default function GuitarDetail() {
         ? supa.specs
         : (base.specs || {});
 
-      const nameStr = supa.name || base.name || catalogMatch?.name || decodedCode;
-      const lowerName = nameStr.toLowerCase();
-
-      // ค้นหาลิงก์รายชิ้นจากค่าที่บันทึกไว้ หรือจากตารางสำรองรายรุ่น
-      let matchedLinks = { shopee: "", lazada: "" };
-      for (const [key, val] of Object.entries(PRODUCT_STORE_LINKS)) {
-        if (lowerName.includes(key)) {
-          matchedLinks = val;
-          break;
-        }
-      }
-
-      const shopee = getVal(supa, "shopee_url", "shopeeUrl", "shopee", "shopeeLink", "shopee_link") || 
-                     getVal(base, "shopee_url", "shopeeUrl", "shopee", "shopeeLink", "shopee_link") || 
-                     matchedLinks.shopee || 
-                     "https://shopee.co.th/shop/fonzoguitar";
-
-      const lazada = getVal(supa, "lazada_url", "lazadaUrl", "lazada", "lazadaLink", "lazada_link") || 
-                     getVal(base, "lazada_url", "lazadaUrl", "lazada", "lazadaLink", "lazada_link") || 
-                     matchedLinks.lazada || 
-                     "https://www.lazada.co.th/shop/fonzoguitar";
+      // ค้นหาลิงก์ตรงรายชิ้นจากทั้ง Supabase และ Catalog ทุกฟิลด์ที่เป็นไปได้
+      const shopeeLink = getStoreLink(supa, 'shopee') || getStoreLink(base, 'shopee');
+      const lazadaLink = getStoreLink(supa, 'lazada') || getStoreLink(base, 'lazada');
+      const lineLink = supa.line_url || base.line_url || supa.lineUrl || base.lineUrl || "";
 
       return {
         ...base,
         ...supa,
-        name: nameStr,
+        name: supa.name || base.name || catalogMatch?.name || decodedCode,
         price: supa.price !== undefined ? supa.price : base.price,
         description: supa.description || base.description,
         specs: mergedSpecs,
@@ -115,9 +87,9 @@ export default function GuitarDetail() {
           ? supa.image_urls 
           : (base.images || [supa.image_url || base.image || "/fonzo-logo.png"]),
         image: supa.image_urls?.[0] || supa.image_url || base.image || "/fonzo-logo.png",
-        shopee_url: shopee,
-        lazada_url: lazada,
-        line_url: getVal(supa, "line_url", "lineUrl", "line") || getVal(base, "line_url", "lineUrl", "line"),
+        shopee_url: shopeeLink,
+        lazada_url: lazadaLink,
+        line_url: lineLink,
       };
     }
 
@@ -219,7 +191,7 @@ export default function GuitarDetail() {
               {Number(guitar.price || 0) > 0 ? `฿${Number(guitar.price).toLocaleString()}` : t("สอบถามราคา", "Contact for price")}
             </div>
 
-            {/* ปุ่มลิงก์สั่งซื้อ Shopee และ Lazada แบบรายชิ้น */}
+            {/* แสดงปุ่มลิงก์สั่งซื้อ Shopee และ Lazada ตรงรายชิ้น (หากมีข้อมูลในระบบ) */}
             <div className="space-y-3 pt-2 pb-2">
               <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">ช่องทางสั่งซื้อ / ร้านค้าออนไลน์</p>
               
