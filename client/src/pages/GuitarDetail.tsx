@@ -4,7 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { PageHeading } from "@/components/site/SiteLayout";
 import { supabase } from "@/lib/supabase";
-import { ShieldCheck, Truck, ArrowLeft, Loader2, MessageCircle } from "lucide-react";
+import { ShieldCheck, Truck, ArrowLeft, Loader2, ExternalLink, ShoppingBag, MessageCircle } from "lucide-react";
 
 export default function GuitarDetail() {
   const { code } = useParams();
@@ -32,6 +32,7 @@ export default function GuitarDetail() {
     fetchSupabaseProducts();
   }, []);
 
+  // ระบบผสานข้อมูลและกวาดหาลิงก์ Shopee/Lazada อัตโนมัติจากทุกชื่อคีย์
   const guitar = useMemo(() => {
     const supaMatch = supabaseProducts.find((p) => {
       const pName = (p.name || "").toLowerCase().trim();
@@ -44,26 +45,41 @@ export default function GuitarDetail() {
       return gName === decodedCode || gCode === decodedCode || g.id?.toString() === decodedCode;
     });
 
-    if (supaMatch) {
-      const mergedSpecs = (supaMatch.specs && Object.keys(supaMatch.specs).length > 0)
-        ? supaMatch.specs
-        : (catalogMatch?.specs || {});
+    const getVal = (obj: any, ...keys: string[]) => {
+      if (!obj) return "";
+      for (const k of keys) {
+        if (obj[k]) return obj[k];
+      }
+      return "";
+    };
+
+    if (supaMatch || catalogMatch) {
+      const base = catalogMatch || {};
+      const supa = supaMatch || {};
+
+      const mergedSpecs = (supa.specs && Object.keys(supa.specs).length > 0)
+        ? supa.specs
+        : (base.specs || {});
 
       return {
-        ...catalogMatch,
-        ...supaMatch,
-        name: supaMatch.name || catalogMatch?.name,
-        price: supaMatch.price !== undefined ? supaMatch.price : catalogMatch?.price,
-        description: supaMatch.description || catalogMatch?.description,
+        ...base,
+        ...supa,
+        name: supa.name || base.name,
+        price: supa.price !== undefined ? supa.price : base.price,
+        description: supa.description || base.description,
         specs: mergedSpecs,
-        images: supaMatch.image_urls && supaMatch.image_urls.length > 0 
-          ? supaMatch.image_urls 
-          : (catalogMatch?.images || [supaMatch.image_url || catalogMatch?.image || "/fonzo-logo.png"]),
-        image: supaMatch.image_urls?.[0] || supaMatch.image_url || catalogMatch?.image || "/fonzo-logo.png",
+        images: supa.image_urls && supa.image_urls.length > 0 
+          ? supa.image_urls 
+          : (base.images || [supa.image_url || base.image || "/fonzo-logo.png"]),
+        image: supa.image_urls?.[0] || supa.image_url || base.image || "/fonzo-logo.png",
+        // ค้นหาลิงก์ร้านค้าจากทุกชื่อที่เป็นไปได้อัตโนมัติ
+        shopee_url: getVal(supa, "shopee_url", "shopeeUrl", "shopee", "shopeeLink") || getVal(base, "shopee_url", "shopeeUrl", "shopee", "shopeeLink"),
+        lazada_url: getVal(supa, "lazada_url", "lazadaUrl", "lazada", "lazadaLink") || getVal(base, "lazada_url", "lazadaUrl", "lazada", "lazadaLink"),
+        line_url: getVal(supa, "line_url", "lineUrl", "line") || getVal(base, "line_url", "lineUrl", "line"),
       };
     }
 
-    return catalogMatch || null;
+    return null;
   }, [catalogGuitars, supabaseProducts, decodedCode]);
 
   const imagesList = useMemo(() => {
@@ -79,7 +95,6 @@ export default function GuitarDetail() {
     }
   }, [imagesList]);
 
-  // ระบบกวาดหาสเปคจากทุกรูปแบบโครงสร้างข้อมูลอย่างแม่นยำ
   const specsEntries = useMemo(() => {
     if (!guitar) return [];
     const s = guitar.specs || {};
@@ -162,11 +177,27 @@ export default function GuitarDetail() {
               {Number(guitar.price || 0) > 0 ? `฿${Number(guitar.price).toLocaleString()}` : t("สอบถามราคา", "Contact for price")}
             </div>
 
-            {/* ปุ่มติดต่อสอบถาม / สั่งซื้อ */}
-            <div className="pt-2 pb-4">
-              <Link href="/contact" className="inline-flex w-full sm:w-auto items-center justify-center bg-brand px-8 py-3.5 text-xs font-bold uppercase tracking-widest text-brand-foreground transition-all hover:bg-brand/90 shadow-sm">
-                <MessageCircle className="mr-2 h-4 w-4" /> ติดต่อสอบถาม / สั่งซื้อ
-              </Link>
+            {/* แสดงปุ่มลิงก์ร้านค้าออนไลน์อัตโนมัติ */}
+            <div className="space-y-3 pt-2 pb-2">
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">ช่องทางสั่งซื้อ / ร้านค้าออนไลน์</p>
+              
+              <div className="flex flex-col gap-2.5">
+                {guitar.shopee_url && (
+                  <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#ee4d2d] hover:bg-[#d73211] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
+                    <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Shopee <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                  </a>
+                )}
+
+                {guitar.lazada_url && (
+                  <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#0f146d] hover:bg-[#0b0e52] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
+                    <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Lazada <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                  </a>
+                )}
+
+                <Link href={guitar.line_url || "/contact"} className="inline-flex items-center justify-center bg-brand hover:bg-brand/90 text-brand-foreground px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
+                  <MessageCircle className="mr-2 h-4 w-4" /> ติดต่อสอบถาม / สั่งซื้อโดยตรง
+                </Link>
+              </div>
             </div>
 
             {guitar.description && (
