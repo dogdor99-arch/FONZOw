@@ -57,25 +57,29 @@ export default function GuitarDetail() {
         ? supa.specs
         : (base.specs || {});
 
+      const nameStr = supa.name || base.name || catalogMatch?.name || decodedCode;
+      
       const getLink = (...keys: string[]) => {
         for (const k of keys) {
-          if (supa[k] && typeof supa[k] === 'string' && supa[k].trim() !== "") return supa[k].trim();
+          if (supa[k] && typeof supa[k] === 'string' && supa[k].trim() !== "" && supa[k] !== "https://shopee.co.th" && supa[k] !== "https://www.lazada.co.th") return supa[k].trim();
           if (base[k] && typeof base[k] === 'string' && base[k].trim() !== "") return base[k].trim();
           if (supa.specs && supa.specs[k] && typeof supa.specs[k] === 'string' && supa.specs[k].trim() !== "") return supa.specs[k].trim();
-          if (base.specs && base.specs[k] && typeof base.specs[k] === 'string' && base.specs[k].trim() !== "") return base.specs[k].trim();
         }
         return "";
       };
 
-      // ใช้ลิงก์ร้านค้าทางการที่ถูกต้องของ Fonzo เป็นค่าสำรอง (Shopee: fonzo_guitar, Lazada: shop/fonzo-guitar)
-      const shopeeLink = getLink("shopee_url", "shopeeUrl", "shopee", "shopeeLink", "shopee_link") || "https://shopee.co.th/fonzo_guitar";
-      const lazadaLink = getLink("lazada_url", "lazadaUrl", "lazada", "lazadaLink", "lazada_link") || "https://www.lazada.co.th/shop/fonzo-guitar";
+      const savedShopee = getLink("shopee_url", "shopeeUrl", "shopee", "shopeeLink", "shopee_link");
+      const savedLazada = getLink("lazada_url", "lazadaUrl", "lazada", "lazadaLink", "lazada_link");
       const lineLink = getLink("line_url", "lineUrl", "line");
+
+      // ถ้ารุ่นไหนมีลิงก์ตรงที่บันทึกไว้ ให้ใช้ลิงก์นั้น / ถ้ารุ่นไหนยังไม่มี ให้สร้างลิงก์ค้นหารุ่นนี้เจาะจงภายในร้าน Fonzo ทันที
+      const shopeeLink = savedShopee || `https://shopee.co.th/shop/fonzo_guitar/search?keyword=${encodeURIComponent(nameStr)}`;
+      const lazadaLink = savedLazada || `https://www.lazada.co.th/shop/fonzo-guitar/?q=${encodeURIComponent(nameStr)}`;
 
       return {
         ...base,
         ...supa,
-        name: supa.name || base.name || catalogMatch?.name || decodedCode,
+        name: nameStr,
         price: supa.price !== undefined ? supa.price : base.price,
         description: supa.description || base.description,
         specs: mergedSpecs,
@@ -187,7 +191,7 @@ export default function GuitarDetail() {
               {Number(guitar.price || 0) > 0 ? `฿${Number(guitar.price).toLocaleString()}` : t("สอบถามราคา", "Contact for price")}
             </div>
 
-            {/* แสดงปุ่มลิงก์ร้านค้า Shopee และ Lazada ทางการของ Fonzo โดยตรง */}
+            {/* แสดงปุ่มลิงก์ร้านค้า Shopee และ Lazada แบบเจาะจงรุ่นในร้าน Fonzo ทันที */}
             <div className="space-y-3 pt-2 pb-2">
               <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">ช่องทางสั่งซื้อ / ร้านค้าออนไลน์</p>
               
@@ -233,7 +237,7 @@ export default function GuitarDetail() {
                 <ShieldCheck className="h-4 w-4 text-brand" /> รับประกันคุณภาพมาตรฐานโรงงาน Fonzo Guitar
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Truck className="h-4 w-4 text-brand" /> สะดวกรวดเร็วและปลอดภัย
+                <Truck className="h-4 w-4 text-brand" /> จัดส่งปลอดภัยด้วยกล่องกันกระแทกมาตรฐานสูง
               </div>
             </div>
           </div>
