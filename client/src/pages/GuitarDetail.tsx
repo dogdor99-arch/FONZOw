@@ -32,22 +32,22 @@ export default function GuitarDetail() {
     fetchSupabaseProducts();
   }, []);
 
-  // ระบบจับคู่สินค้าและกวาดหาลิงก์ร้านค้าจากทุกรูปแบบชื่อฟิลด์ที่เป็นไปได้
+  // ระบบจับคู่ชื่อรุ่นแบบยืดหยุ่น (เชื่อมโยงข้อมูลจาก Supabase และ Catalog เข้าด้วยกันอย่างแม่นยำ)
   const guitar = useMemo(() => {
-    const cleanStr = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "").trim();
+    const cleanStr = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9ก-ฮ]/g, "").trim();
     const decodedClean = cleanStr(decodedCode);
+
+    const catalogMatch = catalogGuitars.find((g: any) => {
+      const gName = cleanStr(g.name);
+      const gCode = cleanStr(g.code);
+      return gName === decodedClean || gCode === decodedClean || decodedClean.includes(gName) || gName.includes(decodedClean);
+    });
 
     const supaMatch = supabaseProducts.find((p) => {
       const pName = cleanStr(p.name);
       const pCode = cleanStr(p.code);
       const pId = cleanStr(p.id?.toString());
-      return pName === decodedClean || pCode === decodedClean || pId === decodedClean || decodedClean.includes(pName);
-    });
-
-    const catalogMatch = catalogGuitars.find((g: any) => {
-      const gName = cleanStr(g.name);
-      const gCode = cleanStr(g.code);
-      return gName === decodedClean || gCode === decodedClean || decodedClean.includes(gName);
+      return pName === decodedClean || pCode === decodedClean || pId === decodedClean || decodedClean.includes(pName) || pName.includes(decodedClean);
     });
 
     const getVal = (obj: any, ...keys: string[]) => {
@@ -70,7 +70,7 @@ export default function GuitarDetail() {
       return {
         ...base,
         ...supa,
-        name: supa.name || base.name,
+        name: supa.name || base.name || catalogMatch?.name || decodedCode,
         price: supa.price !== undefined ? supa.price : base.price,
         description: supa.description || base.description,
         specs: mergedSpecs,
@@ -78,7 +78,7 @@ export default function GuitarDetail() {
           ? supa.image_urls 
           : (base.images || [supa.image_url || base.image || "/fonzo-logo.png"]),
         image: supa.image_urls?.[0] || supa.image_url || base.image || "/fonzo-logo.png",
-        // รองรับทุกชื่อฟิลด์ลิงก์ทั้งแบบเก่าและแบบใหม่ (shopee, shopeeUrl, shopee_url, lazada, lazadaUrl, lazada_url ฯลฯ)
+        // ดึงลิงก์จาก Supabase หรือ Catalog โดยรองรับทุกชื่อฟิลด์
         shopee_url: getVal(supa, "shopee_url", "shopeeUrl", "shopee", "shopeeLink", "shopee_link") || getVal(base, "shopee_url", "shopeeUrl", "shopee", "shopeeLink", "shopee_link"),
         lazada_url: getVal(supa, "lazada_url", "lazadaUrl", "lazada", "lazadaLink", "lazada_link") || getVal(base, "lazada_url", "lazadaUrl", "lazada", "lazadaLink", "lazada_link"),
         line_url: getVal(supa, "line_url", "lineUrl", "line") || getVal(base, "line_url", "lineUrl", "line"),
