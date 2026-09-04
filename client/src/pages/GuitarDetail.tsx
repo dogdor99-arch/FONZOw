@@ -1,23 +1,55 @@
+import { useState, useEffect } from "react";
 import { Link, useParams } from "wouter";
 import { ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { ProductDetailView } from "@/components/site/ProductDetailView";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
 
 export default function GuitarDetail() {
   const { code = "" } = useParams<{ code: string }>();
   const { locale, t } = useLocale();
 
-  const { data: product, isLoading } = trpc.fonzo.guitars.byCode.useQuery(
+  const { data: product, isLoading: catalogLoading } = trpc.fonzo.guitars.byCode.useQuery(
     { code },
     { enabled: Boolean(code) },
   );
   const { data: all = [] } = trpc.fonzo.guitars.list.useQuery();
 
+  const [supabaseProduct, setSupabaseProduct] = useState<any>(null);
+  const [loadingSupa, setLoadingSupa] = useState(true);
+
+  const decodedCode = decodeURIComponent(code || "").trim().toLowerCase();
+
+  // ดึงข้อมูลลิงก์ตรงรายชิ้นที่บันทึกไว้ใน Supabase มาผสานร่วม
+  useEffect(() => {
+    async function fetchSupabaseProduct() {
+      if (!decodedCode) return;
+      try {
+        const { data, error } = await supabase.from("products").select("*");
+        if (!error && data) {
+          const found = data.find((p) => {
+            const pName = (p.name || "").toLowerCase().trim();
+            const pId = p.id?.toString();
+            return pName === decodedCode || pId === decodedCode || decodedCode.includes(pName);
+          });
+          if (found) setSupabaseProduct(found);
+        }
+      } catch (err) {
+        console.error("Error fetching supabase product:", err);
+      } finally {
+        setLoadingSupa(false);
+      }
+    }
+    fetchSupabaseProduct();
+  }, [decodedCode]);
+
   const related = product
     ? all.filter(item => item.typeCode === product.typeCode && item.code !== product.code).slice(0, 4)
     : [];
+
+  const isLoading = catalogLoading || loadingSupa;
 
   if (isLoading) {
     return (
@@ -34,7 +66,7 @@ export default function GuitarDetail() {
     );
   }
 
-  if (!product) {
+  if (!product && !supabaseProduct) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-28 text-center sm:px-6">
         <h1 className="text-3xl">{t("ไม่พบรุ่นกีตาร์นี้", "Model not found")}</h1>
@@ -53,7 +85,31 @@ export default function GuitarDetail() {
     );
   }
 
-  const title = locale === "th" ? product.name || product.nameEn : product.nameEn || product.name;
+  // ผสานข้อมูลระหว่างแคตตาล็อกกลางกับลิงก์ตรงรายชิ้นใน Supabase
+  const getVal = (obj: any, ...keys: string[]) => {
+    if (!obj) return "";
+    for (const k of keys) {
+      if (obj[k] && typeof obj[k] === 'string' && obj[k].trim() !== "") return obj[k].trim();
+    }
+    return "";
+  };
+
+  const shopeeUrl = getVal(supabaseProduct, "shopee_url", "shopeeUrl", "shopee", "shopeeLink") || getVal(product, "shopee_url", "shopeeUrl", "shopee");
+  const lazadaUrl = getVal(supabaseProduct, "lazada_url", "lazadaUrl", "lazada", "lazadaLink") || getVal(product, "lazada_url", "lazadaUrl", "lazada");
+
+  const mergedProduct = {
+    ...(product || {}),
+    ...(supabaseProduct || {}),
+    name: supabaseProduct?.name || product?.name,
+    price: supabaseProduct?.price !== undefined ? supabaseProduct.price : product?.price,
+    description: supabaseProduct?.description || product?.description,
+    shopee_url: shopeeUrl,
+    shopeeUrl: shopeeUrl,
+    lazada_url: lazadaUrl,
+    lazadaUrl: lazadaUrl,
+  };
+
+  const title = locale === "th" ? mergedProduct.name || mergedProduct.nameEn : mergedProduct.nameEn || mergedProduct.name;
 
   return (
     <>
@@ -73,7 +129,7 @@ export default function GuitarDetail() {
         </nav>
       </div>
 
-      <ProductDetailView product={product} related={related} basePath="/guitar" />
+      <ProductDetailView product={mergedProduct} related={related} basePath="/guitar" />
     </>
   );
 }
