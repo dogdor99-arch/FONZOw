@@ -12,6 +12,10 @@ export default function GuitarDetail() {
 
   const { data: catalogGuitars, isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
   const catalogRows = (catalogGuitars as any[] | undefined) ?? [];
+  const { data: catalogDetail, isLoading: detailLoading } = trpc.fonzo.guitars.byCode.useQuery(
+    { code: decodeURIComponent(code || "") },
+    { enabled: Boolean(code) },
+  );
   const [supabaseProducts, setSupabaseProducts] = useState<any[]>([]);
   const [loadingSupa, setLoadingSupa] = useState(true);
 
@@ -54,9 +58,9 @@ export default function GuitarDetail() {
     const supa = supaMatch || {};
 
     if (supaMatch || catalogMatch) {
-      const mergedSpecs = (supa.specs && Object.keys(supa.specs).length > 0)
+      const mergedSpecs = (supa.specs && typeof supa.specs === "object" && !Array.isArray(supa.specs) && Object.keys(supa.specs).length > 0)
         ? supa.specs
-        : (base.specs || {});
+        : (catalogDetail?.specs && catalogDetail.specs.length > 0 ? catalogDetail.specs : (base.specs || {}));
 
       const nameStr = supa.name || base.name || catalogMatch?.name || decodedCode;
 
@@ -75,9 +79,11 @@ export default function GuitarDetail() {
         price: supa.price !== undefined ? supa.price : base.price,
         description: supa.description || base.description,
         specs: mergedSpecs,
-        images: supa.image_urls && supa.image_urls.length > 0 
-          ? supa.image_urls 
-          : (base.images || [supa.image_url || base.image || "/fonzo-logo.png"]),
+        images: supa.image_urls && supa.image_urls.length > 0
+          ? supa.image_urls
+          : (Array.isArray(base.images) && base.images.length > 0
+            ? base.images.map((item: any) => typeof item === "string" ? item : item.url).filter(Boolean)
+            : [supa.image_url || base.image || "/fonzo-logo.png"]),
         image: supa.image_urls?.[0] || supa.image_url || base.image || "/fonzo-logo.png",
         shopee_url: shopeeLink,
         lazada_url: lazadaLink,
@@ -86,7 +92,7 @@ export default function GuitarDetail() {
     }
 
     return null;
-  }, [catalogRows, supabaseProducts, decodedCode]);
+  }, [catalogRows, catalogDetail, supabaseProducts, decodedCode]);
 
   const imagesList = useMemo(() => {
     if (!guitar) return ["/fonzo-logo.png"];
@@ -103,7 +109,12 @@ export default function GuitarDetail() {
 
   const specsEntries = useMemo(() => {
     if (!guitar) return [];
-    const s = guitar.specs || {};
+    const s: any = guitar.specs || {};
+    if (Array.isArray(s)) {
+      return s
+        .map((item: any) => [item.title || item.key || "Specification", item.value])
+        .filter(([, value]: any[]) => value !== null && value !== undefined && value !== "");
+    }
     const root = guitar as any;
 
     const getVal = (...keys: string[]) => {
@@ -131,7 +142,7 @@ export default function GuitarDetail() {
     return rawList;
   }, [guitar]);
 
-  const isLoading = catalogLoading || loadingSupa;
+  const isLoading = catalogLoading || detailLoading || loadingSupa;
 
   if (isLoading) {
     return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-brand" /></div>;
