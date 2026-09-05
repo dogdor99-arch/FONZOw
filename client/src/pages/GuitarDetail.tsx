@@ -58,7 +58,10 @@ export default function GuitarDetail() {
     const supa = supaMatch || {};
 
     if (supaMatch || catalogMatch) {
-      const mergedSpecs = (supa.specs && typeof supa.specs === "object" && !Array.isArray(supa.specs) && Object.keys(supa.specs).length > 0)
+      const overrideSpecEntries = supa.specs && typeof supa.specs === "object" && !Array.isArray(supa.specs)
+        ? Object.entries(supa.specs).filter(([key, value]) => !["customizer", "purchaseMode", "customFamily"].includes(key) && value !== null && value !== undefined && value !== "")
+        : [];
+      const mergedSpecs = overrideSpecEntries.length > 0
         ? supa.specs
         : (catalogDetail?.specs && catalogDetail.specs.length > 0 ? catalogDetail.specs : (base.specs || {}));
 

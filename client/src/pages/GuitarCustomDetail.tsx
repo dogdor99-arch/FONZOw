@@ -46,6 +46,11 @@ export default function GuitarCustomDetail() {
         ? base.images.map((image: any) => typeof image === "string" ? image : image.url).filter(Boolean)
         : [override.image_url || base.image || "/fonzo-logo.png"];
 
+    const overrideSpecEntries = override.specs && typeof override.specs === "object" && !Array.isArray(override.specs)
+      ? Object.entries(override.specs).filter(([key, value]) => !["customizer", "purchaseMode", "customFamily"].includes(key) && value !== null && value !== undefined && value !== "")
+      : [];
+    const mergedSpecs = overrideSpecEntries.length > 0 ? override.specs : (base.specs || {});
+
     return withProductMeta({
       ...base,
       ...override,
@@ -57,7 +62,7 @@ export default function GuitarCustomDetail() {
       seriesName: override.category || base.seriesName,
       image: images[0],
       images,
-      specs: override.specs && Object.keys(override.specs).length > 0 ? override.specs : base.specs || {},
+      specs: mergedSpecs,
       shopeeUrl: override.shopee_url || override.shopeeUrl || override.shopee || base.shopeeUrl || null,
       lazadaUrl: override.lazada_url || override.lazadaUrl || override.lazada || base.lazadaUrl || null,
     });
