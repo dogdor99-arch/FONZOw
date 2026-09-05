@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 72" role="img" aria-labelledby="title desc">
+  <title id="title">Fonzo Guitar</title>
+  <desc id="desc">Fonzo Guitar wordmark</desc>
+  <g fill="none" stroke="#d4af37" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 54c-7-7-7-23 0-30 6-6 15-6 21 0 7 7 7 23 0 30-6 6-15 6-21 0Z" stroke-width="3"/>
+    <path d="M39 39h23M50.5 27v24M39 29l11.5-10L62 29" stroke-width="2"/>
+    <path d="M62 27c20-6 31-11 45-17" stroke-width="3"/>
+    <path d="M62 45c21 6 31 11 45 17" stroke-width="3"/>
+    <circle cx="29" cy="39" r="3" fill="#d4af37" stroke="none"/>
+  </g>
+  <text x="120" y="35" fill="#f6f1e8" font-family="Georgia, 'Times New Roman', serif" font-size="27" letter-spacing="4">FONZO</text>
+  <text x="122" y="56" fill="#d4af37" font-family="Arial, sans-serif" font-size="10" letter-spacing="4">GUITAR</text>
+</svg>
