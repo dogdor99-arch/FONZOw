@@ -3,6 +3,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { Reveal } from "@/components/site/Reveal";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { MapPin, Phone, Mail, Globe as GlobeIcon, ExternalLink, Store } from "lucide-react";
+import { BRAND } from "@/lib/brand";
 
 function convertGeoToPixel(lat: number, lng: number) {
   const x = ((lng + 180) * 1000) / 360;
@@ -14,7 +15,27 @@ const HQ_LAT = 13.693;
 const HQ_LNG = 100.539;
 const HQ_POS = convertGeoToPixel(HQ_LAT, HQ_LNG);
 
-const DEALERS_DATA = [
+type Dealer = {
+  name: string;
+  address: string;
+  tel?: string;
+  whatsapp?: string;
+  email?: string;
+  web?: string;
+};
+
+type DealerLocation = {
+  id: string;
+  country: string;
+  city: string;
+  flag: string;
+  lat: number;
+  lng: number;
+  mainWeb?: string;
+  dealers: Dealer[];
+};
+
+const DEALERS_DATA: DealerLocation[] = [
   {
     id: "thailand",
     country: "Thailand",
@@ -168,7 +189,7 @@ export default function Dealers() {
   const { t } = useLocale();
 
   return (
-    <div className="min-h-screen bg-ink text-cream">
+    <div className="min-h-screen bg-[#f6f1e8] text-ink">
       <section className="mx-auto max-w-[1400px] px-4 pt-16 pb-8 sm:px-6 lg:px-10">
         <Reveal>
           <SectionHeading
@@ -184,8 +205,8 @@ export default function Dealers() {
       </section>
 
       <section className="mx-auto max-w-[1400px] px-4 pb-20 sm:px-6 lg:px-10">
-        <div className="relative min-h-[580px] w-full overflow-hidden rounded-2xl border border-gold/30 bg-[#09090c] p-4 shadow-2xl backdrop-blur-md flex flex-col justify-between">
-          <div className="relative h-[500px] w-full rounded-xl bg-[#0d0d12] border border-white/5 overflow-visible flex items-center justify-center">
+        <div className="relative min-h-[580px] w-full overflow-hidden rounded-2xl border border-gold/40 bg-white/75 p-4 shadow-xl backdrop-blur-md flex flex-col justify-between">
+          <div className="relative h-[500px] w-full rounded-xl bg-[#ebe7df] border border-ink/10 overflow-visible flex items-center justify-center">
             
             <svg className="h-full w-full overflow-visible" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
               <image
@@ -194,8 +215,8 @@ export default function Dealers() {
                 y="0"
                 width="1000"
                 height="500"
-                opacity="0.22"
-                style={{ filter: "invert(1) sepia(1) saturate(5) hue-rotate(10deg)" }}
+                opacity="0.24"
+                style={{ filter: "grayscale(1) contrast(0.9)" }}
               />
 
               <g opacity="0.12" stroke="#d4af37">
@@ -296,10 +317,11 @@ export default function Dealers() {
 
                       {/* Pins Image */}
                       <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/80 bg-black/90 p-1.5 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none">
-                        <img 
-                          src="/fonzo-logo.png" 
-                          alt="Fonzo Pin Logo" 
-                          className="h-full w-full object-contain filter brightness-0 invert" 
+                        <img
+                          src={BRAND.logo}
+                          alt="Fonzo Pin Logo"
+                          className="h-full w-full object-contain"
+                          onError={event => { event.currentTarget.style.display = "none"; }}
                         />
                       </button>
 
@@ -311,12 +333,12 @@ export default function Dealers() {
             </svg>
           </div>
 
-          <div className="mt-3 flex items-center justify-between text-xs text-cream/70 px-2">
+          <div className="mt-3 flex items-center justify-between text-xs text-ink/70 px-2">
             <span className="flex items-center gap-2 text-gold font-medium">
               <span className="h-2 w-2 rounded-full bg-gold animate-pulse" />
               เลื่อนเมาส์ชี้ หรือ แตะที่หมุดโลโก้ Fonzo เพื่อเปิดดูรายละเอียดตัวแทนจำหน่าย
             </span>
-            <span className="text-cream/40">Fonzo Guitars Official Global Network</span>
+              <span className="text-ink/45">Fonzo Guitars Official Global Network</span>
           </div>
         </div>
       </section>

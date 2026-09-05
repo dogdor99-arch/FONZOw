@@ -64,18 +64,18 @@ export default function Home() {
               </Reveal>
               <Reveal delay={70}>
                 <h1 className="mt-7 text-[2.6rem] leading-[1.02] text-cream sm:text-[3.6rem] lg:text-[4.75rem]">
-                  {t("กีตาร์ที่สร้างจาก", "Guitars born from")}
+                  FONZO GUITAR
                   <br />
                   <em className="not-italic text-gold">
-                    {t("ประสบการณ์เวทีโลก", "world-stage experience")}
+                    world-class guitar of Thailand
                   </em>
                 </h1>
               </Reveal>
               <Reveal delay={130}>
                 <p className="mt-9 max-w-xl text-[15px] leading-[1.95] text-cream/70">
                   {t(
-                    "ก่อตั้งโดยเบิร์ด เอกชัย เจียรกุล คนไทยและคนเอเชียคนแรกที่คว้ารางวัลชนะเลิศ GFA International Concert Artist Competition ทุกโครงสร้างและวัสดุคัดเลือกร่วมกับช่างทำกีตาร์ระดับโลก",
-                    "Founded by Bird Ekachai Jearakul — the first Thai and first Asian to win the GFA International Concert Artist Competition. Every structure and material is selected alongside world-renowned luthiers.",
+                    "โดย เบิร์ด-เอกชัย เจียรกุล คนไทยและคนเอเชียคนแรกที่ได้รับรางวัลชนะเลิศกีตาร์คลาสสิก ‘GFA Guitar Foundation of America International Concert Artist Competition 2014’ รางวัลทรงเกียรติอันถือเป็นที่สุดของการแข่งขันกีตาร์คลาสสิกระดับโลก",
+                    "By Bird-Ekachai Jearakul — the first Thai and Asian winner of the GFA Guitar Foundation of America International Concert Artist Competition 2014, one of the world's most prestigious classical guitar competitions.",
                   )}
                 </p>
               </Reveal>

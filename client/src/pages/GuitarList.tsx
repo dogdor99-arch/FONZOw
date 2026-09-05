@@ -6,6 +6,24 @@ import { CatalogBrowser } from "@/components/site/CatalogBrowser";
 import { supabase } from "@/lib/supabase";
 import { withProductMeta } from "@shared/fonzo/customizer";
 
+const ACCESSORY_TERMS = /accessor|อุปกรณ์|อะไหล่|string|สายกีตาร์|strings|bag|case|pick|pickup|capo|tuner|เครื่องตั้งสาย/i;
+
+function isAccessoryProduct(product: any) {
+  const haystack = [product.category, product.seriesName, product.typeName, product.type, product.name, product.nameEn]
+    .filter(Boolean)
+    .join(" ");
+  return ACCESSORY_TERMS.test(haystack);
+}
+
+function shopOrder(product: any) {
+  const haystack = [product.category, product.seriesName, product.typeName, product.type, product.name, product.nameEn]
+    .filter(Boolean)
+    .join(" ").toLowerCase();
+  if (/classic/.test(haystack)) return 0;
+  if (/acoustic/.test(haystack)) return 1;
+  return 2;
+}
+
 export default function GuitarList() {
   const { t } = useLocale();
 
@@ -58,7 +76,7 @@ export default function GuitarList() {
         type: item.type || "Acoustic",
         typeCode: item.type_code || "",
         typeName: item.type_name || item.category || "Acoustic",
-        price: Number(item.price || 0),
+        price: item.price == null || item.price === "" ? null : Number(item.price),
         image: validImages[0], // รูปหลักหน้าปก
         images: validImages,   // รูปภาพหลายมุมทั้งหมด
         inStock: Number(item.stock || 0) > 0,
@@ -80,7 +98,14 @@ export default function GuitarList() {
   }, [catalogGuitars, supabaseProducts]);
 
   const isLoading = isLoadingCatalog || isLoadingSupabase;
-  const shopGuitars = useMemo(() => allGuitars.filter((product: any) => product.purchaseMode !== "custom"), [allGuitars]);
+  const shopGuitars = useMemo(
+    () => allGuitars
+      .filter((product: any) => product.purchaseMode !== "custom" && !isAccessoryProduct(product))
+      .map((product: any, index: number) => ({ product, index }))
+      .sort((a, b) => shopOrder(a.product) - shopOrder(b.product) || a.index - b.index)
+      .map(({ product }) => product),
+    [allGuitars],
+  );
   const shopTypes = useMemo(() => {
     const typeCodes = new Set(shopGuitars.map((product: any) => product.typeCode).filter(Boolean));
     return types.filter((type: any) => typeCodes.size === 0 || typeCodes.has(type.code));

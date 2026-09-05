@@ -95,19 +95,27 @@ export function BuyChannels({ code, title, shopeeUrl, lazadaUrl, variant = "full
   if (variant === "compact") {
     return (
       <div className={`flex items-center gap-1.5 ${className}`}>
-        {shopeeDirect && (
-          <span
-            className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ee4d2d]/10 text-[#ee4d2d]"
-            title="Shopee">
+        {shopeeHref && (
+          <a
+            href={shopeeHref}
+            target="_blank"
+            rel="noreferrer"
+            onClick={event => event.stopPropagation()}
+            className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ee4d2d]/10 text-[#ee4d2d] hover:bg-[#ee4d2d] hover:text-white"
+            title={shopeeDirect ? "Shopee" : t("ค้นหาใน Shopee", "Search Shopee")}>
             <ShopeeMark className="h-3.5 w-3.5" />
-          </span>
+          </a>
         )}
-        {lazadaDirect && (
-          <span
-            className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0f146d]/10 text-[#0f146d]"
-            title="Lazada">
+        {lazadaHref && (
+          <a
+            href={lazadaHref}
+            target="_blank"
+            rel="noreferrer"
+            onClick={event => event.stopPropagation()}
+            className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#0f146d]/10 text-[#0f146d] hover:bg-[#0f146d] hover:text-white"
+            title={lazadaDirect ? "Lazada" : t("ค้นหาใน Lazada", "Search Lazada")}>
             <LazadaMark className="h-3.5 w-3.5" />
-          </span>
+          </a>
         )}
       </div>
     );

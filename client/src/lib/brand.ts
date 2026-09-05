@@ -98,13 +98,13 @@ export type ChannelKey = (typeof CHANNELS)[number]["key"];
 
 export const NAV_ITEMS = [
   { label: "HOME", href: "/" },
-  { label: "FOUNDER", href: "/founder" },
-  { label: "BRAND STORY", href: "/brand-story" },
-  { label: "GUITAR", href: "/guitar" },
+  { label: "GUITAR SHOP", href: "/guitars" },
+  { label: "GUITAR CUSTOM", href: "/guitar-custom" },
+  { label: "WORKS", href: "/works" },
+  { label: "ARTISTS", href: "/artists" },
   { label: "ACCESSORIES", href: "/accessories" },
-  { label: "CATALOG", href: "/catalog" },
-  { label: "GALLERY", href: "/gallery" },
   { label: "DEALERS", href: "/dealers" },
+  { label: "FOUNDER", href: "/founder" },
   { label: "CONTACT", href: "/contact" },
 ] as const;
 

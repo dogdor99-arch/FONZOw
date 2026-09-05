@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { useLocale } from "@/contexts/LocaleContext";
+import { BRAND } from "@/lib/brand";
 
 export function SiteHeader() {
   const { t, locale, setLocale } = useLocale();
@@ -10,20 +11,23 @@ export function SiteHeader() {
         
         {/* Brand Logo & Name */}
         <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
-          <img 
-            src="/fonzo-logo.png" 
-            alt="Fonzo Logo" 
-            className="h-8 w-auto object-contain filter brightness-0 invert drop-shadow" 
-          />
+            <img
+              src={BRAND.logo}
+              alt="Fonzo Logo"
+              className="h-8 w-auto object-contain drop-shadow"
+              onError={event => { event.currentTarget.style.display = "none"; }}
+            />
           <span className="font-display text-xl tracking-wider text-cream">Fonzo Guitar</span>
         </Link>
 
         {/* Navigation Menu */}
-        <nav className="hidden md:flex items-center gap-8 text-sm text-cream/80">
-          <Link href="/guitars" className="hover:text-gold transition">{t("กีตาร์ทั้งหมด", "Guitars")}</Link>
+        <nav className="hidden items-center gap-4 text-[11px] text-cream/80 lg:flex xl:gap-6">
+          <Link href="/guitars" className="hover:text-gold transition">{t("GUITAR SHOP", "GUITAR SHOP")}</Link>
+          <Link href="/guitar-custom" className="font-semibold text-gold hover:text-cream transition">{t("GUITAR CUSTOM", "GUITAR CUSTOM")}</Link>
           <Link href="/accessories" className="hover:text-gold transition">{t("อุปกรณ์เสริม", "Accessories")}</Link>
+          <Link href="/works" className="hover:text-gold transition">{t("ผลงาน", "Works")}</Link>
+          <Link href="/artists" className="hover:text-gold transition">{t("ศิลปิน", "Artists")}</Link>
           <Link href="/dealers" className="hover:text-gold transition">{t("ตัวแทนจำหน่าย", "Dealers")}</Link>
-          <Link href="/founder" className="hover:text-gold transition">{t("เรื่องราวแบรนด์", "Our Story")}</Link>
           <Link href="/contact" className="hover:text-gold transition">{t("ติดต่อเรา", "Contact")}</Link>
         </nav>
 
