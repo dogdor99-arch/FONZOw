@@ -62,6 +62,9 @@ type Props = {
   code: string;
   /** Display name used for search fallbacks and the enquiry message. */
   title: string;
+  /** Optional direct listing URLs managed from Admin/Supabase. */
+  shopeeUrl?: string | null;
+  lazadaUrl?: string | null;
   /**
    * `full` — stacked buttons for the product page.
    * `row` — two condensed buttons for list rows.
@@ -80,14 +83,14 @@ type Props = {
  * the model name, and the Facebook enquiry sits alongside as the human channel
  * the showroom actually answers.
  */
-export function BuyChannels({ code, title, variant = "full", className = "" }: Props) {
+export function BuyChannels({ code, title, shopeeUrl, lazadaUrl, variant = "full", className = "" }: Props) {
   const { t } = useLocale();
   const links = marketplaceLinksFor(code);
 
-  const shopeeHref = links?.shopee ?? shopeeSearchUrl(title);
-  const lazadaHref = links?.lazada ?? lazadaSearchUrl(title);
-  const shopeeDirect = Boolean(links?.shopee);
-  const lazadaDirect = Boolean(links?.lazada);
+  const shopeeHref = shopeeUrl || links?.shopee || shopeeSearchUrl(title);
+  const lazadaHref = lazadaUrl || links?.lazada || lazadaSearchUrl(title);
+  const shopeeDirect = Boolean(shopeeUrl || links?.shopee);
+  const lazadaDirect = Boolean(lazadaUrl || links?.lazada);
 
   if (variant === "compact") {
     return (

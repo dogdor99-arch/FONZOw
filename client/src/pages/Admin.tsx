@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
+import { inferCustomFamily, inferPurchaseMode } from "@shared/fonzo/customizer";
 
 type Tab = "stock" | "newsroom";
 type SubView = "list" | "add" | "edit";
@@ -319,6 +320,8 @@ function StockManager() {
 function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", initialData?: any, onBack: () => void }) {
   const isAccInitial = initialData?.category?.toLowerCase().includes("string") || initialData?.category?.toLowerCase().includes("accessor") || initialData?.category?.toLowerCase().includes("สาย");
   const [productType, setProductType] = useState<string>(isAccInitial ? "accessory" : "guitar");
+  const [purchaseMode, setPurchaseMode] = useState<"shop" | "custom">(inferPurchaseMode(initialData));
+  const [customFamily, setCustomFamily] = useState<"custom" | "selection">(inferCustomFamily(initialData) || "custom");
   
   const getInitialImages = () => {
     if (initialData?.image_urls && Array.isArray(initialData.image_urls) && initialData.image_urls.length > 0) {
@@ -342,7 +345,16 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
     return "";
   };
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    price: number;
+    stock: number;
+    category: string;
+    description: string;
+    shopee_url: string;
+    lazada_url: string;
+    image_urls: string[];
+  }>({
     name: initialData?.name || "",
     price: initialData?.price || 0,
     stock: initialData?.stock || 10,
@@ -376,6 +388,10 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
     type: initialData?.specs?.["Type"] || initialData?.specs?.["ประเภท"] || "",
   });
 
+  const [customizerJson, setCustomizerJson] = useState(() => {
+    const raw = initialData?.specs?.customizer || initialData?.customizer;
+    return raw ? JSON.stringify(raw, null, 2) : "";
+  });
   const [saving, setSaving] = useState(false);
 
   const handleLocalFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -433,6 +449,22 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
         };
       }
 
+      let customizer = null;
+      if (productType === "guitar" && purchaseMode === "custom" && customizerJson.trim()) {
+        try {
+          customizer = JSON.parse(customizerJson);
+        } catch {
+          throw new Error("รูปแบบ Customizer JSON ไม่ถูกต้อง");
+        }
+      }
+      const specsWithMetadata = {
+        ...(initialData?.specs || {}),
+        ...specs,
+        purchaseMode: productType === "guitar" ? purchaseMode : "shop",
+        customFamily: productType === "guitar" && purchaseMode === "custom" ? customFamily : null,
+        customizer,
+      };
+
       const payload = {
         name: formData.name,
         price: Number(formData.price),
@@ -443,7 +475,7 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
         lazada_url: formData.lazada_url,
         image_url: primaryImage,
         image_urls: validImages,
-        specs: specs
+        specs: specsWithMetadata
       };
 
       const targetId = initialData && !initialData.isCatalogItem && !initialData.id?.toString().startsWith("catalog-") ? initialData.id : null;
@@ -511,6 +543,26 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
             <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">หมวดหมู่ย่อย</label>
             <Input value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} placeholder="Master Series" className="mt-1 h-10 rounded-none border-border" />
           </div>
+          {productType === "guitar" && (
+            <div className="sm:col-span-2 grid gap-4 border border-brand/20 bg-brand/5 p-4 sm:grid-cols-2">
+              <div>
+                <label className="text-[11px] tracking-[0.16em] text-brand uppercase font-semibold">โหมดการขาย</label>
+                <select value={purchaseMode} onChange={event => setPurchaseMode(event.target.value as "shop" | "custom")} className="mt-1 h-10 w-full rounded-none border border-border bg-background px-3 text-sm">
+                  <option value="shop">Guitar Shop — ซื้อผ่าน Marketplace/ติดต่อร้าน</option>
+                  <option value="custom">Guitar Custom — ปรับแต่งและประเมินราคา</option>
+                </select>
+              </div>
+              {purchaseMode === "custom" && (
+                <div>
+                  <label className="text-[11px] tracking-[0.16em] text-brand uppercase font-semibold">กลุ่ม Custom</label>
+                  <select value={customFamily} onChange={event => setCustomFamily(event.target.value as "custom" | "selection")} className="mt-1 h-10 w-full rounded-none border border-border bg-background px-3 text-sm">
+                    <option value="custom">Fonzo Custom</option>
+                    <option value="selection">Fonzo Selection</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
           <div>
             <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">ราคา (บาท)</label>
             <Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value.replace(/^0+/, ''))})} placeholder="0" className="mt-1 h-10 rounded-none border-border" />
@@ -598,7 +650,7 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={3} placeholder="รายละเอียดสเปครวม..." className="w-full mt-1 p-3 text-xs bg-transparent border border-border rounded-none focus:outline-none focus:border-brand" />
         </div>
 
-        {productType === "guitar" ? (
+          {productType === "guitar" ? (
           <div className="border-t border-border pt-6 space-y-4">
             <p className="text-xs uppercase tracking-widest font-semibold text-brand">สเปคชิ้นส่วนและชนิดไม้ (Guitar Specifications)</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -663,6 +715,16 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
                 <Input value={accessorySpecs.type} onChange={(e) => setAccessorySpecs({...accessorySpecs, type: e.target.value})} placeholder="Acoustic Guitar Strings" className="mt-1 h-9 rounded-none border-border" />
               </div>
             </div>
+          </div>
+        )}
+
+        {productType === "guitar" && purchaseMode === "custom" && (
+          <div className="border-t border-border pt-6 space-y-3">
+            <div>
+              <p className="text-xs uppercase tracking-widest font-semibold text-brand">ตัวเลือก Custom / Layered Images</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">ใส่ JSON ของกลุ่มวัสดุและชิ้นส่วน เช่น Top Wood, Back & Sides, ปิ๊กการ์ด และราคาเพิ่มของแต่ละตัวเลือก ระบบจะใช้ข้อมูลนี้คำนวณราคาและซ้อนภาพตาม zIndex</p>
+            </div>
+            <textarea value={customizerJson} onChange={event => setCustomizerJson(event.target.value)} rows={14} placeholder={'{\n  "enabled": true,\n  "basePrice": 0,\n  "groups": []\n}'} className="w-full rounded-none border border-border bg-background p-3 font-mono text-xs leading-relaxed focus:border-brand focus:outline-none" />
           </div>
         )}
 

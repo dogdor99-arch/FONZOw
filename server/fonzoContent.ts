@@ -4,6 +4,8 @@ import {
   splitBilingual,
   unwrapRows,
 } from "./_core/fonzoApi";
+import { marketplaceLinksFor } from "@shared/fonzo/marketplace";
+import { withProductMeta } from "@shared/fonzo/customizer";
 import type {
   FonzoAlbum,
   FonzoArticle,
@@ -52,7 +54,8 @@ type RawGuitar = {
 
 function mapGuitar(row: RawGuitar): FonzoProductSummary {
   const names = splitBilingual(row.guitar_detail_text);
-  return {
+  const links = marketplaceLinksFor(row.guitar_code);
+  return withProductMeta({
     code: row.guitar_code,
     order: Number(row.guitar_no ?? 0),
     name: names.th,
@@ -66,7 +69,9 @@ function mapGuitar(row: RawGuitar): FonzoProductSummary {
     popular: String(row.guitar_popular ?? "").toLowerCase() === "yes",
     videoUrl: row.guitar_vdo ? row.guitar_vdo : null,
     image: mediaProxyUrl(row.guitar_img_url),
-  };
+    shopeeUrl: links?.shopee ?? null,
+    lazadaUrl: links?.lazada ?? null,
+  });
 }
 
 export async function listGuitars(): Promise<FonzoProductSummary[]> {
@@ -168,7 +173,8 @@ type RawAccessory = {
 
 function mapAccessory(row: RawAccessory, index: number): FonzoProductSummary {
   const names = splitBilingual(row.accessories_detail_text);
-  return {
+  const links = marketplaceLinksFor(row.accessories_code);
+  return withProductMeta({
     code: row.accessories_code,
     order: Number(row.accessories_no ?? index),
     name: names.th,
@@ -182,7 +188,9 @@ function mapAccessory(row: RawAccessory, index: number): FonzoProductSummary {
     popular: String(row.accessories_popular ?? "").toLowerCase() === "yes",
     videoUrl: row.accessories_vdo ? row.accessories_vdo : null,
     image: mediaProxyUrl(row.accessories_img_url),
-  };
+    shopeeUrl: links?.shopee ?? null,
+    lazadaUrl: links?.lazada ?? null,
+  });
 }
 
 export async function listAccessories(): Promise<FonzoProductSummary[]> {

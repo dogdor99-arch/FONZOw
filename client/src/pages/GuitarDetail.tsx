@@ -10,7 +10,8 @@ export default function GuitarDetail() {
   const { code } = useParams();
   const { t } = useLocale();
 
-  const { data: catalogGuitars = [], isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
+  const { data: catalogGuitars, isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
+  const catalogRows = (catalogGuitars as any[] | undefined) ?? [];
   const [supabaseProducts, setSupabaseProducts] = useState<any[]>([]);
   const [loadingSupa, setLoadingSupa] = useState(true);
 
@@ -36,7 +37,7 @@ export default function GuitarDetail() {
     const cleanStr = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9ก-ฮ]/g, "").trim();
     const decodedClean = cleanStr(decodedCode);
 
-    const catalogMatch = catalogGuitars.find((g: any) => {
+    const catalogMatch = catalogRows.find((g: any) => {
       const gName = cleanStr(g.name);
       const gCode = cleanStr(g.code);
       return gName === decodedClean || gCode === decodedClean || decodedClean.includes(gName) || gName.includes(decodedClean);
@@ -85,7 +86,7 @@ export default function GuitarDetail() {
     }
 
     return null;
-  }, [catalogGuitars, supabaseProducts, decodedCode]);
+  }, [catalogRows, supabaseProducts, decodedCode]);
 
   const imagesList = useMemo(() => {
     if (!guitar) return ["/fonzo-logo.png"];
@@ -125,7 +126,7 @@ export default function GuitarDetail() {
     ].filter(([_, val]) => val !== null && val !== undefined && val !== "");
 
     if (rawList.length === 0 && Object.keys(s).length > 0) {
-      return Object.entries(s).filter(([_, val]) => val !== null && val !== undefined && val !== "");
+      return Object.entries(s).filter(([_, val]) => val !== null && val !== undefined && val !== "") as [string, any][];
     }
     return rawList;
   }, [guitar]);
@@ -213,7 +214,7 @@ export default function GuitarDetail() {
               <div className="border-t border-border pt-6 space-y-3">
                 <h3 className="text-xs uppercase tracking-widest font-semibold text-foreground">สเปคทางเทคนิค (Specifications)</h3>
                 <div className="border border-border divide-y divide-border text-xs">
-                  {specsEntries.map(([key, val]: [string, any], idx) => (
+                  {specsEntries.map(([key, val], idx) => (
                     <div key={idx} className="flex justify-between p-3">
                       <span className="text-muted-foreground uppercase font-medium">{key}</span>
                       <span className="text-foreground font-semibold text-right">{val}</span>

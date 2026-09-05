@@ -21,7 +21,7 @@ export function ProductCard({
 }) {
   const { locale, t } = useLocale();
   const title = locale === "th" ? product.name || product.nameEn : product.nameEn || product.name;
-  const buyable = hasMarketplaceListing(product.code);
+  const buyable = Boolean(product.shopeeUrl || product.lazadaUrl || hasMarketplaceListing(product.code));
 
   return (
     <Link
@@ -50,7 +50,7 @@ export function ProductCard({
         )}
         {buyable && (
           <span className="absolute right-3 top-3 flex items-center gap-1.5 bg-background/92 px-2 py-1 backdrop-blur-sm">
-            <BuyChannels code={product.code} title={product.nameEn || product.name} variant="compact" />
+            <BuyChannels code={product.code} title={product.nameEn || product.name} shopeeUrl={product.shopeeUrl} lazadaUrl={product.lazadaUrl} variant="compact" />
           </span>
         )}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />

@@ -4,6 +4,7 @@ import { useLocale } from "@/contexts/LocaleContext";
 import { PageHeading } from "@/components/site/SiteLayout";
 import { CatalogBrowser } from "@/components/site/CatalogBrowser";
 import { supabase } from "@/lib/supabase";
+import { withProductMeta } from "@shared/fonzo/customizer";
 
 export default function GuitarList() {
   const { t } = useLocale();
@@ -47,18 +48,25 @@ export default function GuitarList() {
         ? item.image_urls 
         : (item.image_url ? [item.image_url] : ["/fonzo-logo.png"]);
 
-      return {
+      return withProductMeta({
         id: item.id || `supa-${item.name}`,
-        code: item.name,
+        code: item.code || item.name,
         name: item.name,
-        series: item.category || "Fonzo Custom",
-        type: "Acoustic",
+        nameEn: item.name_en || item.name,
+        seriesName: item.category || "Fonzo Acoustic",
+        series: item.category || "Fonzo Acoustic",
+        type: item.type || "Acoustic",
+        typeCode: item.type_code || "",
+        typeName: item.type_name || item.category || "Acoustic",
         price: Number(item.price || 0),
         image: validImages[0], // รูปหลักหน้าปก
         images: validImages,   // รูปภาพหลายมุมทั้งหมด
         inStock: Number(item.stock || 0) > 0,
+        shopeeUrl: item.shopee_url || item.shopeeUrl || item.shopee || null,
+        lazadaUrl: item.lazada_url || item.lazadaUrl || item.lazada || null,
         raw: item,
-      };
+        specs: item.specs || {},
+      });
     });
 
     // กรองแคตตาล็อกเดิม: ถ้ารุ่นไหนมีชื่อตรงกับใน Supabase แล้ว ให้ซ่อนตัวเก่าทิ้งทันที (ป้องกันตัวซ้ำ)
@@ -72,33 +80,38 @@ export default function GuitarList() {
   }, [catalogGuitars, supabaseProducts]);
 
   const isLoading = isLoadingCatalog || isLoadingSupabase;
+  const shopGuitars = useMemo(() => allGuitars.filter((product: any) => product.purchaseMode !== "custom"), [allGuitars]);
+  const shopTypes = useMemo(() => {
+    const typeCodes = new Set(shopGuitars.map((product: any) => product.typeCode).filter(Boolean));
+    return types.filter((type: any) => typeCodes.size === 0 || typeCodes.has(type.code));
+  }, [shopGuitars, types]);
 
   return (
     <>
       <PageHeading
         eyebrow={t("แคตตาล็อกกีตาร์", "Guitar catalogue")}
-        title="Guitar"
-        description={t(
-          "กีตาร์คลาสสิกและอะคูสติกทุกซีรีส์ของ Fonzo ตั้งแต่รุ่น Top Solid สำหรับผู้เริ่มต้นจริงจัง จนถึงงาน All Solid Handmade และงานสั่งทำพิเศษ",
-          "Every Fonzo classical and acoustic series — from serious-beginner Top Solid models through All Solid Handmade and bespoke commissions.",
-        )}
+          title={t("Guitar Shop", "Guitar Shop")}
+          description={t(
+            "กีตาร์ Fonzo Classic และ Fonzo Acoustic สำหรับสั่งซื้อผ่าน Shopee, Lazada หรือติดต่อร้านโดยตรง",
+            "Fonzo Classic and Fonzo Acoustic models available through Shopee, Lazada, or direct enquiry.",
+          )}
         crumbs={[{ label: "Guitar" }]}
         index="03"
         aside={
           <div className="hidden text-right sm:block">
             <p className="eyebrow">{t("รุ่นในแคตตาล็อก", "Models in catalogue")}</p>
             <p className="mt-2 font-display text-3xl tabular-nums">
-              {isLoading ? "—" : allGuitars.length}
+              {isLoading ? "—" : shopGuitars.length}
             </p>
           </div>
         }
       />
       <CatalogBrowser
-        products={allGuitars}
-        categories={types}
+        products={shopGuitars}
+        categories={shopTypes}
         isLoading={isLoading}
         basePath="/guitar"
-        categoryLabel={t("ประเภทกีตาร์", "Guitar type")}
+        categoryLabel={t("ประเภทกีตาร์ใน Guitar Shop", "Guitar Shop categories")}
       />
     </>
   );
