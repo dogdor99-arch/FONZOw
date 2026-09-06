@@ -6,6 +6,7 @@ import {
 } from "./_core/fonzoApi";
 import { marketplaceLinksFor } from "@shared/fonzo/marketplace";
 import { withProductMeta } from "@shared/fonzo/customizer";
+import { catalogOrder, stableCatalogSort, uniqueCatalogByCode } from "@shared/fonzo/catalogIntegrity";
 import type {
   FonzoAlbum,
   FonzoArticle,
@@ -57,7 +58,7 @@ function mapGuitar(row: RawGuitar): FonzoProductSummary {
   const links = marketplaceLinksFor(row.guitar_code);
   return withProductMeta({
     code: row.guitar_code,
-    order: Number(row.guitar_no ?? 0),
+    order: catalogOrder(row.guitar_no),
     name: names.th,
     nameEn: names.en,
     price: toNumberOrNull(row.guitar_price),
@@ -76,9 +77,9 @@ function mapGuitar(row: RawGuitar): FonzoProductSummary {
 
 export async function listGuitars(): Promise<FonzoProductSummary[]> {
   const payload = await fonzoPost("guitar/getGuitarBy", LIST_PAYLOAD);
-  return unwrapRows<RawGuitar>(payload)
+  const items = unwrapRows<RawGuitar>(payload)
     .map(mapGuitar)
-    .sort((a, b) => a.order - b.order);
+  return stableCatalogSort(uniqueCatalogByCode(items));
 }
 
 type RawSpec = {
@@ -176,7 +177,7 @@ function mapAccessory(row: RawAccessory, index: number): FonzoProductSummary {
   const links = marketplaceLinksFor(row.accessories_code);
   return withProductMeta({
     code: row.accessories_code,
-    order: Number(row.accessories_no ?? index),
+    order: catalogOrder(row.accessories_no ?? index + 1),
     name: names.th,
     nameEn: names.en,
     price: toNumberOrNull(row.accessories_price),
@@ -195,9 +196,9 @@ function mapAccessory(row: RawAccessory, index: number): FonzoProductSummary {
 
 export async function listAccessories(): Promise<FonzoProductSummary[]> {
   const payload = await fonzoPost("accessories/getAccessoriesBy", LIST_PAYLOAD);
-  return unwrapRows<RawAccessory>(payload)
+  const items = unwrapRows<RawAccessory>(payload)
     .map(mapAccessory)
-    .sort((a, b) => a.order - b.order);
+  return stableCatalogSort(uniqueCatalogByCode(items));
 }
 
 export async function getAccessoryByCode(code: string): Promise<FonzoProductDetail | null> {

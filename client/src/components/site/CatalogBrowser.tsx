@@ -78,11 +78,11 @@ export function CatalogBrowser({
     });
 
     const sorted = [...result];
-    if (sort === "price-asc") sorted.sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
-    if (sort === "price-desc") sorted.sort((a, b) => (b.price ?? -1) - (a.price ?? -1));
+    if (sort === "price-asc") sorted.sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity) || a.order - b.order || a.code.localeCompare(b.code));
+    if (sort === "price-desc") sorted.sort((a, b) => (b.price ?? -1) - (a.price ?? -1) || a.order - b.order || a.code.localeCompare(b.code));
     if (sort === "name")
       sorted.sort((a, b) =>
-        (locale === "th" ? a.name : a.nameEn).localeCompare(locale === "th" ? b.name : b.nameEn),
+        (locale === "th" ? a.name : a.nameEn).localeCompare(locale === "th" ? b.name : b.nameEn) || a.order - b.order || a.code.localeCompare(b.code),
       );
     return sorted;
   }, [products, typeCode, seriesName, band, query, sort, locale]);
