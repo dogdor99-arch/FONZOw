@@ -6,6 +6,7 @@ import { BRAND } from "@/lib/brand";
 import { PageHeading } from "@/components/site/SiteLayout";
 import { Reveal } from "@/components/site/Reveal";
 import { RichText } from "@/components/site/RichText";
+import { FEATURED_ARTISTS } from "@/lib/artistContent";
 
 export default function Artists() {
   const { locale, t } = useLocale();
@@ -60,6 +61,47 @@ export default function Artists() {
               {founderLoading ? <div className="space-y-4">{Array.from({ length: 10 }).map((_, index) => <div key={index} className="h-4 animate-pulse bg-secondary" style={{ width: `${88 - (index % 4) * 9}%` }} />)}</div> : founder ? <RichText html={founder.html} /> : <p className="text-muted-foreground">{t("ยังไม่มีข้อมูลศิลปิน", "Artist information is not available yet.")}</p>}
             </div>
           </Reveal>
+        </div>
+      </section>
+
+      <section className="rule-top bg-ink text-cream">
+        <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
+          <div className="flex flex-wrap items-end justify-between gap-6 border-b border-cream/15 pb-6">
+            <div>
+              <p className="eyebrow text-gold">{t("Fonzo Artists", "Fonzo Artists")}</p>
+              <h2 className="mt-3 max-w-3xl font-display text-3xl sm:text-4xl">{t("ศิลปินที่ร่วมเดินทางกับแบรนด์", "Artists connected to the brand")}</h2>
+            </div>
+            <a href="https://www.facebook.com/Fonzoguitar" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 border border-cream/25 px-4 py-2 text-xs tracking-[0.14em] text-cream transition hover:border-gold hover:text-gold">
+              {t("ดูเพจ FONZO", "Visit FONZO on Facebook")} <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </div>
+          <p className="mt-6 max-w-3xl text-sm leading-relaxed text-cream/65">{t("คัดเลือกจากคอนเทนต์สาธารณะของ Fonzo Guitar โดยใส่ลิงก์กลับไปยังโพสต์ต้นฉบับทุกการ์ด เพื่อให้ข้อมูลและภาพมีที่มาอย่างชัดเจน", "A selection from Fonzo Guitar's public content, with a source link on every card so each image and description remains traceable.")}</p>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {FEATURED_ARTISTS.map((artist, index) => (
+              <Reveal key={artist.id} delay={Math.min(index, 6) * 45}>
+                <article className="group overflow-hidden border border-cream/10 bg-white/[0.04] transition-colors hover:border-gold/45">
+                  <div className="relative aspect-[4/3] overflow-hidden bg-ink-soft">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-cream/40">
+                      <Music2 className="h-8 w-8 text-gold/70" />
+                      <span className="eyebrow">Fonzo Artist</span>
+                    </div>
+                    {artist.image && <img src={artist.image} alt={locale === "th" ? artist.name : artist.nameEn} loading="lazy" className="relative z-10 h-full w-full object-cover transition duration-700 group-hover:scale-105" onError={event => { event.currentTarget.style.display = "none"; }} />}
+                  </div>
+                  <div className="space-y-4 p-5">
+                    <div>
+                      <p className="eyebrow text-gold">{locale === "th" ? artist.role : artist.roleEn}</p>
+                      <h3 className="mt-2 font-display text-2xl text-cream">{locale === "th" ? artist.name : artist.nameEn}</h3>
+                    </div>
+                    <p className="min-h-[3.5rem] text-sm leading-relaxed text-cream/65">{locale === "th" ? artist.description : artist.descriptionEn}</p>
+                    {artist.guitar && <p className="border-l border-gold/60 pl-3 text-xs tracking-[0.1em] text-cream/80">{artist.guitar}</p>}
+                    <a href={artist.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs tracking-[0.14em] text-gold transition hover:text-cream">
+                      {t("ดูคอนเทนต์ต้นฉบับ", "View original content")} <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                </article>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
