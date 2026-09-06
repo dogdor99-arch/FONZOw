@@ -33,34 +33,44 @@ export default function GuitarCustomList() {
 
   const products = useMemo(() => {
     const supaByName = new Map<string, any>();
+    const supaByCode = new Map<string, any>();
     supabaseProducts.forEach(item => {
       if (item.name) supaByName.set(item.name.toLowerCase().trim(), item);
+      const sourceCode = String(item.specs?.sourceCode ?? item.code ?? "").toUpperCase();
+      if (sourceCode) supaByCode.set(sourceCode, item);
     });
 
+    const catalogByCode = new Map<string, any>();
+    catalogGuitars.forEach((item: any) => { if (item.code) catalogByCode.set(String(item.code).toUpperCase(), item); });
+
     const formatted = supabaseProducts.map(item => {
+      const sourceCode = String(item.specs?.sourceCode ?? item.code ?? "").toUpperCase();
+      const catalog = catalogByCode.get(sourceCode) || supaByName.get(String(item.name || "").toLowerCase().trim());
       const images = Array.isArray(item.image_urls) && item.image_urls.length > 0
         ? item.image_urls
-        : item.image_url ? [item.image_url] : [];
+        : item.image_url ? [item.image_url] : catalog?.image ? [catalog.image] : [];
       const noPrice = item.price === null || item.price === undefined || item.price === "" || Number(item.price) <= 0;
       return withProductMeta({
+        ...catalog,
         ...item,
-        code: item.code || item.name,
+        code: sourceCode || catalog?.code || item.name,
         name: item.name,
         nameEn: item.name_en || item.name,
-        seriesName: item.category || "Fonzo Custom",
-        typeName: item.type_name || item.category || "Fonzo Custom",
+        seriesName: item.category || catalog?.seriesName || "Fonzo Custom",
+        typeName: item.type_name || catalog?.typeName || item.category || "Fonzo Custom",
         price: item.price == null ? null : Number(item.price),
         priceLabel: item.price == null ? "Enquiry" : String(item.price),
         image: images[0] || "/fonzo-logo.png",
         images,
         shopeeUrl: item.shopee_url || item.shopeeUrl || item.shopee || null,
         lazadaUrl: item.lazada_url || item.lazadaUrl || item.lazada || null,
-        purchaseMode: !isAccessoryProduct(item) && noPrice ? "custom" : item.purchaseMode,
+        purchaseMode: item.specs?.purchaseMode || catalog?.purchaseMode || (!isAccessoryProduct(item) && noPrice ? "custom" : item.purchaseMode),
+        customFamily: item.specs?.customFamily || catalog?.customFamily || (String(item.category || catalog?.seriesName || "").toLowerCase().includes("selection") ? "selection" : "custom"),
       });
     });
 
     const legacy = catalogGuitars
-      .filter((item: any) => !supaByName.has((item.name || item.code || "").toLowerCase().trim()))
+      .filter((item: any) => !supaByCode.has(String(item.code || "").toUpperCase()) && !supaByName.has((item.name || item.code || "").toLowerCase().trim()))
       .map((item: any) => withProductMeta(item));
 
     return [...formatted, ...legacy].filter(item => !isAccessoryProduct(item) && item.purchaseMode === "custom");

@@ -51,6 +51,7 @@ type RawGuitar = {
   series_name?: string;
   guitar_detail_text?: string;
   guitar_img_url?: string;
+  guitar_detail_description?: string;
 };
 
 function mapGuitar(row: RawGuitar): FonzoProductSummary {
@@ -127,8 +128,13 @@ export async function getGuitarByCode(code: string): Promise<FonzoProductDetail 
     fonzoPost("guitarDetail/getGuitarDetailBy", { guitar_code: code, limit: 300 }),
     fonzoPost("guitar-img/getGuitarImgBy", { guitar_code: code, limit: 300 }),
   ]);
+  const storyPayload = await fonzoPost<unknown>("guitarDetail/getGuitarDetailBy", {
+    guitar_code: code,
+    guitar_detail_language: "TH",
+  });
 
   const specs = mapSpecs(unwrapRows<RawSpec>(specPayload), "guitar");
+  const story = unwrapRows<RawGuitar>(storyPayload)[0]?.guitar_detail_description?.trim() || null;
 
   const images = unwrapRows<{ guitar_img_url?: string; guitar_img_default?: string | null }>(imgPayload)
     .map(row => ({
@@ -138,7 +144,7 @@ export async function getGuitarByCode(code: string): Promise<FonzoProductDetail 
     .filter(image => image.url.length > 0)
     .sort((a, b) => Number(b.isDefault) - Number(a.isDefault));
 
-  return { ...summary, images, specs: specs.th, specsEn: specs.en };
+  return { ...summary, description: story, images, specs: specs.th, specsEn: specs.en };
 }
 
 export async function listGuitarTypes(): Promise<FonzoCategory[]> {
