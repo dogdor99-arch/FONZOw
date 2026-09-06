@@ -413,7 +413,7 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
     return raw ? JSON.stringify(raw, null, 2) : "";
   });
   const [saving, setSaving] = useState(false);
-  const isStringAccessory = /string|สาย|เบอร์สาย/i.test(`${formData.category} ${accessorySpecs.type}`);
+  const isStringAccessory = /string|สาย|เบอร์สาย|savarez|d['’]?addario|elixir|cantiga|phosphor bronze|nylon/i.test(`${formData.name} ${formData.category} ${accessorySpecs.type} ${accessorySpecs.material}`);
 
   const handleLocalFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
