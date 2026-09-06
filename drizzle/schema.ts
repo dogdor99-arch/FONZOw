@@ -264,3 +264,31 @@ export const socialPosts = mysqlTable(
 
 export type SocialPost = typeof socialPosts.$inferSelect;
 export type InsertSocialPost = typeof socialPosts.$inferInsert;
+
+/** Editorial artist profiles shown on the public Artists carousel. */
+export const artistProfiles = mysqlTable(
+  "artistProfiles",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    name: varchar("name", { length: 180 }).notNull(),
+    nameEn: varchar("nameEn", { length: 180 }),
+    role: varchar("role", { length: 240 }),
+    roleEn: varchar("roleEn", { length: 240 }),
+    bio: text("bio"),
+    bioEn: text("bioEn"),
+    imageUrl: varchar("imageUrl", { length: 1024 }),
+    collaborationImageUrl: varchar("collaborationImageUrl", { length: 1024 }),
+    sourceUrl: varchar("sourceUrl", { length: 1024 }),
+    guitar: varchar("guitar", { length: 240 }),
+    published: boolean("published").default(true).notNull(),
+    sortOrder: int("sortOrder").default(0).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    publishedIdx: index("artistProfiles_published_idx").on(table.published, table.sortOrder),
+  }),
+);
+
+export type ArtistProfile = typeof artistProfiles.$inferSelect;
+export type InsertArtistProfile = typeof artistProfiles.$inferInsert;

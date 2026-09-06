@@ -22,6 +22,7 @@ type Dealer = {
   whatsapp?: string;
   email?: string;
   web?: string;
+  storefrontImage?: string;
 };
 
 type DealerLocation = {
@@ -261,8 +262,15 @@ export default function Dealers() {
                     <div className="group relative flex h-full w-full items-center justify-center">
                       <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-3 hidden group-hover:flex flex-col items-center z-50 transition-all duration-300 animate-in fade-in slide-in-from-top-2">
                         <div className="h-2 w-2 rotate-45 bg-[#121216] border-l border-t border-gold/50 -mb-1 z-10" />
-                        <div className="w-[300px] sm:w-[330px] rounded-2xl bg-[#121216]/95 border border-gold/60 p-5 shadow-2xl backdrop-blur-xl pointer-events-auto text-left">
-                          <div className="flex items-center justify-between border-b border-cream/10 pb-3">
+                          <div className="w-[300px] sm:w-[330px] rounded-2xl bg-[#121216]/95 border border-gold/60 p-5 shadow-2xl backdrop-blur-xl pointer-events-auto text-left">
+                            <div className="mb-4 overflow-hidden rounded-xl border border-cream/10 bg-ink-soft">
+                              {loc.dealers[0]?.storefrontImage ? (
+                                <img src={loc.dealers[0].storefrontImage} alt={`${loc.dealers[0].name} storefront`} className="h-28 w-full object-cover" />
+                              ) : (
+                                <div className="flex h-28 items-center justify-center gap-3 text-cream/45"><Store className="h-7 w-7 text-gold/70" strokeWidth={1.25} /><span className="text-[10px] tracking-[0.14em] uppercase">Store preview</span></div>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between border-b border-cream/10 pb-3">
                             <div>
                               <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-gold">
                                 <MapPin className="h-3 w-3" /> {loc.city}
@@ -318,7 +326,7 @@ export default function Dealers() {
                       {/* Pins Image */}
                       <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/80 bg-black/90 p-1.5 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none">
                         <img
-                          src={BRAND.logoDark}
+                          src={BRAND.logo}
                           alt="Fonzo Pin Logo"
                           className="h-full w-full object-contain"
                           onError={event => { event.currentTarget.style.display = "none"; }}

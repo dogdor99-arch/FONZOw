@@ -24,6 +24,7 @@ import Artists from "./pages/Artists";
 import Dealers from "./pages/Dealers";
 import Contact from "./pages/Contact";
 import Shop from "./pages/Shop";
+import ShopGateway from "./pages/ShopGateway";
 import TrackOrder from "./pages/TrackOrder";
 import OrderConfirm from "./pages/OrderConfirm";
 import Admin from "./pages/Admin";
@@ -47,11 +48,13 @@ function Router() {
       <Route path="/founder" component={Founder} />
       <Route path="/brand-story" component={BrandStory} />
       
-      {/* รองรับทั้ง /guitars และ /guitar */}
-      <Route path="/guitars" component={GuitarList} />
+      {/* Guitar Shop opens with a minimal category gateway; catalogue aliases remain available. */}
+      <Route path="/guitars" component={ShopGateway} />
+      <Route path="/guitars/catalog" component={GuitarList} />
       <Route path="/guitars/:code" component={GuitarDetail} />
       <Route path="/guitar" component={GuitarList} />
       <Route path="/guitar/:code" component={GuitarDetail} />
+      <Route path="/shop/guitars" component={GuitarList} />
       <Route path="/guitar-custom" component={GuitarCustomList} />
       <Route path="/guitar-custom/:code" component={GuitarCustomDetail} />
       

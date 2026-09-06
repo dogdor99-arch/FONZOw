@@ -30,10 +30,7 @@ export function registerOAuthRoutes(app: Express) {
       }
 
       const sessionToken = await sdk.createSessionToken(adminOpenId, {
-        openId: adminOpenId,
         name: adminName,
-        email: adminEmail,
-        role: "admin",
         expiresInMs: ONE_YEAR_MS,
       });
 
@@ -89,10 +86,7 @@ export function registerOAuthRoutes(app: Express) {
       } as any);
 
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {
-        openId: userInfo.openId,
         name: userInfo.name || "",
-        email: userInfo.email ?? "",
-        role: "admin",
         expiresInMs: ONE_YEAR_MS,
       });
 

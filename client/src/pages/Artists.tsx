@@ -1,125 +1,95 @@
-import { useMemo } from "react";
-import { Award, ExternalLink, Music2 } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, ArrowRight, ExternalLink, Music2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
-import { BRAND } from "@/lib/brand";
 import { PageHeading } from "@/components/site/SiteLayout";
 import { Reveal } from "@/components/site/Reveal";
-import { RichText } from "@/components/site/RichText";
 import { FEATURED_ARTISTS } from "@/lib/artistContent";
 
 export default function Artists() {
   const { locale, t } = useLocale();
-  const { data: founderArticles = [], isLoading: founderLoading } = trpc.fonzo.content.founder.useQuery();
-  const { data: albums = [], isLoading: albumsLoading } = trpc.fonzo.gallery.albums.useQuery();
-  const founder = founderArticles.find(article => article.locale === locale) ?? founderArticles[0];
-  const playersAlbum = useMemo(
-    () => albums.find(album => /player|artist|student|ผู้เล่น|นักเรียน/i.test(album.name)) ?? albums[1],
-    [albums],
-  );
-  const { data: playerItems = [], isLoading: playersLoading } = trpc.fonzo.gallery.items.useQuery(
-    { albumCode: playersAlbum?.code ?? "" },
-    { enabled: Boolean(playersAlbum?.code) },
-  );
+  const { data: managedArtists = [] } = trpc.artists.list.useQuery();
+  const [active, setActive] = useState(0);
+
+  const artists = managedArtists.length > 0
+    ? managedArtists.map(artist => ({
+        id: String(artist.id),
+        name: artist.name,
+        nameEn: artist.nameEn ?? artist.name,
+        role: artist.role ?? "Fonzo Artist",
+        roleEn: artist.roleEn ?? "Fonzo Artist",
+        description: artist.bio ?? "",
+        descriptionEn: artist.bioEn ?? artist.bio ?? "",
+        image: artist.imageUrl ?? undefined,
+        collaborationImage: artist.collaborationImageUrl ?? artist.imageUrl ?? undefined,
+        sourceUrl: artist.sourceUrl ?? "https://www.facebook.com/Fonzoguitar",
+        guitar: artist.guitar ?? undefined,
+      }))
+    : FEATURED_ARTISTS.map(artist => ({ ...artist, collaborationImage: artist.image }));
+
+  const current = artists[active] ?? artists[0];
+  const title = current ? (locale === "th" ? current.name : current.nameEn) : "Artists";
+  const role = current ? (locale === "th" ? current.role : current.roleEn) : "Fonzo Artist";
+  const description = current ? (locale === "th" ? current.description : current.descriptionEn) : "";
+
+  const move = (direction: number) => {
+    if (!artists.length) return;
+    setActive(index => (index + direction + artists.length) % artists.length);
+  };
 
   return (
     <>
       <PageHeading
         eyebrow={t("ศิลปินและผู้เล่น", "Artists & players")}
         title="Artists"
-        description={t(
-          "พื้นที่สำหรับศิลปิน ผู้เล่น และนักเรียนที่ร่วมเดินทางกับ Fonzo ผ่านเสียงดนตรีและการเรียนรู้",
-          "A space for the artists, players and students who share Fonzo's journey through music and learning.",
-        )}
+        description={t("โปรไฟล์ของศิลปินและผู้เล่นที่ร่วมสร้างเสียงและเรื่องราวไปกับ Fonzo", "Profiles of the artists and players who shape Fonzo's sound and story.")}
         crumbs={[{ label: "Artists" }]}
         index="06"
       />
 
-      <section className="mx-auto max-w-[1400px] px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
-        <div className="grid gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
-          <Reveal>
-            <div className="sticky top-28">
-              <div className="overflow-hidden bg-secondary">
-                {founder?.image ? (
-                  <img src={founder.image} alt={locale === "th" ? BRAND.founder.th : BRAND.founder.en} className="w-full object-cover" loading="lazy" />
-                ) : (
-                  <div className="flex aspect-[4/5] items-center justify-center text-muted-foreground">{t("กำลังโหลดภาพ", "Loading image")}</div>
-                )}
-              </div>
-              <p className="mt-7 eyebrow">{t("ศิลปินหลักของแบรนด์", "The brand's principal artist")}</p>
-              <h2 className="mt-3 font-display text-3xl">{locale === "th" ? BRAND.founder.th : BRAND.founder.en}</h2>
-              <div className="mt-5 gold-rule" />
-              <div className="mt-6 space-y-4 text-sm text-muted-foreground">
-                <p className="flex gap-3"><Award className="mt-0.5 h-4 w-4 shrink-0 text-brand" />{t("ผู้ชนะเลิศ GFA Guitar Foundation of America International Concert Artist Competition 2014", "Winner of the GFA Guitar Foundation of America International Concert Artist Competition 2014")}</p>
-                <p className="flex gap-3"><Music2 className="mt-0.5 h-4 w-4 shrink-0 text-brand" />{t("ผู้ก่อตั้งและผู้ควบคุมคุณภาพเสียงของ Fonzo Guitar", "Founder and tonal director of Fonzo Guitar")}</p>
-              </div>
-            </div>
-          </Reveal>
-
-          <Reveal delay={80}>
-            <div className="max-w-[46rem]">
-              {founderLoading ? <div className="space-y-4">{Array.from({ length: 10 }).map((_, index) => <div key={index} className="h-4 animate-pulse bg-secondary" style={{ width: `${88 - (index % 4) * 9}%` }} />)}</div> : founder ? <RichText html={founder.html} /> : <p className="text-muted-foreground">{t("ยังไม่มีข้อมูลศิลปิน", "Artist information is not available yet.")}</p>}
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="rule-top bg-ink text-cream">
-        <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
-          <div className="flex flex-wrap items-end justify-between gap-6 border-b border-cream/15 pb-6">
-            <div>
-              <p className="eyebrow text-gold">{t("Fonzo Artists", "Fonzo Artists")}</p>
-              <h2 className="mt-3 max-w-3xl font-display text-3xl sm:text-4xl">{t("ศิลปินที่ร่วมเดินทางกับแบรนด์", "Artists connected to the brand")}</h2>
-            </div>
-            <a href="https://www.facebook.com/Fonzoguitar" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 border border-cream/25 px-4 py-2 text-xs tracking-[0.14em] text-cream transition hover:border-gold hover:text-gold">
-              {t("ดูเพจ FONZO", "Visit FONZO on Facebook")} <ExternalLink className="h-3.5 w-3.5" />
-            </a>
+      <section className="mx-auto max-w-[1400px] px-4 pb-20 sm:px-6 lg:px-10 lg:pb-28">
+        <div className="border-y border-border/70 py-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div><p className="eyebrow text-brand">{t("Fonzo Artists", "Fonzo Artists")}</p><p className="mt-2 text-sm text-muted-foreground">{t("เลื่อนทีละคนเพื่อดูข้อมูลและภาพการร่วมงานกับแบรนด์", "Move one profile at a time to view each artist and collaboration.")}</p></div>
+            <a href="https://www.facebook.com/Fonzoguitar" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-[11px] tracking-[0.14em] text-brand uppercase hover:text-gold">{t("ดูเพจ FONZO", "Visit FONZO on Facebook")}<ExternalLink className="h-3.5 w-3.5" /></a>
           </div>
-          <p className="mt-6 max-w-3xl text-sm leading-relaxed text-cream/65">{t("คัดเลือกจากคอนเทนต์สาธารณะของ Fonzo Guitar โดยใส่ลิงก์กลับไปยังโพสต์ต้นฉบับทุกการ์ด เพื่อให้ข้อมูลและภาพมีที่มาอย่างชัดเจน", "A selection from Fonzo Guitar's public content, with a source link on every card so each image and description remains traceable.")}</p>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURED_ARTISTS.map((artist, index) => (
-              <Reveal key={artist.id} delay={Math.min(index, 6) * 45}>
-                <article className="group overflow-hidden border border-cream/10 bg-white/[0.04] transition-colors hover:border-gold/45">
-                  <div className="relative aspect-[4/3] overflow-hidden bg-ink-soft">
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-cream/40">
-                      <Music2 className="h-8 w-8 text-gold/70" />
-                      <span className="eyebrow">Fonzo Artist</span>
+        </div>
+
+        {current ? <div className="mt-8 overflow-hidden border border-border bg-card">
+          <div className="flex transition-transform duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)]" style={{ transform: `translateX(-${active * 100}%)` }}>
+            {artists.map((artist, index) => {
+              const artistTitle = locale === "th" ? artist.name : artist.nameEn;
+              const artistRole = locale === "th" ? artist.role : artist.roleEn;
+              const artistBio = locale === "th" ? artist.description : artist.descriptionEn;
+              return <article key={artist.id} className="min-w-full">
+                <div className="grid lg:grid-cols-[0.82fr_1.18fr]">
+                  <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-1">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-secondary lg:aspect-[4/3]">
+                      {artist.image ? <img src={artist.image} alt={artistTitle} loading={index === active ? "eager" : "lazy"} className="h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} /> : <ImagePlaceholder label={t("รูปศิลปิน", "Artist portrait")} />}
+                      <span className="absolute left-4 top-4 bg-ink/75 px-2.5 py-1 text-[10px] tracking-[0.15em] text-cream uppercase">{t("โปรไฟล์ศิลปิน", "Artist profile")}</span>
                     </div>
-                    {artist.image && <img src={artist.image} alt={locale === "th" ? artist.name : artist.nameEn} loading="lazy" className="relative z-10 h-full w-full object-cover transition duration-700 group-hover:scale-105" onError={event => { event.currentTarget.style.display = "none"; }} />}
-                  </div>
-                  <div className="space-y-4 p-5">
-                    <div>
-                      <p className="eyebrow text-gold">{locale === "th" ? artist.role : artist.roleEn}</p>
-                      <h3 className="mt-2 font-display text-2xl text-cream">{locale === "th" ? artist.name : artist.nameEn}</h3>
+                    <div className="relative aspect-[4/3] overflow-hidden bg-secondary lg:aspect-[4/3]">
+                      {artist.collaborationImage ? <img src={artist.collaborationImage} alt={t(`ภาพ ${artistTitle} ร่วมงานกับ Fonzo`, `${artistTitle} with Fonzo`)} loading="lazy" className="h-full w-full object-cover" onError={event => { event.currentTarget.style.display = "none"; }} /> : <ImagePlaceholder label={t("ภาพร่วมงานกับแบรนด์", "Brand collaboration")} />}
+                      <span className="absolute left-4 top-4 bg-brand/85 px-2.5 py-1 text-[10px] tracking-[0.15em] text-brand-foreground uppercase">{t("ร่วมงานกับ Fonzo", "With Fonzo")}</span>
                     </div>
-                    <p className="min-h-[3.5rem] text-sm leading-relaxed text-cream/65">{locale === "th" ? artist.description : artist.descriptionEn}</p>
-                    {artist.guitar && <p className="border-l border-gold/60 pl-3 text-xs tracking-[0.1em] text-cream/80">{artist.guitar}</p>}
-                    <a href={artist.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs tracking-[0.14em] text-gold transition hover:text-cream">
-                      {t("ดูคอนเทนต์ต้นฉบับ", "View original content")} <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
                   </div>
-                </article>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      <section className="rule-top bg-cream/50">
-        <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
-          <div className="flex flex-wrap items-end justify-between gap-6 border-b border-border/70 pb-6">
-            <div>
-              <p className="eyebrow">{t("เครือข่ายผู้เล่น", "Player network")}</p>
-              <h2 className="mt-3 font-display text-3xl sm:text-4xl">{t("ศิลปินและนักเรียนที่ร่วมเดินทางกับ Fonzo", "Artists and students in the Fonzo community")}</h2>
-            </div>
-            {playersAlbum && <span className="text-xs text-muted-foreground">{playersAlbum.itemCount} {t("ภาพ", "items")}</span>}
+                  <div className="flex min-h-[430px] flex-col justify-between p-7 sm:p-10 lg:p-14">
+                    <div><p className="eyebrow text-brand">{artistRole}</p><h2 className="mt-4 font-display text-4xl leading-tight sm:text-5xl">{artistTitle}</h2><div className="mt-6 h-px w-16 bg-gold" /><p className="mt-7 max-w-xl text-[15px] leading-[1.95] text-muted-foreground">{artistBio || t("เพิ่มประวัติและข้อมูลการร่วมงานได้จากหน้า Admin", "Add the biography and collaboration details from Admin.")}</p>{artist.guitar && <p className="mt-7 border-l border-gold/60 pl-4 text-xs tracking-[0.12em] text-foreground/70">{artist.guitar}</p>}</div>
+                    <div className="mt-10 flex flex-wrap items-center gap-4"><a href={artist.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 border border-border px-4 py-3 text-[11px] tracking-[0.14em] text-brand uppercase transition-colors hover:border-brand hover:bg-brand hover:text-brand-foreground">{t("ดูคอนเทนต์ต้นฉบับ", "View original content")}<ExternalLink className="h-3.5 w-3.5" /></a><span className="inline-flex items-center gap-2 text-xs text-muted-foreground"><Music2 className="h-4 w-4 text-gold" />{index + 1} / {artists.length}</span></div>
+                  </div>
+                </div>
+              </article>;
+            })}
           </div>
-          <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">{t("ภาพส่วนนี้ดึงจากคลัง Players ของแบรนด์ หากต้องการเพิ่มชื่อศิลปิน ประวัติ หรือภาพเฉพาะบุคคล สามารถส่งข้อมูลให้เราเติมเป็นโปรไฟล์แยกได้", "This section is sourced from the brand's Players archive. Individual artist profiles can be added when names, biographies or dedicated images are provided.")}</p>
-          <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {albumsLoading || playersLoading ? Array.from({ length: 8 }).map((_, index) => <div key={index} className="aspect-square animate-pulse bg-secondary" />) : playerItems.slice(0, 24).map((item, index) => <Reveal key={item.code} delay={Math.min(index, 8) * 35}><a href={item.url} target="_blank" rel="noreferrer" className="group relative block aspect-square overflow-hidden bg-secondary"><img src={item.type === "Video" ? item.poster ?? item.url : item.url} alt={t("ภาพผู้เล่นของ Fonzo", "Fonzo player")} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" /><span className="absolute inset-x-3 bottom-3 flex items-center justify-between text-[10px] tracking-[0.16em] text-white opacity-0 transition-opacity group-hover:opacity-100"><span className="bg-ink/70 px-2 py-1 uppercase">{item.type === "Video" ? "Video" : "View"}</span><ExternalLink className="h-3.5 w-3.5" /></span></a></Reveal>)}
-          </div>
-        </div>
+        </div> : <div className="mt-8 border border-border p-12 text-center text-muted-foreground">{t("ยังไม่มีข้อมูลศิลปิน", "No artist profiles yet")}</div>}
+
+        {artists.length > 1 && <div className="mt-5 flex items-center justify-between border-b border-border/70 pb-5"><div className="flex gap-2">{artists.map((artist, index) => <button key={artist.id} type="button" onClick={() => setActive(index)} aria-label={`${t("ดูโปรไฟล์", "View profile")} ${index + 1}`} className={`h-1.5 transition-all ${index === active ? "w-12 bg-brand" : "w-5 bg-border hover:bg-gold/60"}`} />)}</div><div className="flex gap-2"><button type="button" onClick={() => move(-1)} className="flex h-10 w-10 items-center justify-center border border-border text-brand transition hover:border-brand hover:bg-brand hover:text-brand-foreground" aria-label={t("ศิลปินก่อนหน้า", "Previous artist")}><ArrowLeft className="h-4 w-4" /></button><button type="button" onClick={() => move(1)} className="flex h-10 w-10 items-center justify-center border border-border text-brand transition hover:border-brand hover:bg-brand hover:text-brand-foreground" aria-label={t("ศิลปินถัดไป", "Next artist")}><ArrowRight className="h-4 w-4" /></button></div></div>}
       </section>
     </>
   );
+}
+
+function ImagePlaceholder({ label }: { label: string }) {
+  return <div className="flex h-full min-h-48 flex-col items-center justify-center gap-3 text-muted-foreground"><Music2 className="h-8 w-8 text-gold/70" strokeWidth={1.3} /><span className="eyebrow">{label}</span></div>;
 }
