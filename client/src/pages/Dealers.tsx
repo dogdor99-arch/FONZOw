@@ -188,10 +188,12 @@ const DEALERS_DATA: DealerLocation[] = [
 
 export default function Dealers() {
   const { t } = useLocale();
+  const [activeLocationId, setActiveLocationId] = useState("thailand");
+  const activeLocation = DEALERS_DATA.find(location => location.id === activeLocationId) ?? DEALERS_DATA[0];
 
   return (
     <div className="min-h-screen bg-[#f6f1e8] text-ink">
-      <section className="mx-auto max-w-[1400px] px-4 pt-16 pb-8 sm:px-6 lg:px-10">
+      <section className="mx-auto max-w-[1400px] px-4 pt-7 pb-5 sm:px-6 lg:px-10">
         <Reveal>
           <SectionHeading
             index="01"
@@ -324,7 +326,7 @@ export default function Dealers() {
                       </div>
 
                       {/* Pins Image */}
-                      <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/80 bg-black/90 p-1.5 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none">
+                      <button type="button" onMouseEnter={() => setActiveLocationId(loc.id)} onFocus={() => setActiveLocationId(loc.id)} onClick={() => setActiveLocationId(loc.id)} aria-label={`${loc.country} ${loc.city}`} className={`relative flex h-8 w-8 items-center justify-center rounded-full border p-1.5 shadow-2xl transition-all duration-300 hover:scale-125 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${activeLocationId === loc.id ? "border-white bg-gold" : "border-gold/80 bg-black/90 hover:bg-gold hover:border-white"}`}>
                         <img
                           src={BRAND.logo}
                           alt="Fonzo Pin Logo"
@@ -341,10 +343,12 @@ export default function Dealers() {
             </svg>
           </div>
 
+          {activeLocation && <div className="mt-4 grid gap-5 rounded-2xl border border-gold/50 bg-[#121216] p-5 text-cream shadow-xl sm:grid-cols-[220px_1fr] sm:p-6"><div className="overflow-hidden rounded-xl border border-cream/10 bg-ink-soft">{activeLocation.dealers[0]?.storefrontImage ? <img src={activeLocation.dealers[0].storefrontImage} alt={`${activeLocation.dealers[0].name} storefront`} className="h-36 w-full object-cover" /> : <div className="flex h-36 items-center justify-center gap-3 text-cream/45"><Store className="h-8 w-8 text-gold/70" strokeWidth={1.25} /><span className="text-[10px] tracking-[0.14em] uppercase">Store preview</span></div>}</div><div><div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold tracking-[0.14em] text-gold uppercase"><MapPin className="h-3 w-3" />{activeLocation.flag} {activeLocation.city}</div><h3 className="mt-2 font-display text-2xl text-cream">{activeLocation.country}</h3><div className="mt-4 grid gap-3 sm:grid-cols-2">{activeLocation.dealers.map((dealer, index) => <div key={index} className="border border-cream/10 bg-ink/70 p-3"><p className="text-xs font-semibold text-gold">{dealer.name}</p><p className="mt-1 text-[11px] leading-relaxed text-cream/70">{dealer.address}</p><div className="mt-2 flex flex-wrap gap-2 text-[10px] text-cream/80">{dealer.tel && <span className="flex items-center gap-1"><Phone className="h-3 w-3 text-gold" />{dealer.tel}</span>}{dealer.web && <a href={dealer.web} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-gold hover:underline"><GlobeIcon className="h-3 w-3" />Visit</a>}</div></div>)}</div></div></div>}
+
           <div className="mt-3 flex items-center justify-between text-xs text-ink/70 px-2">
             <span className="flex items-center gap-2 text-gold font-medium">
               <span className="h-2 w-2 rounded-full bg-gold animate-pulse" />
-              เลื่อนเมาส์ชี้ หรือ แตะที่หมุดโลโก้ Fonzo เพื่อเปิดดูรายละเอียดตัวแทนจำหน่าย
+              ชี้หรือแตะหมุดเพื่อเลือกประเทศ รายละเอียดจะค้างอยู่ด้านล่างแผนที่จนกว่าจะเลือกตำแหน่งใหม่
             </span>
               <span className="text-ink/45">Fonzo Guitars Official Global Network</span>
           </div>

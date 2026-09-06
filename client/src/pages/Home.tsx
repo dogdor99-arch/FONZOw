@@ -14,7 +14,7 @@ const FOUNDER_IMAGE = `${MEDIA}/about_us/a7fd6d1b-2fc1-49f2-a426-b89c00e1a16c.jp
 const CRAFT_A = `${MEDIA}/album_img/b83efbc3-2917-40ce-9fc1-d9e68167a1f7.jpg`;
 const CRAFT_B = `${MEDIA}/album_img/c2bce7da-465f-46a8-bb6a-81e1979f6867.jpg`;
 const CRAFT_C = `${MEDIA}/album_img/b55095ca-101e-4191-9734-9a9573981355.jpg`;
-const HERO_GUITAR_TEXTURE = "/presentation/pages/page-01.jpg";
+const HERO_GUITAR_TEXTURE = `${MEDIA}/album_img/8b8eaac7-69a9-4c90-bb16-63e52a8f1e9f.jpg`;
 
 const SHOP_PATHS = [
   { href: "/guitars/catalog", image: FONZO_CATEGORY_ICONS.ready.white, label: ["กีตาร์สำเร็จรูป", "Ready-to-play guitars"] },
@@ -30,8 +30,8 @@ export default function Home() {
     <>
       <section className="surface-deep relative overflow-hidden">
         <div className="absolute inset-0">
-          <img src={HERO_GUITAR_TEXTURE} alt="" className="h-full w-full object-cover object-center opacity-20 grayscale" />
-          <div className="absolute inset-0 bg-linear-to-r from-ink via-ink/95 to-ink/80" />
+          <img src={HERO_GUITAR_TEXTURE} alt="" className="h-full w-full object-cover object-center opacity-25 grayscale" />
+          <div className="absolute inset-0 bg-linear-to-r from-ink/90 via-ink/90 to-ink/72" />
           <div className="absolute inset-0 bg-linear-to-t from-ink via-transparent to-ink/25" />
         </div>
         <div className="relative mx-auto grid max-w-[1400px] items-center gap-10 px-4 pb-20 pt-20 sm:px-6 lg:grid-cols-[1.2fr_0.8fr] lg:gap-10 lg:px-10 lg:pb-24 lg:pt-24">
@@ -41,7 +41,7 @@ export default function Home() {
             <Reveal delay={130}><p className="mt-9 max-w-xl text-[15px] leading-[1.95] text-cream/70">{t("โดย เบิร์ด-เอกชัย เจียรกุล คนไทยและคนเอเชียคนแรกที่ได้รับรางวัลชนะเลิศกีตาร์คลาสสิก ‘GFA Guitar Foundation of America International Concert Artist Competition 2014’ รางวัลทรงเกียรติอันถือเป็นที่สุดของการแข่งขันกีตาร์คลาสสิกระดับโลก", "By Bird-Ekachai Jearakul — the first Thai and Asian winner of the GFA Guitar Foundation of America International Concert Artist Competition 2014, one of the world's most prestigious classical guitar competitions.")}</p></Reveal>
             <Reveal delay={190}><div className="mt-10 flex flex-wrap gap-3"><Button asChild className="press h-12 rounded-none bg-cream px-8 text-[11px] font-semibold tracking-[0.2em] text-ink uppercase hover:bg-cream/90"><Link href="/brand-story">{t("ข้อมูลเกี่ยวกับแบรนด์", "About the brand")}</Link></Button><Button asChild variant="outline" className="press h-12 rounded-none border-cream/30 px-8 text-[11px] font-semibold tracking-[0.2em] text-cream uppercase hover:border-gold hover:bg-cream/5 hover:text-gold"><Link href="/brand-presentation">{t("พรีเซนเทชั่นของแบรนด์", "Brand presentation")}</Link></Button></div></Reveal>
           </div>
-          <Reveal delay={150}><div className="flex items-center justify-center lg:justify-end"><img src={BRAND.logo} alt="Fonzo Guitar" className="w-full max-w-[13rem] object-contain opacity-90 drop-shadow-[0_16px_38px_rgba(0,0,0,0.45)] sm:max-w-[17rem] lg:max-w-[19rem]" /></div></Reveal>
+          <Reveal delay={150}><div className="flex items-center justify-center lg:justify-end"><img src={BRAND.logo} alt="Fonzo Guitar" className="w-full max-w-[13rem] object-contain opacity-100 drop-shadow-[0_16px_38px_rgba(0,0,0,0.45)] sm:max-w-[17rem] lg:max-w-[19rem]" /></div></Reveal>
         </div>
       </section>
 

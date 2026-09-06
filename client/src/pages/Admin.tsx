@@ -7,13 +7,14 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { PageHeading } from "@/components/site/SiteLayout";
 import { NewsroomAdmin } from "@/components/site/NewsroomAdmin";
 import { ArtistsAdmin } from "@/components/site/ArtistsAdmin";
+import { WorksAdmin } from "@/components/site/WorksAdmin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { inferCustomFamily, inferPurchaseMode } from "@shared/fonzo/customizer";
 
-type Tab = "stock" | "newsroom" | "artists";
+type Tab = "stock" | "newsroom" | "artists" | "works";
 type SubView = "list" | "add" | "edit";
 
 export default function Admin() {
@@ -58,6 +59,7 @@ export default function Admin() {
             { key: "stock", label: t("จัดการสต็อกและสินค้า", "Products & Inventory") },
             { key: "newsroom", label: t("คอนเทนต์หน้าแรก", "Newsroom") },
             { key: "artists", label: t("ศิลปิน", "Artists") },
+            { key: "works", label: t("ผลงาน / Events", "Works / Events") },
           ].map(item => (
             <button key={item.key} type="button" onClick={() => setTab(item.key as Tab)} className={cn("press border px-5 py-2.5 text-[11px] tracking-[0.18em] uppercase", tab === item.key ? "border-brand bg-brand text-brand-foreground" : "border-border text-muted-foreground hover:border-brand/50 hover:text-brand")}>
               {item.label}
@@ -68,6 +70,7 @@ export default function Admin() {
           {tab === "stock" && <StockManager />}
           {tab === "newsroom" && <NewsroomAdmin />}
           {tab === "artists" && <ArtistsAdmin />}
+          {tab === "works" && <WorksAdmin />}
         </div>
       </section>
     </>

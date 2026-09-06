@@ -3,6 +3,7 @@ import {
   decimal,
   index,
   int,
+  json,
   mysqlEnum,
   mysqlTable,
   text,
@@ -292,3 +293,30 @@ export const artistProfiles = mysqlTable(
 
 export type ArtistProfile = typeof artistProfiles.$inferSelect;
 export type InsertArtistProfile = typeof artistProfiles.$inferInsert;
+
+
+/** Editorial works shown as events and Bird's students. */
+export const worksItems = mysqlTable(
+  "worksItems",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    kind: mysqlEnum("kind", ["event", "student"]).notNull(),
+    title: varchar("title", { length: 240 }).notNull(),
+    titleEn: varchar("titleEn", { length: 240 }),
+    eventDate: varchar("eventDate", { length: 120 }),
+    description: text("description"),
+    descriptionEn: text("descriptionEn"),
+    imageUrls: json("imageUrls").$type<string[]>().default([]).notNull(),
+    sourceUrl: varchar("sourceUrl", { length: 1024 }),
+    published: boolean("published").default(true).notNull(),
+    sortOrder: int("sortOrder").default(0).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    kindIdx: index("worksItems_kind_idx").on(table.kind, table.published, table.sortOrder),
+  }),
+);
+
+export type WorksItem = typeof worksItems.$inferSelect;
+export type InsertWorksItem = typeof worksItems.$inferInsert;
