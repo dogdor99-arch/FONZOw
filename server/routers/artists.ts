@@ -6,7 +6,7 @@ import { getDb } from "../db";
 import { storagePut } from "../storage";
 import { artistProfiles } from "../../drizzle/schema";
 
-const artistInput = z.object({ name: z.string().min(1).max(180), nameEn: z.string().max(180).nullish(), role: z.string().max(240).nullish(), roleEn: z.string().max(240).nullish(), bio: z.string().max(4000).nullish(), bioEn: z.string().max(4000).nullish(), imageUrl: z.string().url().max(1024).nullish(), collaborationImageUrl: z.string().url().max(1024).nullish(), sourceUrl: z.string().url().max(1024).nullish(), guitar: z.string().max(240).nullish(), published: z.boolean().optional(), sortOrder: z.number().int().min(-999).max(999).optional() });
+const artistInput = z.object({ name: z.string().min(1).max(180), nameEn: z.string().max(180).nullish(), role: z.string().max(240).nullish(), roleEn: z.string().max(240).nullish(), bio: z.string().max(4000).nullish(), bioEn: z.string().max(4000).nullish(), imageUrl: z.string().max(8_000_000).nullish(), collaborationImageUrl: z.string().max(8_000_000).nullish(), sourceUrl: z.string().url().max(1024).nullish(), guitar: z.string().max(240).nullish(), published: z.boolean().optional(), sortOrder: z.number().int().min(-999).max(999).optional() });
 const imageUploadInput = z.object({ base64: z.string().min(1), contentType: z.string().regex(/^image\/(jpeg|png|webp|gif)$/) });
 async function conn() { const db = await getDb(); if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" }); return db; }
 
