@@ -87,6 +87,14 @@ function StockManager() {
 
   const [categoryTab, setCategoryTab] = useState<"guitars" | "accessories" | "courses">("guitars");
 
+  const isAccessoryProduct = (product: any) => {
+    if (product.itemKind === "accessory") return true;
+    const sourceCode = String(product.specs?.sourceCode ?? product.code ?? "").toUpperCase();
+    if (sourceCode.startsWith("A")) return true;
+    const haystack = [product.category, product.typeName, product.type, product.name, product.nameEn].filter(Boolean).join(" ");
+    return /accessor|อุปกรณ์|อะไหล่|string|สายกีตาร์|strings|bag|case|pick|pickup|capo|tuner|เครื่องตั้งสาย/i.test(haystack);
+  };
+
   const fetchSupabaseProducts = async () => {
     setLoadingSupa(true);
     const { data, error } = await supabase.from("products").select("*").order("id", { ascending: false });
@@ -214,7 +222,7 @@ function StockManager() {
 
   const displayProducts = allProducts.filter((p) => {
     const cat = (p.category || "").toLowerCase();
-    const isAcc = cat.includes("accessor") || cat.includes("string") || cat.includes("สาย");
+    const isAcc = isAccessoryProduct(p);
     if (categoryTab === "courses") return cat.includes("course") || cat.includes("คอร์ส") || cat.includes("เรียน");
     return categoryTab === "accessories" ? isAcc : !isAcc && !(cat.includes("course") || cat.includes("คอร์ส") || cat.includes("เรียน"));
   });
