@@ -26,6 +26,12 @@ function isAccessoryRecord(product: any) {
   return /accessor|อุปกรณ์|อะไหล่|string|สายกีตาร์|strings|bag|case|pick|pickup|capo|tuner|เครื่องตั้งสาย/i.test(haystack);
 }
 
+function isCustomRecord(product: any) {
+  const sourceCode = String(product?.specs?.sourceCode ?? product?.code ?? "").toUpperCase();
+  const price = product?.price;
+  return sourceCode.startsWith("G") && (price === null || price === undefined || price === "" || Number(price) <= 0 || String(product?.priceLabel ?? "").toLowerCase() === "enquiry");
+}
+
 /**
  * "Where to buy" hub.
  *
@@ -47,10 +53,10 @@ export default function Shop() {
   const isLoading = loadingGuitars || loadingAccessories;
 
   const listed = useMemo(() => {
-    const source = group === "guitar" ? guitars.filter(item => item.purchaseMode !== "custom") : accessories;
+    const source = group === "guitar" ? guitars.filter(item => item.purchaseMode !== "custom" && !isCustomRecord(item)) : accessories;
     const customSource = adminProducts.filter(product => {
       const accessory = isAccessoryRecord(product);
-      return group === "accessory" ? accessory : !accessory && inferPurchaseMode(product) !== "custom";
+      return group === "accessory" ? accessory : !accessory && inferPurchaseMode(product) !== "custom" && !isCustomRecord(product);
     }).map(product => ({ ...product, code: `ADMIN-${product.id}`, nameEn: product.name, typeName: product.category, image: product.image_url, shopee_url: product.shopee_url, lazada_url: product.lazada_url }));
     const q = query.trim().toLowerCase();
     return [...source, ...customSource]
