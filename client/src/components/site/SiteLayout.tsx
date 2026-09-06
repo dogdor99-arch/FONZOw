@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ChevronRight } from "lucide-react";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
@@ -9,6 +9,12 @@ import { useLocale } from "@/contexts/LocaleContext";
 export type Crumb = { label: string; href?: string };
 
 export function SiteLayout({ children }: { children: ReactNode }) {
+  const [location] = useLocation();
+
+  if (location === "/guitars") {
+    return <main className="min-h-screen bg-ink">{children}</main>;
+  }
+
   return (
     <div className="flex min-h-screen flex-col paper">
       <SiteHeader />

@@ -8,8 +8,7 @@ export function SiteHeader() {
   const { t, locale, setLocale } = useLocale();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navItems = [
-    { href: "/guitars", label: t("GUITAR SHOP", "GUITAR SHOP") },
-    { href: "/guitar-custom", label: t("GUITAR CUSTOM", "GUITAR CUSTOM"), featured: true },
+    { href: "/guitars", label: t("FONZO SHOP", "FONZO SHOP"), featured: true },
     { href: "/works", label: t("ผลงาน", "Works") },
     { href: "/artists", label: t("ศิลปิน", "Artists") },
     { href: "/dealers", label: t("ตัวแทนจำหน่าย", "Dealers") },

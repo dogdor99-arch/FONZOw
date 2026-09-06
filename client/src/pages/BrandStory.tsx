@@ -1,3 +1,5 @@
+import { Link } from "wouter";
+import { ArrowRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { PageHeading } from "@/components/site/SiteLayout";
@@ -33,6 +35,7 @@ export default function BrandStory() {
         imageAlt={t("เรื่องราวแบรนด์ Fonzo", "Fonzo brand story")}
         html={article?.html}
         isLoading={isLoading}
+        extras={<div className="space-y-3"><p className="text-sm leading-relaxed text-muted-foreground">{t("หน้านี้เล่าเรื่องวิวัฒนาการ แนวคิด และงานฝีมือของแบรนด์ ส่วนเรื่องราวของผู้ก่อตั้งแยกอยู่ในหน้า Founder", "This page follows the brand's evolution, ideas and craft. The founder's personal story lives separately on the Founder page.")}</p><Link href="/founder" className="inline-flex items-center gap-2 text-[11px] tracking-[0.14em] text-brand uppercase transition-colors hover:text-gold">{t("ไปยังหน้า Founder", "Meet the founder")}<ArrowRight className="h-3.5 w-3.5" /></Link></div>}
       />
     </>
   );
