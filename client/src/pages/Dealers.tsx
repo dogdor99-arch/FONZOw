@@ -262,70 +262,7 @@ export default function Dealers() {
                     className="overflow-visible"
                   >
                     <div className="group relative flex h-full w-full items-center justify-center">
-                      <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-3 hidden group-hover:flex flex-col items-center z-50 transition-all duration-300 animate-in fade-in slide-in-from-top-2">
-                        <div className="h-2 w-2 rotate-45 bg-[#121216] border-l border-t border-gold/50 -mb-1 z-10" />
-                          <div className="w-[300px] sm:w-[330px] rounded-2xl bg-[#121216]/95 border border-gold/60 p-5 shadow-2xl backdrop-blur-xl pointer-events-auto text-left">
-                            <div className="mb-4 overflow-hidden rounded-xl border border-cream/10 bg-ink-soft">
-                              {loc.dealers[0]?.storefrontImage ? (
-                                <img src={loc.dealers[0].storefrontImage} alt={`${loc.dealers[0].name} storefront`} className="h-28 w-full object-cover" />
-                              ) : (
-                                <div className="flex h-28 items-center justify-center gap-3 text-cream/45"><Store className="h-7 w-7 text-gold/70" strokeWidth={1.25} /><span className="text-[10px] tracking-[0.14em] uppercase">Store preview</span></div>
-                              )}
-                            </div>
-                            <div className="flex items-center justify-between border-b border-cream/10 pb-3">
-                            <div>
-                              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-gold">
-                                <MapPin className="h-3 w-3" /> {loc.city}
-                              </div>
-                              <h4 className="text-lg font-display text-cream flex items-center gap-2 mt-0.5">
-                                <span>{loc.flag}</span> {loc.country}
-                              </h4>
-                            </div>
-                            {loc.mainWeb && (
-                              <a
-                                href={loc.mainWeb}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1 text-[10px] text-gold hover:bg-gold hover:text-ink transition"
-                              >
-                                <GlobeIcon className="h-3 w-3" /> Site
-                              </a>
-                            )}
-                          </div>
-
-                          <div className="mt-3 space-y-2.5 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
-                            {loc.dealers.map((dealer, idx) => (
-                              <div key={idx} className="rounded-lg border border-white/5 bg-ink/80 p-3">
-                                <div className="flex items-start justify-between gap-1">
-                                  <span className="font-semibold text-gold text-xs">{dealer.name}</span>
-                                  <Store className="h-3.5 w-3.5 text-gold/60 shrink-0" />
-                                </div>
-                                <p className="mt-1 text-[11px] leading-relaxed text-cream/70">{dealer.address}</p>
-                                
-                                <div className="mt-2 flex flex-wrap gap-2 border-t border-cream/10 pt-2 text-[10px] text-cream/80">
-                                  {dealer.tel && (
-                                    <span className="flex items-center gap-1">
-                                      <Phone className="h-3 w-3 text-gold shrink-0" /> {dealer.tel}
-                                    </span>
-                                  )}
-                                  {dealer.email && (
-                                    <a href={`mailto:${dealer.email}`} className="flex items-center gap-1 text-gold hover:underline">
-                                      <Mail className="h-3 w-3 shrink-0" /> Email
-                                    </a>
-                                  )}
-                                  {dealer.web && (
-                                    <a href={dealer.web} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-gold hover:underline font-medium">
-                                      <GlobeIcon className="h-3 w-3" /> Visit <ExternalLink className="h-2.5 w-2.5" />
-                                    </a>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Pins Image */}
+                      {/* Pins Image; details are shown in the persistent panel below the map. */}
                       <button type="button" onMouseEnter={() => setActiveLocationId(loc.id)} onFocus={() => setActiveLocationId(loc.id)} onClick={() => setActiveLocationId(loc.id)} aria-label={`${loc.country} ${loc.city}`} className={`relative flex h-8 w-8 items-center justify-center rounded-full border p-1.5 shadow-2xl transition-all duration-300 hover:scale-125 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${activeLocationId === loc.id ? "border-white bg-gold" : "border-gold/80 bg-black/90 hover:bg-gold hover:border-white"}`}>
                         <img
                           src={BRAND.logo}

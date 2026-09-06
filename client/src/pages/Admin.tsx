@@ -5,7 +5,6 @@ import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { PageHeading } from "@/components/site/SiteLayout";
-import { NewsroomAdmin } from "@/components/site/NewsroomAdmin";
 import { ArtistsAdmin } from "@/components/site/ArtistsAdmin";
 import { WorksAdmin } from "@/components/site/WorksAdmin";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { inferCustomFamily, inferPurchaseMode } from "@shared/fonzo/customizer";
 
-type Tab = "stock" | "newsroom" | "artists" | "works";
+type Tab = "stock" | "artists" | "works";
 type SubView = "list" | "add" | "edit";
 
 export default function Admin() {
@@ -57,7 +56,6 @@ export default function Admin() {
         <div className="flex flex-wrap gap-2 border-b border-border/70 pb-5">
           {[
             { key: "stock", label: t("จัดการสต็อกและสินค้า", "Products & Inventory") },
-            { key: "newsroom", label: t("คอนเทนต์หน้าแรก", "Newsroom") },
             { key: "artists", label: t("ศิลปิน", "Artists") },
             { key: "works", label: t("ผลงาน / Events", "Works / Events") },
           ].map(item => (
@@ -68,7 +66,6 @@ export default function Admin() {
         </div>
         <div className="mt-8">
           {tab === "stock" && <StockManager />}
-          {tab === "newsroom" && <NewsroomAdmin />}
           {tab === "artists" && <ArtistsAdmin />}
           {tab === "works" && <WorksAdmin />}
         </div>

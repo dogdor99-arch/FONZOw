@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Edit2, Eye, EyeOff, Plus, Save, Trash2, X } from "lucide-react";
+import { Edit2, Eye, EyeOff, Plus, Save, Trash2, X, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -30,6 +30,7 @@ export function ArtistsAdmin() {
   const create = trpc.artists.create.useMutation();
   const update = trpc.artists.update.useMutation();
   const remove = trpc.artists.remove.useMutation();
+  const uploadImage = trpc.artists.uploadImage.useMutation();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
@@ -58,6 +59,7 @@ export function ArtistsAdmin() {
     setOpen(true);
   };
   const set = (key: keyof FormState, value: string | boolean) => setForm(current => ({ ...current, [key]: value }));
+  const uploadLocalImage = async (file: File, key: "imageUrl" | "collaborationImageUrl") => { const base64 = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsDataURL(file); }); const result = await uploadImage.mutateAsync({ base64, contentType: file.type as "image/jpeg" | "image/png" | "image/webp" | "image/gif" }); set(key, result.url); };
 
   const save = async () => {
     if (!form.name.trim()) { toast.error(t("กรุณาใส่ชื่อศิลปิน", "Please enter an artist name")); return; }
@@ -93,8 +95,8 @@ export function ArtistsAdmin() {
       <Field label={t("ชื่อภาษาอังกฤษ", "English name")} value={form.nameEn} onChange={value => set("nameEn", value)} />
       <Field label={t("บทบาท", "Role")} value={form.role} onChange={value => set("role", value)} />
       <Field label={t("บทบาทภาษาอังกฤษ", "English role")} value={form.roleEn} onChange={value => set("roleEn", value)} />
-      <Field label={t("URL รูปโปรไฟล์", "Portrait image URL")} value={form.imageUrl} onChange={value => set("imageUrl", value)} />
-      <Field label={t("URL รูปร่วมงานกับแบรนด์", "Collaboration image URL")} value={form.collaborationImageUrl} onChange={value => set("collaborationImageUrl", value)} />
+      <div><Field label={t("URL รูปโปรไฟล์", "Portrait image URL")} value={form.imageUrl} onChange={value => set("imageUrl", value)} /><label className="mt-2 inline-flex cursor-pointer items-center text-xs text-brand hover:underline"><Upload className="mr-1 h-3.5 w-3.5" />{t("เลือกภาพจากเครื่อง", "Upload from computer")}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={async event => { const file = event.target.files?.[0]; if (file) await uploadLocalImage(file, "imageUrl"); event.target.value = ""; }} /></label></div>
+      <div><Field label={t("URL รูปร่วมงานกับแบรนด์", "Collaboration image URL")} value={form.collaborationImageUrl} onChange={value => set("collaborationImageUrl", value)} /><label className="mt-2 inline-flex cursor-pointer items-center text-xs text-brand hover:underline"><Upload className="mr-1 h-3.5 w-3.5" />{t("เลือกภาพจากเครื่อง", "Upload from computer")}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={async event => { const file = event.target.files?.[0]; if (file) await uploadLocalImage(file, "collaborationImageUrl"); event.target.value = ""; }} /></label></div>
       <Field label={t("ลิงก์โพสต์ต้นฉบับ", "Original source URL")} value={form.sourceUrl} onChange={value => set("sourceUrl", value)} />
       <Field label={t("รุ่นกีต้าที่ร่วมงาน", "Associated guitar")} value={form.guitar} onChange={value => set("guitar", value)} />
       <Field label={t("ลำดับการแสดงผล", "Display order")} value={form.sortOrder} onChange={value => set("sortOrder", value)} type="number" />
