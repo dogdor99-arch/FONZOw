@@ -78,34 +78,44 @@ export default function GuitarList() {
       }
     });
 
-    // แปลงข้อมูลสินค้าจาก Supabase เป็นรูปแบบที่ CatalogBrowser รองรับ
+    const catalogByName = new Map<string, any>();
+    catalogGuitars.forEach((g: any) => {
+      if (g.name) catalogByName.set(String(g.name).toLowerCase().trim(), g);
+    });
+
+    // แปลงข้อมูลจาก Supabase พร้อมรักษาข้อมูลประเภท/รหัสเดิมจาก catalog
+    // เมื่อรายการใน Admin บันทึกไว้เฉพาะราคา ลิงก์ หรือรูปภาพ
     const formattedSupabaseProducts = supabaseProducts.map((item) => {
-      const validImages = item.image_urls && item.image_urls.length > 0 
-        ? item.image_urls 
-        : (item.image_url ? [item.image_url] : ["/fonzo-logo.png"]);
+      const catalog = catalogByName.get(String(item.name || "").toLowerCase().trim());
+      const validImages = item.image_urls && item.image_urls.length > 0
+        ? item.image_urls
+        : (item.image_url ? [item.image_url] : [catalog?.image || "/fonzo-logo.png"]);
+      const mergedCategory = item.category || catalog?.seriesName || "Fonzo Acoustic";
+      const mergedTypeName = item.type_name || catalog?.typeName || mergedCategory;
 
       return withProductMeta({
-        id: item.id || `supa-${item.name}`,
-        code: item.code || item.name,
-        name: item.name,
-        nameEn: item.name_en || item.name,
-        seriesName: item.category || "Fonzo Acoustic",
-        series: item.category || "Fonzo Acoustic",
-        type: item.type || "Acoustic",
-        typeCode: item.type_code || "",
-        typeName: item.type_name || item.category || "Acoustic",
-        price: item.price == null || item.price === "" ? null : Number(item.price),
-        image: validImages[0], // รูปหลักหน้าปก
-        images: validImages,   // รูปภาพหลายมุมทั้งหมด
-        inStock: Number(item.stock || 0) > 0,
-        shopeeUrl: item.shopee_url || item.shopeeUrl || item.shopee || null,
-        lazadaUrl: item.lazada_url || item.lazadaUrl || item.lazada || null,
+        ...catalog,
+        id: item.id || catalog?.id || `supa-${item.name}`,
+        code: item.code || catalog?.code || item.name,
+        name: item.name || catalog?.name,
+        nameEn: item.name_en || catalog?.nameEn || item.name,
+        seriesName: mergedCategory,
+        series: item.series || catalog?.series || mergedCategory,
+        type: item.type || catalog?.type || mergedTypeName,
+        typeCode: item.type_code || catalog?.typeCode || "",
+        typeName: mergedTypeName,
+        price: item.price == null || item.price === "" ? (catalog?.price ?? null) : Number(item.price),
+        image: validImages[0],
+        images: validImages,
+        inStock: item.stock == null ? catalog?.inStock : Number(item.stock || 0) > 0,
+        shopeeUrl: item.shopee_url || item.shopeeUrl || item.shopee || catalog?.shopeeUrl || null,
+        lazadaUrl: item.lazada_url || item.lazadaUrl || item.lazada || catalog?.lazadaUrl || null,
         raw: item,
-        specs: item.specs || {},
+        specs: item.specs || catalog?.specs || {},
       });
     });
 
-    // กรองแคตตาล็อกเดิม: ถ้ารุ่นไหนมีชื่อตรงกับใน Supabase แล้ว ให้ซ่อนตัวเก่าทิ้งทันที (ป้องกันตัวซ้ำ)
+    // กรอง catalog เดิมเฉพาะรายการที่ถูกแทนด้วย override ใน Supabase
     const filteredCatalog = catalogGuitars.filter((g: any) => {
       const gName = (g.name || g.code || "").toLowerCase().trim();
       return !supaNameMap.has(gName);
