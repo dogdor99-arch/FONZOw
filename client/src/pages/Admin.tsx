@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload, Guitar, Headphones, Download } from "lucide-react";
+import { Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload, Guitar, Headphones, Download, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -85,7 +85,7 @@ function StockManager() {
   const [loadingSupa, setLoadingSupa] = useState(true);
   const [editingItem, setEditingItem] = useState<any>(null);
 
-  const [categoryTab, setCategoryTab] = useState<"guitars" | "accessories">("guitars");
+  const [categoryTab, setCategoryTab] = useState<"guitars" | "accessories" | "courses">("guitars");
 
   const fetchSupabaseProducts = async () => {
     setLoadingSupa(true);
@@ -203,7 +203,7 @@ function StockManager() {
   };
 
   if (view === "add") {
-    return <ProductForm mode="add" onBack={() => { setView("list"); fetchSupabaseProducts(); }} />;
+    return <ProductForm mode="add" defaultCategory={categoryTab === "courses" ? "Bird Course" : undefined} defaultProductType={categoryTab === "courses" ? "course" : undefined} onBack={() => { setView("list"); fetchSupabaseProducts(); }} />;
   }
 
   if (view === "edit" && editingItem) {
@@ -215,7 +215,8 @@ function StockManager() {
   const displayProducts = allProducts.filter((p) => {
     const cat = (p.category || "").toLowerCase();
     const isAcc = cat.includes("accessor") || cat.includes("string") || cat.includes("สาย");
-    return categoryTab === "accessories" ? isAcc : !isAcc;
+    if (categoryTab === "courses") return cat.includes("course") || cat.includes("คอร์ส") || cat.includes("เรียน");
+    return categoryTab === "accessories" ? isAcc : !isAcc && !(cat.includes("course") || cat.includes("คอร์ส") || cat.includes("เรียน"));
   });
 
   return (
@@ -232,7 +233,7 @@ function StockManager() {
             <Download className="mr-2 h-3.5 w-3.5" /> ดาวน์โหลด JSON
           </Button>
           <Button onClick={() => setView("add")} className="h-9 rounded-none bg-brand text-brand-foreground text-[11px] tracking-widest uppercase">
-            <Plus className="mr-2 h-4 w-4" /> {t("เพิ่มสินค้าใหม่", "Add New Product")}
+            <Plus className="mr-2 h-4 w-4" /> {categoryTab === "courses" ? "เพิ่มคอร์สเรียน" : t("เพิ่มสินค้าใหม่", "Add New Product")}
           </Button>
           <Button onClick={fetchSupabaseProducts} variant="outline" size="sm" className="h-9 rounded-none border-border">
             <RefreshCw className="mr-2 h-3.5 w-3.5" /> {t("รีเฟรช", "Refresh")}
@@ -253,8 +254,11 @@ function StockManager() {
           onClick={() => setCategoryTab("accessories")} 
           className={cn("pb-3 text-xs uppercase tracking-widest font-semibold flex items-center gap-2 transition-all", categoryTab === "accessories" ? "text-brand border-b-2 border-brand" : "text-muted-foreground hover:text-foreground")}
         >
-          <Headphones className="h-4 w-4" /> อุปกรณ์เสริม (Accessories & Strings)
-        </button>
+            <Headphones className="h-4 w-4" /> อุปกรณ์เสริม (Accessories & Strings)
+          </button>
+          <button type="button" onClick={() => setCategoryTab("courses")} className={cn("pb-3 text-xs uppercase tracking-widest font-semibold flex items-center gap-2 transition-all", categoryTab === "courses" ? "text-brand border-b-2 border-brand" : "text-muted-foreground hover:text-brand")}>
+            <BookOpen className="h-4 w-4" /> คอร์สเรียนพี่เบิร์ด (Courses)
+          </button>
       </div>
 
       <div className="border border-border bg-card overflow-x-auto">
@@ -320,9 +324,11 @@ function StockManager() {
 }
 
 // ฟอร์มเพิ่ม/แก้ไขสินค้า
-function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", initialData?: any, onBack: () => void }) {
-  const isAccInitial = initialData?.category?.toLowerCase().includes("string") || initialData?.category?.toLowerCase().includes("accessor") || initialData?.category?.toLowerCase().includes("สาย");
-  const [productType, setProductType] = useState<string>(isAccInitial ? "accessory" : "guitar");
+function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProductType }: { mode: "add" | "edit", initialData?: any, onBack: () => void, defaultCategory?: string, defaultProductType?: "guitar" | "accessory" | "course" }) {
+  const initialCategory = String(initialData?.category ?? "").toLowerCase();
+  const isCourseInitial = initialCategory.includes("course") || initialCategory.includes("คอร์ส") || initialCategory.includes("เรียน");
+  const isAccInitial = initialCategory.includes("string") || initialCategory.includes("accessor") || initialCategory.includes("สาย");
+  const [productType, setProductType] = useState<"guitar" | "accessory" | "course">(defaultProductType ?? (isCourseInitial ? "course" : isAccInitial ? "accessory" : "guitar"));
   const [purchaseMode, setPurchaseMode] = useState<"shop" | "custom">(inferPurchaseMode(initialData));
   const [customFamily, setCustomFamily] = useState<"custom" | "selection">(inferCustomFamily(initialData) || "custom");
   
@@ -361,7 +367,7 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
     name: initialData?.name || "",
     price: initialData?.price || 0,
     stock: initialData?.stock || 10,
-    category: initialData?.category || (isAccInitial ? "Accessories & Strings" : "Fonzo Acoustic"),
+    category: initialData?.category || defaultCategory || (isAccInitial ? "Accessories & Strings" : "Fonzo Acoustic"),
     description: initialData?.description || "",
     shopee_url: getInitVal("shopee_url", "shopeeUrl", "shopee"),
     lazada_url: getInitVal("lazada_url", "lazadaUrl", "lazada"),
@@ -443,13 +449,15 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
           "BRIDGE": guitarSpecs.bridge,
           "FINISH": guitarSpecs.finish
         };
-      } else {
+      } else if (productType === "accessory") {
         specs = {
           "String Gauge": accessorySpecs.string_gauge,
           "Material": accessorySpecs.material,
           "Brand": accessorySpecs.brand,
           "Type": accessorySpecs.type
         };
+      } else {
+        specs = { "Content Type": "Bird Guitar Course" };
       }
 
       let customizer = null;
@@ -533,6 +541,10 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
             <label className="flex items-center gap-2 text-xs cursor-pointer font-medium">
               <input type="radio" name="pType" checked={productType === "accessory"} onChange={() => { setProductType("accessory"); setFormData({...formData, category: "Accessories & Strings"}); }} />
               สายกีตาร์และอุปกรณ์เสริม (Strings & Accessories)
+            </label>
+            <label className="flex items-center gap-2 text-xs cursor-pointer font-medium">
+              <input type="radio" name="pType" checked={productType === "course"} onChange={() => { setProductType("course"); setFormData({...formData, category: "Bird Course"}); }} />
+              คอร์สเรียนของพี่เบิร์ด (Bird Courses)
             </label>
           </div>
         </div>
@@ -697,7 +709,7 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
               </div>
             </div>
           </div>
-        ) : (
+        ) : productType === "accessory" ? (
           <div className="border-t border-border pt-6 space-y-4">
             <p className="text-xs uppercase tracking-widest font-semibold text-brand">สเปคสายกีตาร์และอุปกรณ์เสริม (Strings & Accessories Specs)</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -719,6 +731,8 @@ function ProductForm({ mode, initialData, onBack }: { mode: "add" | "edit", init
               </div>
             </div>
           </div>
+        ) : (
+          <div className="border-t border-border pt-6"><div className="border border-brand/20 bg-brand/5 p-5 text-sm leading-relaxed text-muted-foreground">คอร์สเรียนของพี่เบิร์ดใช้ชื่อ ราคา รายละเอียด รูปภาพ และลิงก์ร้านค้าจากช่องด้านบนเป็นข้อมูลหลัก สามารถทยอยเพิ่มหรือแก้ไขรายการได้จากแท็บนี้ใน Admin</div></div>
         )}
 
         {productType === "guitar" && purchaseMode === "custom" && (

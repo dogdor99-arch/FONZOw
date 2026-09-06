@@ -11,6 +11,7 @@ import { SiteLayout } from "./components/site/SiteLayout";
 import Home from "./pages/Home";
 import Founder from "./pages/Founder";
 import BrandStory from "./pages/BrandStory";
+import BrandPresentation from "./pages/BrandPresentation";
 import GuitarList from "./pages/GuitarList";
 import GuitarDetail from "./pages/GuitarDetail";
 import GuitarCustomList from "./pages/GuitarCustomList";
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/founder" component={Founder} />
       <Route path="/brand-story" component={BrandStory} />
+      <Route path="/brand-presentation" component={BrandPresentation} />
       
       {/* Guitar Shop opens with a minimal category gateway; catalogue aliases remain available. */}
       <Route path="/guitars" component={ShopGateway} />

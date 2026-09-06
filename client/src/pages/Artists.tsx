@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, ExternalLink, MoveRight, Music2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
-import { PageHeading } from "@/components/site/SiteLayout";
 import { FEATURED_ARTISTS } from "@/lib/artistContent";
 
 export default function Artists() {
@@ -30,7 +29,21 @@ export default function Artists() {
 
   const current = artists[active] ?? artists[0];
 
-  useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }, []);
+  useEffect(() => {
+    if (artists.length < 2) return;
+    const interval = window.setInterval(() => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      setSwitching(true);
+      timeoutRef.current = setTimeout(() => {
+        setActive(previous => (previous + 1) % artists.length);
+        timeoutRef.current = setTimeout(() => setSwitching(false), 120);
+      }, 220);
+    }, 6500);
+    return () => {
+      window.clearInterval(interval);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [artists.length]);
 
   const changeArtist = (nextIndex: number) => {
     if (!artists.length || nextIndex === active || switching) return;
@@ -47,7 +60,7 @@ export default function Artists() {
   };
 
   if (!current) {
-    return <><PageHeading eyebrow={t("ศิลปินและผู้เล่น", "Artists & players")} title="Artists" crumbs={[{ label: "Artists" }]} index="06" /><div className="mx-auto max-w-5xl px-4 py-20 text-center text-muted-foreground">{t("ยังไม่มีข้อมูลศิลปิน", "No artist profiles yet")}</div></>;
+    return <><div className="border-b border-border/70 bg-cream/40 px-4 py-9 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1500px]"><p className="text-[10px] tracking-[0.18em] text-muted-foreground uppercase">หน้าแรก <span className="mx-2 text-brand">›</span> Artists</p><p className="mt-4 eyebrow text-brand">{t("ศิลปินและผู้เล่น", "Artists & players")}</p><h1 className="mt-2 font-display text-4xl leading-none sm:text-5xl">Artists</h1></div></div><div className="mx-auto max-w-5xl px-4 py-20 text-center text-muted-foreground">{t("ยังไม่มีข้อมูลศิลปิน", "No artist profiles yet")}</div></>;
   }
 
   const title = locale === "th" ? current.name : current.nameEn;
@@ -59,11 +72,11 @@ export default function Artists() {
   ].filter(Boolean) as { image: string; label: string }[];
 
   return <>
-    <PageHeading eyebrow={t("ศิลปินและผู้เล่น", "Artists & players")} title="Artists" description={t("เสียงและตัวตนของผู้เล่นที่ร่วมเดินทางไปกับ Fonzo", "The voices and identities of players who travel with Fonzo.")} crumbs={[{ label: "Artists" }]} index="06" />
+    <div className="border-b border-border/70 bg-cream/40 px-4 py-9 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1500px]"><p className="text-[10px] tracking-[0.18em] text-muted-foreground uppercase">หน้าแรก <span className="mx-2 text-brand">›</span> Artists</p><p className="mt-4 eyebrow text-brand">{t("ศิลปินและผู้เล่น", "Artists & players")}</p><div className="mt-2 flex flex-wrap items-end justify-between gap-4"><h1 className="font-display text-4xl leading-none sm:text-5xl">Artists</h1><p className="max-w-md text-sm text-muted-foreground">{t("เสียงและตัวตนของผู้เล่นที่ร่วมเดินทางไปกับ Fonzo", "The voices and identities of players who travel with Fonzo.")}</p></div></div></div>
     <main className="overflow-hidden bg-cream/35">
-      <section className="mx-auto max-w-[1500px] px-4 pb-20 pt-5 sm:px-6 lg:px-10 lg:pb-28 lg:pt-10">
+      <section className="mx-auto max-w-[1500px] px-4 pb-16 pt-4 sm:px-6 lg:px-10 lg:pb-24 lg:pt-7">
         <div className={`relative transition duration-300 ease-out ${switching ? "translate-x-5 opacity-0" : "translate-x-0 opacity-100"}`}>
-          <div className="grid min-h-[620px] items-center gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:gap-12">
+          <div className="grid min-h-[540px] items-center gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:gap-12">
             <div className="relative flex min-h-[390px] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,rgba(194,151,78,0.16),transparent_62%)] sm:min-h-[520px] lg:min-h-[650px]">
               <div className="pointer-events-none absolute left-5 top-5 text-[9px] tracking-[0.2em] text-brand/70 uppercase">{String(active + 1).padStart(2, "0")} / {String(artists.length).padStart(2, "0")}</div>
               {current.image ? <img key={current.id} src={current.image} alt={title} className="h-full max-h-[620px] w-full object-contain object-center mix-blend-multiply transition duration-500" onError={event => { event.currentTarget.style.display = "none"; }} /> : <div className="flex flex-col items-center gap-4 text-muted-foreground"><Music2 className="h-12 w-12 text-gold" strokeWidth={1.1} /><span className="eyebrow">{t("ใส่รูปศิลปินจาก Admin", "Add an artist image from Admin")}</span></div>}
