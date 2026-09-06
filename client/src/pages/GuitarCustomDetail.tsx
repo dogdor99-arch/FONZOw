@@ -35,7 +35,8 @@ export default function GuitarCustomDetail() {
     const decoded = decodeURIComponent(code || "").trim().toLowerCase();
     const clean = (value: unknown) => String(value || "").toLowerCase().replace(/[^a-z0-9ก-ฮ]/g, "");
     const catalog = catalogRows.find((item: any) => [item.name, item.code].some(value => clean(value) === clean(decoded) || clean(decoded).includes(clean(value))));
-    const supabaseMatch = supabaseProducts.find(item => [item.name, item.code, item.id].some(value => clean(value) === clean(decoded) || clean(decoded).includes(clean(value))));
+    const supabaseMatch = supabaseProducts.find(item => clean(item.specs?.sourceCode) === clean(decoded) || clean(item.code) === clean(decoded))
+      || supabaseProducts.find(item => [item.name, item.id].some(value => clean(value) === clean(decoded) || clean(decoded).includes(clean(value))));
     if (!catalog && !supabaseMatch) return null;
 
     const base = { ...(catalog || {}), ...(catalogDetail || {}) };
@@ -76,9 +77,9 @@ export default function GuitarCustomDetail() {
     if (Array.isArray(specs)) {
       return specs
         .map((item: any) => [item.title || item.key || "Specification", item.value])
-        .filter(([, value]: any[]) => value !== null && value !== undefined && value !== "");
+        .filter(([key, value]: any[]) => !/^(sourceurl|source_url|sourcecode|source_code)$/i.test(String(key)) && value !== null && value !== undefined && value !== "");
     }
-    return Object.entries(specs).filter(([key, value]) => !["customizer", "purchaseMode", "customFamily"].includes(key) && value !== null && value !== undefined && value !== "");
+    return Object.entries(specs).filter(([key, value]) => !["customizer", "purchaseMode", "customFamily"].includes(key) && !/^(sourceurl|source_url|sourcecode|source_code)$/i.test(key) && value !== null && value !== undefined && value !== "");
   }, [specs]);
   const isLoading = catalogLoading || detailLoading || loadingSupabase;
 

@@ -58,6 +58,8 @@ export type FonzoProductSummary = {
   shopeeUrl?: string | null;
   lazadaUrl?: string | null;
   contactUrl?: string | null;
+  description?: string | null;
+  descriptionEn?: string | null;
   customizer?: CustomizerConfig | null;
   raw?: Record<string, unknown>;
 };

@@ -336,8 +336,9 @@ function StockManager() {
 // ฟอร์มเพิ่ม/แก้ไขสินค้า
 function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProductType }: { mode: "add" | "edit", initialData?: any, onBack: () => void, defaultCategory?: string, defaultProductType?: "guitar" | "accessory" | "course" }) {
   const initialCategory = String(initialData?.category ?? "").toLowerCase();
-  const isCourseInitial = initialCategory.includes("course") || initialCategory.includes("คอร์ส") || initialCategory.includes("เรียน");
-  const isAccInitial = initialCategory.includes("string") || initialCategory.includes("accessor") || initialCategory.includes("สาย");
+  const sourceCodeInitial = String(initialData?.specs?.sourceCode ?? initialData?.code ?? "").toUpperCase();
+  const isCourseInitial = initialData?.itemKind === "course" || initialCategory.includes("course") || initialCategory.includes("คอร์ส") || initialCategory.includes("เรียน");
+  const isAccInitial = initialData?.itemKind === "accessory" || sourceCodeInitial.startsWith("A") || initialCategory.includes("string") || initialCategory.includes("accessor") || initialCategory.includes("สาย");
   const [productType, setProductType] = useState<"guitar" | "accessory" | "course">(defaultProductType ?? (isCourseInitial ? "course" : isAccInitial ? "accessory" : "guitar"));
   const [purchaseMode, setPurchaseMode] = useState<"shop" | "custom">(inferPurchaseMode(initialData));
   const [customFamily, setCustomFamily] = useState<"custom" | "selection">(inferCustomFamily(initialData) || "custom");
@@ -412,6 +413,7 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
     return raw ? JSON.stringify(raw, null, 2) : "";
   });
   const [saving, setSaving] = useState(false);
+  const isStringAccessory = /string|สาย|เบอร์สาย/i.test(`${formData.category} ${accessorySpecs.type}`);
 
   const handleLocalFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -723,10 +725,10 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
           <div className="border-t border-border pt-6 space-y-4">
             <p className="text-xs uppercase tracking-widest font-semibold text-brand">สเปคสายกีตาร์และอุปกรณ์เสริม (Strings & Accessories Specs)</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
+              {isStringAccessory && <div>
                 <label className="text-[11px] text-muted-foreground uppercase">String Gauge (เบอร์สาย)</label>
                 <Input value={accessorySpecs.string_gauge} onChange={(e) => setAccessorySpecs({...accessorySpecs, string_gauge: e.target.value})} placeholder="12-53 (Light)" className="mt-1 h-9 rounded-none border-border" />
-              </div>
+              </div>}
               <div>
                 <label className="text-[11px] text-muted-foreground uppercase">Material (วัสดุ / ชนิดสาย)</label>
                 <Input value={accessorySpecs.material} onChange={(e) => setAccessorySpecs({...accessorySpecs, material: e.target.value})} placeholder="Phosphor Bronze / Nylon" className="mt-1 h-9 rounded-none border-border" />

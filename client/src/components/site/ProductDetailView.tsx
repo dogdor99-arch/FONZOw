@@ -29,6 +29,7 @@ export function ProductDetailView({
 
   const title = locale === "th" ? product.name || product.nameEn : product.nameEn || product.name;
   const specs = locale === "th" ? product.specs : product.specsEn;
+  const description = locale === "th" ? product.description : product.descriptionEn || product.description;
   const images = product.images.length > 0 ? product.images : [];
   const embed = product.videoUrl ? youtubeEmbed(product.videoUrl) : null;
 
@@ -66,6 +67,13 @@ export function ProductDetailView({
 
             <BuyChannels code={product.code} title={title} className="mt-8" />
 
+            {description && (
+              <div className="mt-10 border-t border-border/70 pt-6">
+                <p className="eyebrow">{t("รายละเอียดสินค้า", "Product details")}</p>
+                <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{description}</p>
+              </div>
+            )}
+
             {/* Specs */}
             {specs.length > 0 && (
               <div className="mt-12">
@@ -73,7 +81,7 @@ export function ProductDetailView({
                 <dl className="mt-5 grid border-t border-border/70 sm:grid-cols-2 sm:gap-x-8">
                   {/* Upstream specs can repeat the same title/value pair, so the
                       row position is part of the key to keep it unique. */}
-                  {specs.map((spec, index) => (
+                  {specs.filter(spec => !/^(sourceurl|source_url|sourcecode|source_code)$/i.test(spec.title.trim())).map((spec, index) => (
                     <div
                       key={`${spec.title}-${spec.value}-${index}`}
                       className="border-b border-border/70 py-3.5">

@@ -1,9 +1,11 @@
 import { Link, useParams } from "wouter";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { ProductDetailView } from "@/components/site/ProductDetailView";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
 
 export default function AccessoryDetail() {
   const { code = "" } = useParams<{ code: string }>();
@@ -14,12 +16,45 @@ export default function AccessoryDetail() {
     { enabled: Boolean(code) },
   );
   const { data: all = [] } = trpc.fonzo.accessories.list.useQuery();
+  const [adminProducts, setAdminProducts] = useState<any[]>([]);
+  const [adminLoading, setAdminLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    supabase.from("products").select("*").then(({ data }) => {
+      if (active) setAdminProducts(data ?? []);
+      if (active) setAdminLoading(false);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const displayProduct = useMemo(() => {
+    if (!product) return null;
+    const admin = adminProducts.find(item =>
+      item.name?.trim().toLowerCase() === product.name?.trim().toLowerCase() ||
+      item.specs?.sourceCode === product.code,
+    );
+    if (!admin) return product;
+    const adminSpecs = admin.specs && typeof admin.specs === "object" && !Array.isArray(admin.specs)
+      ? Object.entries(admin.specs)
+        .filter(([key, value]) => !/^(sourceurl|source_url|sourcecode|source_code|purchaseMode|customizer|customFamily)$/i.test(key) && value !== null && value !== undefined && value !== "")
+        .map(([title, value]) => ({ title, value: String(value) }))
+      : [];
+    return {
+      ...product,
+      description: admin.description || product.description,
+      descriptionEn: admin.description || product.descriptionEn,
+      specs: adminSpecs.length > 0 ? adminSpecs : product.specs,
+      specsEn: adminSpecs.length > 0 ? adminSpecs : product.specsEn,
+      images: admin.image_urls?.length ? admin.image_urls.map((url: string) => ({ url, isDefault: false })) : product.images,
+    };
+  }, [product, adminProducts]);
 
   const related = product
     ? all.filter(item => item.typeCode === product.typeCode && item.code !== product.code).slice(0, 4)
     : [];
 
-  if (isLoading) {
+  if (isLoading || adminLoading) {
     return (
       <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 lg:px-10">
         <div className="grid gap-12 lg:grid-cols-2">
@@ -47,7 +82,7 @@ export default function AccessoryDetail() {
     );
   }
 
-  const title = locale === "th" ? product.name || product.nameEn : product.nameEn || product.name;
+  const title = locale === "th" ? displayProduct?.name || displayProduct?.nameEn : displayProduct?.nameEn || displayProduct?.name;
 
   return (
     <>
@@ -67,7 +102,7 @@ export default function AccessoryDetail() {
         </nav>
       </div>
 
-      <ProductDetailView product={product} related={related} basePath="/accessories" />
+      <ProductDetailView product={displayProduct ?? product} related={related} basePath="/accessories" />
     </>
   );
 }

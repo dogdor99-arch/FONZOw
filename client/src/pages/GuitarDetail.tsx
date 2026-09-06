@@ -47,7 +47,7 @@ export default function GuitarDetail() {
       return gName === decodedClean || gCode === decodedClean || decodedClean.includes(gName) || gName.includes(decodedClean);
     });
 
-    const supaMatch = supabaseProducts.find((p) => {
+    const supaMatch = supabaseProducts.find((p) => cleanStr(p.specs?.sourceCode) === decodedClean || cleanStr(p.code) === decodedClean) || supabaseProducts.find((p) => {
       const pName = cleanStr(p.name);
       const pCode = cleanStr(p.code);
       const pId = cleanStr(p.id?.toString());
@@ -116,7 +116,7 @@ export default function GuitarDetail() {
     if (Array.isArray(s)) {
       return s
         .map((item: any) => [item.title || item.key || "Specification", item.value])
-        .filter(([, value]: any[]) => value !== null && value !== undefined && value !== "");
+        .filter(([key, value]: any[]) => !/^(sourceurl|source_url|sourcecode|source_code)$/i.test(String(key)) && value !== null && value !== undefined && value !== "");
     }
     const root = guitar as any;
 
@@ -140,7 +140,7 @@ export default function GuitarDetail() {
     ].filter(([_, val]) => val !== null && val !== undefined && val !== "");
 
     if (rawList.length === 0 && Object.keys(s).length > 0) {
-      return Object.entries(s).filter(([_, val]) => val !== null && val !== undefined && val !== "") as [string, any][];
+      return Object.entries(s).filter(([key, val]) => !/^(sourceurl|source_url|sourcecode|source_code)$/i.test(key) && val !== null && val !== undefined && val !== "") as [string, any][];
     }
     return rawList;
   }, [guitar]);
