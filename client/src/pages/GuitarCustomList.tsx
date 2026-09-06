@@ -9,12 +9,6 @@ import { PageHeading } from "@/components/site/SiteLayout";
 import { ProductCard, ProductCardSkeleton } from "@/components/site/ProductCard";
 import { cn } from "@/lib/utils";
 
-function isAccessoryProduct(product: any) {
-  const sourceCode = String(product?.specs?.sourceCode ?? product?.code ?? "").toUpperCase();
-  if (sourceCode.startsWith("A")) return true;
-  return /accessor|อุปกรณ์|อะไหล่|string|สายกีตาร์|strings|bag|case|pick|pickup|capo|tuner|เครื่องตั้งสาย/i.test([product.category, product.name, product.nameEn].filter(Boolean).join(" "));
-}
-
 export default function GuitarCustomList() {
   const { t } = useLocale();
   const { data: catalogGuitars = [], isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
@@ -41,7 +35,6 @@ export default function GuitarCustomList() {
       const images = Array.isArray(item.image_urls) && item.image_urls.length > 0
         ? item.image_urls
         : item.image_url ? [item.image_url] : [];
-      const noPrice = item.price === null || item.price === undefined || item.price === "" || Number(item.price) <= 0;
       return withProductMeta({
         ...item,
         code: item.code || item.name,
@@ -55,7 +48,6 @@ export default function GuitarCustomList() {
         images,
         shopeeUrl: item.shopee_url || item.shopeeUrl || item.shopee || null,
         lazadaUrl: item.lazada_url || item.lazadaUrl || item.lazada || null,
-        purchaseMode: !isAccessoryProduct(item) && noPrice ? "custom" : item.purchaseMode,
       });
     });
 
@@ -63,7 +55,7 @@ export default function GuitarCustomList() {
       .filter((item: any) => !supaByName.has((item.name || item.code || "").toLowerCase().trim()))
       .map((item: any) => withProductMeta(item));
 
-    return [...formatted, ...legacy].filter(item => !isAccessoryProduct(item) && item.purchaseMode === "custom");
+    return [...formatted, ...legacy].filter(item => item.purchaseMode === "custom");
   }, [catalogGuitars, supabaseProducts]);
 
   const filtered = useMemo(
