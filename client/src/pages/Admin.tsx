@@ -133,13 +133,15 @@ function StockManager() {
         return {
           ...g,
           ...supaMatch,
+          itemKind: g.itemKind,
           id: supaMatch.id,
           image_urls: supaMatch.image_urls && supaMatch.image_urls.length > 0 
             ? supaMatch.image_urls 
             : (g.images || [g.image || "/fonzo-logo.png"]),
           shopee_url: getVal(supaMatch, "shopee_url", "shopeeUrl", "shopee") || getVal(g, "shopee_url", "shopeeUrl", "shopee"),
           lazada_url: getVal(supaMatch, "lazada_url", "lazadaUrl", "lazada") || getVal(g, "lazada_url", "lazadaUrl", "lazada"),
-          isCatalogItem: false
+          isCatalogItem: false,
+          specs: { ...(supaMatch.specs || {}), sourceCode: supaMatch.specs?.sourceCode || g.code }
         };
       }
 
