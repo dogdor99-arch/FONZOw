@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { ExternalLink, Facebook, MessageCircle, PackageSearch, Phone, Search } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -16,6 +16,21 @@ import {
 } from "@shared/fonzo/marketplace";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import { inferPurchaseMode } from "@shared/fonzo/customizer";
+
+function isAccessoryRecord(product: any) {
+  const sourceCode = String(product?.specs?.sourceCode ?? product?.code ?? "").toUpperCase();
+  if (sourceCode.startsWith("A")) return true;
+  const haystack = [product.category, product.typeName, product.type, product.name, product.nameEn].filter(Boolean).join(" ");
+  return /accessor|อุปกรณ์|อะไหล่|string|สายกีตาร์|strings|bag|case|pick|pickup|capo|tuner|เครื่องตั้งสาย/i.test(haystack);
+}
+
+function isCustomRecord(product: any) {
+  const sourceCode = String(product?.specs?.sourceCode ?? product?.code ?? "").toUpperCase();
+  const price = product?.price;
+  return sourceCode.startsWith("G") && (price === null || price === undefined || price === "" || Number(price) <= 0 || String(product?.priceLabel ?? "").toLowerCase() === "enquiry");
+}
 
 /**
  * "Where to buy" hub.
@@ -30,16 +45,22 @@ export default function Shop() {
   const { data: guitars = [], isLoading: loadingGuitars } = trpc.fonzo.guitars.list.useQuery();
   const { data: accessories = [], isLoading: loadingAccessories } =
     trpc.fonzo.accessories.list.useQuery();
+  const [adminProducts, setAdminProducts] = useState<any[]>([]);
+  useEffect(() => { void supabase.from("products").select("*").then(({ data }) => setAdminProducts(data ?? [])); }, []);
   const [query, setQuery] = useState("");
   const [group, setGroup] = useState<"guitar" | "accessory">("guitar");
 
   const isLoading = loadingGuitars || loadingAccessories;
 
   const listed = useMemo(() => {
-    const source = group === "guitar" ? guitars : accessories;
+    const source = group === "guitar" ? guitars.filter(item => item.purchaseMode !== "custom" && !isCustomRecord(item)) : accessories;
+    const customSource = adminProducts.filter(product => {
+      const accessory = isAccessoryRecord(product);
+      return group === "accessory" ? accessory : !accessory && inferPurchaseMode(product) !== "custom" && !isCustomRecord(product);
+    }).map(product => ({ ...product, code: `ADMIN-${product.id}`, nameEn: product.name, typeName: product.category, image: product.image_url, shopee_url: product.shopee_url, lazada_url: product.lazada_url }));
     const q = query.trim().toLowerCase();
-    return source
-      .filter(item => hasMarketplaceListing(item.code))
+    return [...source, ...customSource]
+      .filter(item => hasMarketplaceListing(item.code) || item.shopee_url || item.lazada_url)
       .filter(item => {
         if (!q) return true;
         return `${item.name} ${item.nameEn} ${item.code} ${item.typeName}`.toLowerCase().includes(q);
@@ -286,8 +307,8 @@ export default function Shop() {
                             {title}
                           </h3>
                           <p className="mt-1 text-sm text-foreground/80">
-                            {item.price !== null
-                              ? `฿${item.price.toLocaleString("en-US")}`
+                            {item.price !== null && item.price !== undefined
+                              ? `฿${Number(item.price).toLocaleString("en-US")}`
                               : t("สอบถามราคา", "Price on enquiry")}
                           </p>
                         </div>
@@ -295,6 +316,8 @@ export default function Shop() {
                       <BuyChannels
                         code={item.code}
                         title={item.nameEn || item.name}
+                        shopeeUrl={item.shopee_url}
+                        lazadaUrl={item.lazada_url}
                         variant="row"
                         className="lg:w-[320px]"
                       />

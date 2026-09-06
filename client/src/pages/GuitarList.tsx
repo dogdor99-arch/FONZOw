@@ -9,10 +9,19 @@ import { withProductMeta } from "@shared/fonzo/customizer";
 const ACCESSORY_TERMS = /accessor|อุปกรณ์|อะไหล่|string|สายกีตาร์|strings|bag|case|pick|pickup|capo|tuner|เครื่องตั้งสาย/i;
 
 function isAccessoryProduct(product: any) {
+  const sourceCode = String(product?.raw?.specs?.sourceCode ?? product?.specs?.sourceCode ?? product?.code ?? "").toUpperCase();
+  if (sourceCode.startsWith("A")) return true;
+  if (sourceCode.startsWith("G")) return false;
   const haystack = [product.category, product.seriesName, product.typeName, product.type, product.name, product.nameEn]
     .filter(Boolean)
     .join(" ");
   return ACCESSORY_TERMS.test(haystack);
+}
+
+function isCustomGuitar(product: any) {
+  const sourceCode = String(product?.raw?.specs?.sourceCode ?? product?.specs?.sourceCode ?? product?.code ?? "").toUpperCase();
+  const price = product?.price;
+  return sourceCode.startsWith("G") && (price === null || price === undefined || price === "" || Number(price) <= 0 || String(product?.priceLabel ?? "").toLowerCase() === "enquiry");
 }
 
 function shopOrder(product: any) {
@@ -128,7 +137,7 @@ export default function GuitarList() {
   const isLoading = isLoadingCatalog || isLoadingSupabase;
   const shopGuitars = useMemo(
     () => allGuitars
-      .filter((product: any) => product.purchaseMode !== "custom" && !isAccessoryProduct(product))
+      .filter((product: any) => !isCustomGuitar(product) && product.purchaseMode !== "custom" && !isAccessoryProduct(product))
       .map((product: any, index: number) => ({
         product: { ...product, typeCode: normalizeShopTypeCode(product, types) },
         index,
