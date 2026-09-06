@@ -17,6 +17,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
+import { inferPurchaseMode } from "@shared/fonzo/customizer";
+
+function isAccessoryRecord(product: any) {
+  const sourceCode = String(product?.specs?.sourceCode ?? product?.code ?? "").toUpperCase();
+  if (sourceCode.startsWith("A")) return true;
+  const haystack = [product.category, product.typeName, product.type, product.name, product.nameEn].filter(Boolean).join(" ");
+  return /accessor|อุปกรณ์|อะไหล่|string|สายกีตาร์|strings|bag|case|pick|pickup|capo|tuner|เครื่องตั้งสาย/i.test(haystack);
+}
 
 /**
  * "Where to buy" hub.
@@ -39,10 +47,10 @@ export default function Shop() {
   const isLoading = loadingGuitars || loadingAccessories;
 
   const listed = useMemo(() => {
-    const source = group === "guitar" ? guitars : accessories;
+    const source = group === "guitar" ? guitars.filter(item => item.purchaseMode !== "custom") : accessories;
     const customSource = adminProducts.filter(product => {
-      const category = String(product.category ?? "").toLowerCase();
-      return group === "accessory" ? category.includes("accessor") || category.includes("string") || category.includes("สาย") : !category.includes("accessor") && !category.includes("string") && !category.includes("สาย") && !category.includes("course");
+      const accessory = isAccessoryRecord(product);
+      return group === "accessory" ? accessory : !accessory && inferPurchaseMode(product) !== "custom";
     }).map(product => ({ ...product, code: `ADMIN-${product.id}`, nameEn: product.name, typeName: product.category, image: product.image_url, shopee_url: product.shopee_url, lazada_url: product.lazada_url }));
     const q = query.trim().toLowerCase();
     return [...source, ...customSource]

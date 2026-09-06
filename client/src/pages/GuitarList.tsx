@@ -9,6 +9,9 @@ import { withProductMeta } from "@shared/fonzo/customizer";
 const ACCESSORY_TERMS = /accessor|อุปกรณ์|อะไหล่|string|สายกีตาร์|strings|bag|case|pick|pickup|capo|tuner|เครื่องตั้งสาย/i;
 
 function isAccessoryProduct(product: any) {
+  const sourceCode = String(product?.raw?.specs?.sourceCode ?? product?.specs?.sourceCode ?? product?.code ?? "").toUpperCase();
+  if (sourceCode.startsWith("A")) return true;
+  if (sourceCode.startsWith("G")) return false;
   const haystack = [product.category, product.seriesName, product.typeName, product.type, product.name, product.nameEn]
     .filter(Boolean)
     .join(" ");
