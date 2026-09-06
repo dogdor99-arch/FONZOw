@@ -19,9 +19,27 @@ function shopOrder(product: any) {
   const haystack = [product.category, product.seriesName, product.typeName, product.type, product.name, product.nameEn]
     .filter(Boolean)
     .join(" ").toLowerCase();
-  if (/classic/.test(haystack)) return 0;
-  if (/acoustic/.test(haystack)) return 1;
+  if (product.typeCode === "GT0001" || /classic/.test(haystack)) return 0;
+  if (product.typeCode === "GT0004" || /acoustic/.test(haystack)) return 1;
   return 2;
+}
+
+function normalizeShopTypeCode(product: any, types: any[]) {
+  const explicitCode = String(product.typeCode ?? product.type_code ?? "");
+  if (explicitCode === "GT0001" || explicitCode === "GT0004") return explicitCode;
+
+  const haystack = [product.category, product.typeName, product.type_name, product.type, product.seriesName]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  if (haystack.includes("classic")) return "GT0001";
+  if (haystack.includes("acoustic")) return "GT0004";
+
+  const matchedType = types.find((type: any) => String(type.code) === explicitCode);
+  const typeName = String(matchedType?.name ?? "").toLowerCase();
+  if (typeName.includes("classic")) return "GT0001";
+  if (typeName.includes("acoustic")) return "GT0004";
+  return explicitCode;
 }
 
 export default function GuitarList() {
@@ -101,14 +119,23 @@ export default function GuitarList() {
   const shopGuitars = useMemo(
     () => allGuitars
       .filter((product: any) => product.purchaseMode !== "custom" && !isAccessoryProduct(product))
-      .map((product: any, index: number) => ({ product, index }))
+      .map((product: any, index: number) => ({
+        product: { ...product, typeCode: normalizeShopTypeCode(product, types) },
+        index,
+      }))
       .sort((a, b) => shopOrder(a.product) - shopOrder(b.product) || a.index - b.index)
       .map(({ product }) => product),
-    [allGuitars],
+    [allGuitars, types],
   );
   const shopTypes = useMemo(() => {
-    const typeCodes = new Set(shopGuitars.map((product: any) => product.typeCode).filter(Boolean));
-    return types.filter((type: any) => typeCodes.size === 0 || typeCodes.has(type.code));
+    const shopTypeCodes = new Set(["GT0001", "GT0004"]);
+    return types
+      .filter((type: any) => shopTypeCodes.has(String(type.code)))
+      .map((type: any) => ({
+        ...type,
+        count: shopGuitars.filter((product: any) => product.typeCode === type.code).length,
+      }))
+      .filter((type: any) => type.count > 0);
   }, [shopGuitars, types]);
 
   return (
