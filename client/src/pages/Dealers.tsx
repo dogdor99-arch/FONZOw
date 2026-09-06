@@ -318,7 +318,7 @@ export default function Dealers() {
                       {/* Pins Image */}
                       <button className="relative flex h-8 w-8 items-center justify-center rounded-full border border-gold/80 bg-black/90 p-1.5 shadow-2xl transition-all duration-300 hover:bg-gold hover:scale-125 hover:border-white focus:outline-none">
                         <img
-                          src={BRAND.logo}
+                          src={BRAND.logoDark}
                           alt="Fonzo Pin Logo"
                           className="h-full w-full object-contain"
                           onError={event => { event.currentTarget.style.display = "none"; }}

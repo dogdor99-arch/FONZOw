@@ -3,7 +3,8 @@
 export const BRAND = {
   name: "Fonzo",
   fullName: "Fonzo Guitar",
-  logo: "/fonzo-logo.svg",
+  logo: "/fonzo-logo-white.png",
+  logoDark: "/fonzo-logo-black.png",
   founder: {
     th: "เบิร์ด เอกชัย เจียรกุล",
     en: "Bird Ekachai Jearakul",
