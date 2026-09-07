@@ -3,6 +3,7 @@ import { CalendarDays, ExternalLink, Images, MoveRight, Users } from "lucide-rea
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
+import { PageHeading } from "@/components/site/SiteLayout";
 import { Reveal } from "@/components/site/Reveal";
 
 function WorksRail({ items, emptyLabel }: { items: any[]; emptyLabel: string }) {
