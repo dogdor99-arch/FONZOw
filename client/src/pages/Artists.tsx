@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { FEATURED_ARTISTS } from "@/lib/artistContent";
+import { ImageLightbox } from "@/components/site/ImageLightbox";
 
 export default function Artists() {
   const { locale, t } = useLocale();
@@ -12,6 +13,8 @@ export default function Artists() {
   const [switching, setSwitching] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const worksRef = useRef<HTMLDivElement>(null);
+  const [worksPaused, setWorksPaused] = useState(false);
 
   const artists = managedArtists.length > 0
     ? managedArtists.map(artist => ({
@@ -73,6 +76,10 @@ export default function Artists() {
     current.image && { image: current.image, label: t("ภาพศิลปิน", "Artist portrait") },
   ].filter(Boolean) as { image: string; label: string }[];
 
+  useEffect(() => { if (works.length < 2 || worksPaused) return; const timer = window.setInterval(() => { const node = worksRef.current; if (!node) return; const step = Math.min(420, node.clientWidth * 0.72); const next = node.scrollLeft + step; node.scrollTo({ left: next >= node.scrollWidth - node.clientWidth - 4 ? 0 : next, behavior: "smooth" }); }, 8500); return () => window.clearInterval(timer); }, [works.length, worksPaused]);
+
+
+
   return <>
     <div className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1500px]"><p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase">หน้าแรก <span className="mx-1.5 text-brand">›</span> Artists</p><p className="mt-2 text-[10px] tracking-[0.16em] text-brand uppercase">{t("ศิลปินและผู้เล่น", "Artists & players")}</p><div className="mt-1 flex flex-wrap items-end justify-between gap-2"><h1 className="font-display text-3xl leading-none sm:text-4xl">Artists</h1><p className="max-w-md text-xs text-muted-foreground">{t("เสียงและตัวตนของผู้เล่นที่ร่วมเดินทางไปกับ Fonzo", "The voices and identities of players who travel with Fonzo.")}</p></div></div></div>
     <main className="overflow-hidden bg-cream/35">
@@ -83,7 +90,7 @@ export default function Artists() {
           <div className="grid min-h-[470px] items-center gap-6 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10">
             <div className="relative flex min-h-[330px] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,rgba(194,151,78,0.16),transparent_62%)] sm:min-h-[440px] lg:min-h-[540px] lg:px-10">
               <div className="pointer-events-none absolute left-5 top-5 text-[9px] tracking-[0.2em] text-brand/70 uppercase">{String(active + 1).padStart(2, "0")} / {String(artists.length).padStart(2, "0")}</div>
-              {current.image ? <a href={current.image} target="_blank" rel="noreferrer" className="block h-full w-full"><img key={current.id} src={current.image} alt={title} className="h-full max-h-[620px] w-full object-contain object-center mix-blend-multiply transition duration-500" onError={event => { event.currentTarget.style.display = "none"; }} /></a> : <div className="flex flex-col items-center gap-4 text-muted-foreground"><Music2 className="h-12 w-12 text-gold" strokeWidth={1.1} /><span className="eyebrow">{t("ใส่รูปศิลปินจาก Admin", "Add an artist image from Admin")}</span></div>}
+              {current.image ? <ImageLightbox src={current.image} alt={title} imageClassName="h-full max-h-[620px] w-full object-contain object-center mix-blend-multiply transition duration-500" /> : <div className="flex flex-col items-center gap-4 text-muted-foreground"><Music2 className="h-12 w-12 text-gold" strokeWidth={1.1} /><span className="eyebrow">{t("ใส่รูปศิลปินจาก Admin", "Add an artist image from Admin")}</span></div>}
               <div className="pointer-events-none absolute bottom-0 left-1/2 h-px w-3/4 -translate-x-1/2 bg-linear-to-r from-transparent via-brand/40 to-transparent" />
             </div>
 
@@ -100,7 +107,7 @@ export default function Artists() {
 
           <div className="mt-2 border-t border-border/70 pt-7 lg:mt-6">
             <div className="flex items-end justify-between gap-4"><div><p className="eyebrow text-brand">{t("ผลงานและภาพร่วมงาน", "Works & collaborations")}</p><p className="mt-2 text-sm text-muted-foreground">{t("เลื่อนดูภาพของศิลปินคนนี้ แล้วใช้ปุ่มด้านข้างเพื่อเปลี่ยนศิลปิน", "Scroll through this artist's work, then use the side arrows to change artist.")}</p></div><span className="hidden items-center gap-2 text-[10px] tracking-[0.15em] text-muted-foreground uppercase sm:flex"><MoveRight className="h-4 w-4 text-gold" />{t("เลื่อนดูผลงาน", "Scroll works")}</span></div>
-            <div className="mt-6 flex snap-x gap-4 overflow-x-auto pb-3 [scrollbar-width:thin]">{(works.length ? works : [{ image: "", label: t("เพิ่มรูปผลงานจาก Admin", "Add work image from Admin") }]).map((work, index) => <a key={`${current.id}-${index}`} href={work.image ? current.sourceUrl : undefined} target={work.image ? "_blank" : undefined} rel={work.image ? "noreferrer" : undefined} className="group relative aspect-[16/9] w-[78vw] max-w-[420px] shrink-0 snap-start overflow-hidden bg-secondary sm:w-[38vw] lg:w-[30vw]">{work.image ? <img src={work.image} alt={work.label} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" onError={event => { event.currentTarget.style.display = "none"; }} /> : <div className="flex h-full items-center justify-center text-muted-foreground"><Music2 className="mr-3 h-5 w-5 text-gold" />{work.label}</div>}<span className="absolute inset-x-0 bottom-0 bg-linear-to-t from-ink/80 to-transparent px-4 pb-3 pt-8 text-[10px] tracking-[0.14em] text-cream uppercase">{work.label}</span></a>)}</div>
+            <div className="relative mt-6" onMouseEnter={() => setWorksPaused(true)} onMouseLeave={() => setWorksPaused(false)}><button type="button" onClick={() => worksRef.current?.scrollBy({ left: -420, behavior: "smooth" })} className="absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center border border-border bg-cream/90 text-brand shadow-sm" aria-label={t("ภาพก่อนหน้า", "Previous image")}><ArrowLeft className="h-4 w-4" /></button><div ref={worksRef} className="flex snap-x gap-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{(works.length ? works : [{ image: "", label: t("เพิ่มรูปผลงานจาก Admin", "Add work image from Admin") }]).map((work, index) => <div key={`${current.id}-${index}`} className="group relative aspect-[16/9] w-[78vw] max-w-[420px] shrink-0 snap-start overflow-hidden bg-secondary sm:w-[38vw] lg:w-[30vw]">{work.image ? <ImageLightbox src={work.image} alt={work.label} imageClassName="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center text-muted-foreground"><Music2 className="mr-3 h-5 w-5 text-gold" />{work.label}</div>}<span className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-ink/80 to-transparent px-4 pb-3 pt-8 text-[10px] tracking-[0.14em] text-cream uppercase">{work.label}</span></div>)}</div><button type="button" onClick={() => worksRef.current?.scrollBy({ left: 420, behavior: "smooth" })} className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center border border-border bg-cream/90 text-brand shadow-sm" aria-label={t("ภาพถัดไป", "Next image")}><ArrowRight className="h-4 w-4" /></button></div>
           </div>
         </div>
 
