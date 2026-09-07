@@ -6,7 +6,12 @@ import { getDb } from "../db";
 import { uploadImageToCloudinary } from "../cloudinary";
 import { worksItems } from "../../drizzle/schema";
 
-const optionalUrl = z.preprocess(value => typeof value === "string" && value.trim() === "" ? null : value, z.string().url().max(1024).nullish());
+const optionalUrl = z.preprocess(value => {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  try { new URL(trimmed); return trimmed; } catch { return null; }
+}, z.string().max(1024).nullish());
 const worksInput = z.object({
   kind: z.enum(["event", "student"]), title: z.string().min(1).max(240), titleEn: z.string().max(240).nullish(),
   eventDate: z.string().max(120).nullish(), description: z.string().max(4000).nullish(), descriptionEn: z.string().max(4000).nullish(),
