@@ -4,9 +4,9 @@ import { ENV } from "./_core/env";
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
 function getConfig() {
-  const cloudName = ENV.cloudinaryCloudName;
-  const apiKey = ENV.cloudinaryApiKey;
-  const apiSecret = ENV.cloudinaryApiSecret;
+  const cloudName = ENV.cloudinaryCloudName.trim().replace(/^['"]|['"]$/g, "");
+  const apiKey = ENV.cloudinaryApiKey.trim().replace(/^['"]|['"]$/g, "");
+  const apiSecret = ENV.cloudinaryApiSecret.trim().replace(/^['"]|['"]$/g, "");
   if (!cloudName || !apiKey || !apiSecret) {
     throw new Error("Cloudinary config missing: set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET");
   }
@@ -32,9 +32,9 @@ export async function uploadImageToCloudinary(base64: string, contentType: strin
   body.set("signature", signature);
 
   const response = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`, { method: "POST", body });
-  const result = await response.json().catch(() => ({})) as { secure_url?: string; error?: { message?: string } };
+  const result = await response.json().catch(() => ({})) as { secure_url?: string; error?: { message?: string; http_code?: number } };
   if (!response.ok || !result.secure_url) {
-    throw new Error(`Cloudinary upload failed (${response.status}): ${result.error?.message ?? "no secure URL returned"}`);
+    throw new Error(`Cloudinary upload failed (${response.status}) for cloud "${cloudName}": ${result.error?.message ?? "no secure URL returned"}`);
   }
   return result.secure_url;
 }
