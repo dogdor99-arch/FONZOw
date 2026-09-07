@@ -12,8 +12,6 @@ export default function Artists() {
   const [switching, setSwitching] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const worksRef = useRef<HTMLDivElement>(null);
-  const [worksPaused, setWorksPaused] = useState(false);
 
   const artists = managedArtists.length > 0
     ? managedArtists.map(artist => ({
@@ -33,13 +31,6 @@ export default function Artists() {
 
   const current = artists[active] ?? artists[0];
 
-  const works = [
-    current?.collaborationImage && { image: current.collaborationImage, label: t("ภาพร่วมงานกับ Fonzo", "Collaboration with Fonzo") },
-    current?.image && { image: current.image, label: t("ภาพศิลปิน", "Artist portrait") },
-  ].filter(Boolean) as { image: string; label: string }[];
-
-  useEffect(() => { if (works.length < 2 || worksPaused) return; const timer = window.setInterval(() => { const node = worksRef.current; if (!node) return; const step = Math.min(420, node.clientWidth * 0.72); const next = node.scrollLeft + step; node.scrollTo({ left: next >= node.scrollWidth - node.clientWidth - 4 ? 0 : next, behavior: "smooth" }); }, 8500); return () => window.clearInterval(timer); }, [works.length, worksPaused]);
-
   useEffect(() => {
     if (artists.length < 2 || isPaused) return;
     const interval = window.setInterval(() => {
@@ -47,9 +38,9 @@ export default function Artists() {
       setSwitching(true);
       timeoutRef.current = setTimeout(() => {
         setActive(previous => (previous + 1) % artists.length);
-        timeoutRef.current = setTimeout(() => setSwitching(false), 120);
-      }, 220);
-    }, 6500);
+        timeoutRef.current = setTimeout(() => setSwitching(false), 220);
+      }, 300);
+    }, 9000);
     return () => {
       window.clearInterval(interval);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -61,8 +52,8 @@ export default function Artists() {
     setSwitching(true);
     timeoutRef.current = setTimeout(() => {
       setActive(nextIndex);
-      timeoutRef.current = setTimeout(() => setSwitching(false), 80);
-    }, 180);
+      timeoutRef.current = setTimeout(() => setSwitching(false), 180);
+    }, 260);
   };
 
   const move = (direction: number) => {
@@ -81,7 +72,7 @@ export default function Artists() {
     <div className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1500px]"><p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase">หน้าแรก <span className="mx-1.5 text-brand">›</span> Artists</p><p className="mt-2 text-[10px] tracking-[0.16em] text-brand uppercase">{t("ศิลปินและผู้เล่น", "Artists & players")}</p><div className="mt-1 flex flex-wrap items-end justify-between gap-2"><h1 className="font-display text-3xl leading-none sm:text-4xl">Artists</h1><p className="max-w-md text-xs text-muted-foreground">{t("เสียงและตัวตนของผู้เล่นที่ร่วมเดินทางไปกับ Fonzo", "The voices and identities of players who travel with Fonzo.")}</p></div></div></div>
     <main className="overflow-hidden bg-cream/35">
       <section onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)} className="mx-auto max-w-[1500px] px-4 pb-12 pt-2 sm:px-6 lg:px-10 lg:pb-20 lg:pt-4">
-        <div className={`relative transition duration-300 ease-out ${switching ? "translate-x-5 opacity-0" : "translate-x-0 opacity-100"}`}>
+        <div className={`relative transition duration-500 ease-out ${switching ? "translate-x-5 opacity-0" : "translate-x-0 opacity-100"}`}>
           {artists.length > 1 && <><button type="button" onClick={() => move(-1)} className="absolute left-0 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center border border-border bg-cream/85 text-brand shadow-sm backdrop-blur transition hover:border-brand hover:bg-brand hover:text-brand-foreground lg:flex" aria-label={t("ศิลปินก่อนหน้า", "Previous artist")}><ArrowLeft className="h-4 w-4" /></button><button type="button" onClick={() => move(1)} className="absolute right-0 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center border border-border bg-cream/85 text-brand shadow-sm backdrop-blur transition hover:border-brand hover:bg-brand hover:text-brand-foreground lg:flex" aria-label={t("ศิลปินถัดไป", "Next artist")}><ArrowRight className="h-4 w-4" /></button></>}
 
           <div className="grid min-h-[470px] items-center gap-6 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10">
@@ -102,13 +93,9 @@ export default function Artists() {
             </div>
           </div>
 
-          <div className="mt-2 border-t border-border/70 pt-7 lg:mt-6">
-            <div className="flex items-end justify-between gap-4"><div><p className="eyebrow text-brand">{t("ผลงานและภาพร่วมงาน", "Works & collaborations")}</p><p className="mt-2 text-sm text-muted-foreground">{t("เลื่อนดูภาพของศิลปินคนนี้ แล้วใช้ปุ่มด้านข้างเพื่อเปลี่ยนศิลปิน", "Scroll through this artist's work, then use the side arrows to change artist.")}</p></div><span className="hidden items-center gap-2 text-[10px] tracking-[0.15em] text-muted-foreground uppercase sm:flex"><MoveRight className="h-4 w-4 text-gold" />{t("เลื่อนดูผลงาน", "Scroll works")}</span></div>
-            <div className="relative mt-6" onMouseEnter={() => setWorksPaused(true)} onMouseLeave={() => setWorksPaused(false)}><button type="button" onClick={() => worksRef.current?.scrollBy({ left: -420, behavior: "smooth" })} className="absolute left-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center border border-border bg-cream/90 text-brand shadow-sm" aria-label={t("ภาพก่อนหน้า", "Previous image")}><ArrowLeft className="h-4 w-4" /></button><div ref={worksRef} className="flex snap-x gap-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{(works.length ? works : [{ image: "", label: t("เพิ่มรูปผลงานจาก Admin", "Add work image from Admin") }]).map((work, index) => <div key={`${current.id}-${index}`} className="group relative aspect-[16/9] w-[78vw] max-w-[420px] shrink-0 snap-start overflow-hidden bg-secondary sm:w-[38vw] lg:w-[30vw]">{work.image ? <Link href={`/artists/${current.id}`} className="block h-full w-full"><img src={work.image} alt={work.label} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /></Link> : <div className="flex h-full items-center justify-center text-muted-foreground"><Music2 className="mr-3 h-5 w-5 text-gold" />{work.label}</div>}<span className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-ink/80 to-transparent px-4 pb-3 pt-8 text-[10px] tracking-[0.14em] text-cream uppercase">{work.label}</span></div>)}</div><button type="button" onClick={() => worksRef.current?.scrollBy({ left: 420, behavior: "smooth" })} className="absolute right-2 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center border border-border bg-cream/90 text-brand shadow-sm" aria-label={t("ภาพถัดไป", "Next image")}><ArrowRight className="h-4 w-4" /></button></div>
-          </div>
         </div>
 
-        {artists.length > 1 && <div className="mt-6 flex items-center justify-between border-t border-border/70 pt-4"><div className="flex max-w-full gap-2 overflow-x-auto py-1">{artists.map((artist, index) => <button key={artist.id} type="button" onClick={() => changeArtist(index)} className={`shrink-0 border-b-2 px-1 pb-2 text-left text-[11px] tracking-[0.1em] transition-colors ${index === active ? "border-brand text-brand" : "border-transparent text-muted-foreground hover:text-foreground"}`} aria-current={index === active ? "true" : undefined}>{locale === "th" ? artist.name : artist.nameEn}</button>)}</div></div>}
+
       </section>
     </main>
   </>;
