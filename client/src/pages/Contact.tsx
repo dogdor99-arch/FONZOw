@@ -19,7 +19,7 @@ export default function Contact() {
         crumbs={[{ label: "Contact" }]}
       />
 
-      <section className="relative overflow-hidden px-4 py-10 sm:px-6 lg:px-10 lg:py-14" style={{ backgroundImage: "linear-gradient(rgba(245, 241, 232, 0.38), rgba(245, 241, 232, 0.38)), url('/brand-story.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}>
+      <section className="relative overflow-hidden px-4 py-10 sm:px-6 lg:px-10 lg:py-14" style={{ backgroundImage: "linear-gradient(rgba(245, 241, 232, 0.38), rgba(245, 241, 232, 0.38)), url('/brand-story.png')", backgroundSize: "cover", backgroundPosition: "center" }}>
         <div className="relative mx-auto grid max-w-[1400px] items-stretch gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
           <Reveal>
             <div className="h-full overflow-hidden rounded-sm border border-border shadow-[0_12px_35px_-24px_rgba(28,22,17,0.55)] backdrop-blur-sm" style={{ backgroundColor: "rgba(255, 255, 255, 0.58)" }}>
