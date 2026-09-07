@@ -14,7 +14,6 @@ export default function Contact() {
   return (
     <>
       <CompactPageHeading
-        eyebrow={t("ติดต่อเรา", "Get in touch")}
         title="Contact"
         crumbs={[{ label: "Contact" }]}
       />

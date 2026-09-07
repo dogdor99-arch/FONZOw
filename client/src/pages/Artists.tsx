@@ -70,7 +70,7 @@ export default function Artists() {
   const role = locale === "th" ? current.role : current.roleEn;
   const description = locale === "th" ? current.description : current.descriptionEn;
   return <>
-    <div className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px]"><p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase">หน้าแรก <span className="mx-1.5 text-brand">›</span> Artists</p><p className="mt-2 text-[10px] tracking-[0.16em] text-brand uppercase">{t("ศิลปินและผู้เล่น", "Artists & players")}</p><div className="mt-1 flex flex-wrap items-end justify-between gap-2"><h1 className="font-display text-3xl leading-none sm:text-4xl">Artists</h1><p className="max-w-md text-xs text-muted-foreground">{t("เสียงและตัวตนของผู้เล่นที่ร่วมเดินทางไปกับ Fonzo", "The voices and identities of players who travel with Fonzo.")}</p></div></div></div>
+    <div className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px]"><p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase">หน้าแรก <span className="mx-1.5 text-brand">›</span> Artists</p><h1 className="mt-2 font-display text-3xl leading-none sm:text-4xl">Artists</h1></div></div>
     <main className="overflow-hidden bg-cream/35">
       <section onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)} className="mx-auto max-w-[1400px] px-4 pb-12 pt-2 sm:px-6 lg:px-10 lg:pb-20 lg:pt-4">
         <div className={`relative transition duration-500 ease-out ${switching ? "translate-x-5 opacity-0" : "translate-x-0 opacity-100"}`}>

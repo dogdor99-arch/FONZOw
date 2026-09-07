@@ -193,7 +193,7 @@ export default function Dealers() {
 
   return (
     <div className="min-h-screen bg-[#f6f1e8] text-ink">
-      <CompactPageHeading eyebrow={t("เครือข่ายทางการ", "Official Network")} title={t("ตัวแทนจำหน่าย Fonzo Guitars", "Fonzo Authorized Dealers")} crumbs={[{ label: t("ตัวแทนจำหน่าย", "Dealers") }]} />
+      <CompactPageHeading title={t("ตัวแทนจำหน่าย Fonzo Guitars", "Fonzo Authorized Dealers")} crumbs={[{ label: t("ตัวแทนจำหน่าย", "Dealers") }]} />
 
       <section className="mx-auto max-w-[1400px] px-4 pb-20 sm:px-6 lg:px-10">
         <div className="relative min-h-[580px] w-full overflow-hidden rounded-2xl border border-gold/40 bg-white/75 p-4 shadow-xl backdrop-blur-md flex flex-col justify-between">
