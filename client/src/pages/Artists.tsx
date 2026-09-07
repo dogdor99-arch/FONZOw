@@ -34,6 +34,13 @@ export default function Artists() {
 
   const current = artists[active] ?? artists[0];
 
+  const works = [
+    current?.collaborationImage && { image: current.collaborationImage, label: t("ภาพร่วมงานกับ Fonzo", "Collaboration with Fonzo") },
+    current?.image && { image: current.image, label: t("ภาพศิลปิน", "Artist portrait") },
+  ].filter(Boolean) as { image: string; label: string }[];
+
+  useEffect(() => { if (works.length < 2 || worksPaused) return; const timer = window.setInterval(() => { const node = worksRef.current; if (!node) return; const step = Math.min(420, node.clientWidth * 0.72); const next = node.scrollLeft + step; node.scrollTo({ left: next >= node.scrollWidth - node.clientWidth - 4 ? 0 : next, behavior: "smooth" }); }, 8500); return () => window.clearInterval(timer); }, [works.length, worksPaused]);
+
   useEffect(() => {
     if (artists.length < 2 || isPaused) return;
     const interval = window.setInterval(() => {
@@ -71,15 +78,6 @@ export default function Artists() {
   const title = locale === "th" ? current.name : current.nameEn;
   const role = locale === "th" ? current.role : current.roleEn;
   const description = locale === "th" ? current.description : current.descriptionEn;
-  const works = [
-    current.collaborationImage && { image: current.collaborationImage, label: t("ภาพร่วมงานกับ Fonzo", "Collaboration with Fonzo") },
-    current.image && { image: current.image, label: t("ภาพศิลปิน", "Artist portrait") },
-  ].filter(Boolean) as { image: string; label: string }[];
-
-  useEffect(() => { if (works.length < 2 || worksPaused) return; const timer = window.setInterval(() => { const node = worksRef.current; if (!node) return; const step = Math.min(420, node.clientWidth * 0.72); const next = node.scrollLeft + step; node.scrollTo({ left: next >= node.scrollWidth - node.clientWidth - 4 ? 0 : next, behavior: "smooth" }); }, 8500); return () => window.clearInterval(timer); }, [works.length, worksPaused]);
-
-
-
   return <>
     <div className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1500px]"><p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase">หน้าแรก <span className="mx-1.5 text-brand">›</span> Artists</p><p className="mt-2 text-[10px] tracking-[0.16em] text-brand uppercase">{t("ศิลปินและผู้เล่น", "Artists & players")}</p><div className="mt-1 flex flex-wrap items-end justify-between gap-2"><h1 className="font-display text-3xl leading-none sm:text-4xl">Artists</h1><p className="max-w-md text-xs text-muted-foreground">{t("เสียงและตัวตนของผู้เล่นที่ร่วมเดินทางไปกับ Fonzo", "The voices and identities of players who travel with Fonzo.")}</p></div></div></div>
     <main className="overflow-hidden bg-cream/35">
