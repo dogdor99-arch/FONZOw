@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
 import { Reveal } from "@/components/site/Reveal";
-import { SectionHeading } from "@/components/site/SectionHeading";
+import { CompactPageHeading } from "@/components/site/SiteLayout";
 import { MapPin, Phone, Mail, Globe as GlobeIcon, ExternalLink, Store } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 
@@ -193,19 +193,7 @@ export default function Dealers() {
 
   return (
     <div className="min-h-screen bg-[#f6f1e8] text-ink">
-      <section className="mx-auto max-w-[1400px] px-4 pt-7 pb-5 sm:px-6 lg:px-10">
-        <Reveal>
-          <SectionHeading
-            index="01"
-            eyebrow={t("เครือข่ายทางการ", "Official Network")}
-            title={t("ตัวแทนจำหน่าย Fonzo Guitars", "Fonzo Authorized Dealers")}
-            description={t(
-              "สัมผัสและทดลองเล่นกีตาร์ Fonzo ได้ที่โชว์รูมและร้านค้าตัวแทนจำหน่ายชั้นนำทั่วโลก",
-              "Experience Fonzo guitars at official showrooms and premier guitar shops worldwide."
-            )}
-          />
-        </Reveal>
-      </section>
+      <CompactPageHeading eyebrow={t("เครือข่ายทางการ", "Official Network")} title={t("ตัวแทนจำหน่าย Fonzo Guitars", "Fonzo Authorized Dealers")} crumbs={[{ label: t("ตัวแทนจำหน่าย", "Dealers") }]} />
 
       <section className="mx-auto max-w-[1400px] px-4 pb-20 sm:px-6 lg:px-10">
         <div className="relative min-h-[580px] w-full overflow-hidden rounded-2xl border border-gold/40 bg-white/75 p-4 shadow-xl backdrop-blur-md flex flex-col justify-between">

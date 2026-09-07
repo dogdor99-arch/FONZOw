@@ -95,3 +95,8 @@ export function PageHeading({
     </section>
   );
 }
+
+export function CompactPageHeading({ eyebrow, title, crumbs = [] }: { eyebrow?: string; title: string; crumbs?: Crumb[] }) {
+  const { t } = useLocale();
+  return <section className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1500px]"><nav aria-label="breadcrumb" className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase"><Link href="/" className="transition-colors hover:text-brand">{t("หน้าแรก", "Home")}</Link>{crumbs.map(crumb => <span key={crumb.label}><span className="mx-1.5 text-brand">›</span>{crumb.label}</span>)}</nav>{eyebrow && <p className="mt-2 text-[10px] tracking-[0.16em] text-brand uppercase">{eyebrow}</p>}<h1 className="mt-1 font-display text-3xl leading-none sm:text-4xl">{title}</h1></div></section>;
+}

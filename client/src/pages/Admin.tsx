@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { PageHeading } from "@/components/site/SiteLayout";
+import { CompactPageHeading } from "@/components/site/SiteLayout";
 import { ArtistsAdmin } from "@/components/site/ArtistsAdmin";
 import { WorksAdmin } from "@/components/site/WorksAdmin";
 import { ChatAdmin } from "@/components/site/ChatAdmin";
@@ -34,7 +34,7 @@ export default function Admin() {
   if (!isAuthenticated || user?.role !== "admin") {
     return (
       <>
-        <PageHeading eyebrow={t("สำหรับทีมงาน", "Staff only")} title={t("จัดการร้าน", "Shop console")} crumbs={[{ label: t("จัดการร้าน", "Shop console") }]} />
+        <CompactPageHeading eyebrow={t("สำหรับทีมงาน", "Staff only")} title={t("จัดการร้าน", "Shop console")} crumbs={[{ label: t("จัดการร้าน", "Shop console") }]} />
         <section className="mx-auto max-w-lg px-4 py-16 text-center sm:px-6">
           <Lock className="mx-auto h-7 w-7 text-brand" strokeWidth={1.4} />
           <p className="mt-5 text-sm text-muted-foreground">{t("กรุณาเข้าสู่ระบบด้วยบัญชีทีมงาน", "Please sign in with a staff account.")}</p>
@@ -48,10 +48,9 @@ export default function Admin() {
 
   return (
     <>
-      <PageHeading
+      <CompactPageHeading
         eyebrow={t("สำหรับทีมงาน", "Staff only")}
         title={t("จัดการร้าน", "Shop console")}
-        description={t("ระบบจัดการสินค้า สเปคเฉพาะประเภท และคอนเทนต์เว็บไซต์", "Manage products, category-specific specs, and content.")}
         crumbs={[{ label: t("จัดการร้าน", "Shop console") }]}
       />
       <section className="mx-auto max-w-[1300px] px-4 py-12 sm:px-6 lg:px-10">

@@ -3,7 +3,7 @@ import { ExternalLink, Facebook, Instagram, Loader2, Mail, MapPin, MessageCircle
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
-import { PageHeading } from "@/components/site/SiteLayout";
+import { CompactPageHeading } from "@/components/site/SiteLayout";
 import { Reveal } from "@/components/site/Reveal";
 import { BRAND } from "@/lib/brand";
 import { Button } from "@/components/ui/button";
@@ -36,15 +36,10 @@ export default function Contact() {
 
   return (
     <>
-      <PageHeading
+      <CompactPageHeading
         eyebrow={t("ติดต่อเรา", "Get in touch")}
         title="Contact"
-        description={t(
-          "สอบถามรายละเอียดสินค้า นัดหมายเข้าชมโชว์รูม หรือปรึกษาเรื่องการสั่งทำพิเศษ ทีมงาน Fonzo พร้อมให้คำแนะนำ",
-          "Ask about a model, book a showroom appointment, or discuss a custom commission — the Fonzo team is happy to help.",
-        )}
         crumbs={[{ label: "Contact" }]}
-        index="09"
       />
 
       <section className="mx-auto max-w-[1400px] px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
