@@ -8,7 +8,7 @@ export function SiteHeader() {
   const { t, locale, setLocale } = useLocale();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navItems = [
-    { href: "/guitars", label: t("FONZO SHOP", "FONZO SHOP"), featured: true },
+    { href: "/", label: t("หน้าแรก", "Home"), featured: true },
     { href: "/works", label: t("ผลงาน", "Works") },
     { href: "/artists", label: t("ศิลปิน", "Artists") },
     { href: "/dealers", label: t("ตัวแทนจำหน่าย", "Dealers") },
