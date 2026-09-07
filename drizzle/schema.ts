@@ -57,6 +57,46 @@ export const enquiries = mysqlTable("enquiries", {
 export type Enquiry = typeof enquiries.$inferSelect;
 export type InsertEnquiry = typeof enquiries.$inferInsert;
 
+/** Anonymous visitor chat rooms; visitorToken is kept in the browser only. */
+export const chatRooms = mysqlTable(
+  "chatRooms",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    visitorToken: varchar("visitorToken", { length: 96 }).notNull().unique(),
+    name: varchar("name", { length: 160 }),
+    email: varchar("email", { length: 320 }),
+    phone: varchar("phone", { length: 40 }),
+    status: mysqlEnum("status", ["open", "closed"]).default("open").notNull(),
+    lastMessageAt: timestamp("lastMessageAt").defaultNow().notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => ({
+    lastMessageIdx: index("chatRooms_lastMessageAt_idx").on(table.lastMessageAt),
+  }),
+);
+
+export type ChatRoom = typeof chatRooms.$inferSelect;
+export type InsertChatRoom = typeof chatRooms.$inferInsert;
+
+export const chatMessages = mysqlTable(
+  "chatMessages",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    roomId: int("roomId").notNull(),
+    senderType: mysqlEnum("senderType", ["visitor", "admin"]).notNull(),
+    body: text("body").notNull(),
+    readAt: timestamp("readAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => ({
+    roomIdx: index("chatMessages_roomId_idx").on(table.roomId),
+  }),
+);
+
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type InsertChatMessage = typeof chatMessages.$inferInsert;
+
 /**
  * Local shadow of a completed Shopify checkout.
  *

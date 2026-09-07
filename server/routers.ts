@@ -11,6 +11,7 @@ import { newsroomRouter } from "./routers/newsroom";
 import { socialRouter } from "./routers/social";
 import { artistsRouter } from "./routers/artists";
 import { worksRouter } from "./routers/works";
+import { chatRouter } from "./routers/chat";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -24,6 +25,7 @@ export const appRouter = router({
   social: socialRouter,
   artists: artistsRouter,
   works: worksRouter,
+  chat: chatRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
