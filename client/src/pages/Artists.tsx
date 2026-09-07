@@ -3,31 +3,28 @@ import { ArrowLeft, ArrowRight, ExternalLink, MoveRight, Music2 } from "lucide-r
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
-import { FEATURED_ARTISTS } from "@/lib/artistContent";
 
 export default function Artists() {
   const { locale, t } = useLocale();
-  const { data: managedArtists = [] } = trpc.artists.list.useQuery();
+  const { data: managedArtists, isLoading } = trpc.artists.list.useQuery();
   const [active, setActive] = useState(0);
   const [switching, setSwitching] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const artists = managedArtists.length > 0
-    ? managedArtists.map(artist => ({
-        id: String(artist.id),
-        name: artist.name,
-        nameEn: artist.nameEn ?? artist.name,
-        role: artist.role ?? "Fonzo Artist",
-        roleEn: artist.roleEn ?? "Fonzo Artist",
-        description: artist.bio ?? "",
-        descriptionEn: artist.bioEn ?? artist.bio ?? "",
-        image: artist.imageUrl ?? undefined,
-        collaborationImage: artist.collaborationImageUrl ?? undefined,
-        sourceUrl: artist.sourceUrl ?? "https://www.facebook.com/Fonzoguitar",
-        guitar: artist.guitar ?? undefined,
-      }))
-    : FEATURED_ARTISTS.map(artist => ({ ...artist, collaborationImage: artist.image }));
+  const artists = (managedArtists ?? []).map(artist => ({
+    id: String(artist.id),
+    name: artist.name,
+    nameEn: artist.nameEn ?? artist.name,
+    role: artist.role ?? "Fonzo Artist",
+    roleEn: artist.roleEn ?? "Fonzo Artist",
+    description: artist.bio ?? "",
+    descriptionEn: artist.bioEn ?? artist.bio ?? "",
+    image: artist.imageUrl ?? undefined,
+    collaborationImage: artist.collaborationImageUrl ?? undefined,
+    sourceUrl: artist.sourceUrl ?? "https://www.facebook.com/Fonzoguitar",
+    guitar: artist.guitar ?? undefined,
+  }));
 
   const current = artists[active] ?? artists[0];
 
@@ -60,6 +57,10 @@ export default function Artists() {
     if (!artists.length) return;
     changeArtist((active + direction + artists.length) % artists.length);
   };
+
+  if (isLoading) {
+    return <><div className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1500px]"><p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase">หน้าแรก <span className="mx-1.5 text-brand">›</span> Artists</p><p className="mt-2 text-[10px] tracking-[0.16em] text-brand uppercase">{t("ศิลปินและผู้เล่น", "Artists & players")}</p><h1 className="mt-1 font-display text-3xl leading-none sm:text-4xl">Artists</h1></div></div><main className="mx-auto max-w-5xl px-4 py-20 text-center text-muted-foreground">{t("กำลังโหลดข้อมูลศิลปิน...", "Loading artist profiles...")}</main></>;
+  }
 
   if (!current) {
     return <><div className="border-b border-border/70 bg-cream/40 px-4 py-9 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1500px]"><p className="text-[10px] tracking-[0.18em] text-muted-foreground uppercase">หน้าแรก <span className="mx-2 text-brand">›</span> Artists</p><p className="mt-4 eyebrow text-brand">{t("ศิลปินและผู้เล่น", "Artists & players")}</p><h1 className="mt-2 font-display text-4xl leading-none sm:text-5xl">Artists</h1></div></div><div className="mx-auto max-w-5xl px-4 py-20 text-center text-muted-foreground">{t("ยังไม่มีข้อมูลศิลปิน", "No artist profiles yet")}</div></>;
