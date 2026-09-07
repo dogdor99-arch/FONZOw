@@ -20,9 +20,9 @@ export default function Contact() {
       />
 
       <section className="relative isolate overflow-hidden px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
-        <img src="/brand-story.jpg" alt="" aria-hidden className="pointer-events-none absolute inset-0 -z-20 h-full w-full scale-110 object-cover blur-2xl" />
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-cream/88" />
-        <div className="relative mx-auto grid max-w-[1400px] items-stretch gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
+        <img src="/brand-story.jpg" alt="" aria-hidden className="pointer-events-none absolute inset-0 z-0 h-full w-full scale-110 object-cover blur-2xl" />
+        <div className="pointer-events-none absolute inset-0 z-0 bg-cream/80" />
+        <div className="relative z-10 mx-auto grid max-w-[1400px] items-stretch gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
           <Reveal>
             <div className="h-full overflow-hidden rounded-sm border border-border bg-card/90 shadow-[0_12px_35px_-24px_rgba(28,22,17,0.55)] backdrop-blur-sm">
               <div className="flex items-center justify-between border-b border-border px-5 py-4 sm:px-7">
