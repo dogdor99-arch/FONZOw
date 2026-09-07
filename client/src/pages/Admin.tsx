@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload, Guitar, Headphones, Download, BookOpen } from "lucide-react";
+import { Bell, Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload, Guitar, Headphones, Download, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -21,6 +21,7 @@ export default function Admin() {
   const { t } = useLocale();
   const { user, isAuthenticated, loading } = useAuth();
   const [tab, setTab] = useState<Tab>("stock");
+  const unreadChat = trpc.chat.unreadCount.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin", refetchInterval: 5000 });
 
   if (loading) {
     return (
@@ -56,13 +57,15 @@ export default function Admin() {
       <section className="mx-auto max-w-[1300px] px-4 py-12 sm:px-6 lg:px-10">
         <div className="flex flex-wrap gap-2 border-b border-border/70 pb-5">
           {[
-            { key: "stock", label: t("จัดการสต็อกและสินค้า", "Products & Inventory") },
-            { key: "artists", label: t("ศิลปิน", "Artists") },
-            { key: "works", label: t("ผลงาน / Events", "Works / Events") },
-            { key: "chat", label: t("แชทลูกค้า", "Customer chat") },
+            { key: "stock", label: t("จัดการสต็อกและสินค้า", "Products & Inventory"), unread: 0 },
+            { key: "artists", label: t("ศิลปิน", "Artists"), unread: 0 },
+            { key: "works", label: t("ผลงาน / Events", "Works / Events"), unread: 0 },
+            { key: "chat", label: t("แชทลูกค้า", "Customer chat"), unread: unreadChat.data ?? 0 },
           ].map(item => (
             <button key={item.key} type="button" onClick={() => setTab(item.key as Tab)} className={cn("press border px-5 py-2.5 text-[11px] tracking-[0.18em] uppercase", tab === item.key ? "border-brand bg-brand text-brand-foreground" : "border-border text-muted-foreground hover:border-brand/50 hover:text-brand")}>
+              {item.key === "chat" && <Bell className="mr-2 inline-block h-3.5 w-3.5" />}
               {item.label}
+              {item.key === "chat" && item.unread ? <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-cream px-1.5 py-0.5 text-[9px] text-brand">{item.unread > 99 ? "99+" : item.unread}</span> : null}
             </button>
           ))}
         </div>

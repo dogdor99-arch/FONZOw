@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { adminProcedure, publicProcedure, router } from "../_core/trpc";
@@ -58,7 +58,24 @@ export const chatRouter = router({
 
   rooms: adminProcedure.query(async () => {
     const db = await dbOrThrow();
-    return db.select().from(chatRooms).orderBy(desc(chatRooms.lastMessageAt)).limit(200);
+    return db.select({
+      id: chatRooms.id,
+      visitorToken: chatRooms.visitorToken,
+      name: chatRooms.name,
+      email: chatRooms.email,
+      phone: chatRooms.phone,
+      status: chatRooms.status,
+      lastMessageAt: chatRooms.lastMessageAt,
+      createdAt: chatRooms.createdAt,
+      updatedAt: chatRooms.updatedAt,
+      unreadCount: sql<number>`(select count(*) from chatMessages cm where cm.roomId = ${chatRooms.id} and cm.senderType = 'visitor' and cm.readAt is null)`,
+    }).from(chatRooms).orderBy(desc(chatRooms.lastMessageAt)).limit(200);
+  }),
+
+  unreadCount: adminProcedure.query(async () => {
+    const db = await dbOrThrow();
+    const rows = await db.select({ count: sql<number>`count(*)` }).from(chatMessages).where(and(eq(chatMessages.senderType, "visitor"), sql`${chatMessages.readAt} is null`));
+    return Number(rows[0]?.count ?? 0);
   }),
 
   messages: adminProcedure.input(z.object({ roomId: z.number().int().positive() })).query(async ({ input }) => {
