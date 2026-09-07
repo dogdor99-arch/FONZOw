@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
-import { PageHeading } from "@/components/site/SiteLayout";
+import { CompactPageHeading } from "@/components/site/SiteLayout";
 import { CatalogBrowser } from "@/components/site/CatalogBrowser";
 import { supabase } from "@/lib/supabase";
 import { withProductMeta } from "@shared/fonzo/customizer";
@@ -159,23 +159,10 @@ export default function GuitarList() {
 
   return (
     <>
-      <PageHeading
+      <CompactPageHeading
         eyebrow={t("แคตตาล็อกกีตาร์", "Guitar catalogue")}
-          title={t("Guitar Shop", "Guitar Shop")}
-          description={t(
-            "กีตาร์ Fonzo Classic และ Fonzo Acoustic สำหรับสั่งซื้อผ่าน Shopee, Lazada หรือติดต่อร้านโดยตรง",
-            "Fonzo Classic and Fonzo Acoustic models available through Shopee, Lazada, or direct enquiry.",
-          )}
+        title={t("Guitar Shop", "Guitar Shop")}
         crumbs={[{ label: "Guitar" }]}
-        index="03"
-        aside={
-          <div className="hidden text-right sm:block">
-            <p className="eyebrow">{t("รุ่นในแคตตาล็อก", "Models in catalogue")}</p>
-            <p className="mt-2 font-display text-3xl tabular-nums">
-              {isLoading ? "—" : shopGuitars.length}
-            </p>
-          </div>
-        }
       />
       <CatalogBrowser
         products={shopGuitars}

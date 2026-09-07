@@ -5,7 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { supabase } from "@/lib/supabase";
 import { withProductMeta } from "@shared/fonzo/customizer";
 import type { CustomFamily } from "@shared/fonzo/types";
-import { PageHeading } from "@/components/site/SiteLayout";
+import { CompactPageHeading } from "@/components/site/SiteLayout";
 import { ProductCard, ProductCardSkeleton } from "@/components/site/ProductCard";
 import { cn } from "@/lib/utils";
 
@@ -86,16 +86,10 @@ export default function GuitarCustomList() {
 
   return (
     <>
-      <PageHeading
+      <CompactPageHeading
         eyebrow={t("กีตาร์สั่งทำ", "Bespoke guitars")}
         title="Guitar Custom"
-        description={t(
-          "เลือกฐานกีตาร์จาก Fonzo Custom หรือ Fonzo Selection แล้วปรับแต่งวัสดุและชิ้นส่วนเพื่อประเมินราคา",
-          "Choose a Fonzo Custom or Fonzo Selection base, then configure materials and components for an estimated price.",
-        )}
         crumbs={[{ label: "Guitar Custom" }]}
-        index="04"
-        aside={<div className="hidden text-right sm:block"><p className="eyebrow">{t("รุ่นที่ปรับแต่งได้", "Configurable models")}</p><p className="mt-2 font-display text-3xl tabular-nums">{loading ? "—" : products.length}</p></div>}
       />
 
       <section className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-10">
