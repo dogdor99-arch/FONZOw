@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Facebook, Instagram, Loader2, Mail, MapPin, MessageCircle, Phone, Youtube } from "lucide-react";
+import { ExternalLink, Facebook, Instagram, Loader2, Mail, MapPin, MessageCircle, Phone, Youtube } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -32,6 +32,7 @@ export default function Contact() {
   const mapSrc = `https://maps.google.com/maps?q=${encodeURIComponent(
     BRAND.showroom.mapQuery,
   )}&z=16&output=embed`;
+  const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(BRAND.showroom.mapQuery)}`;
 
   return (
     <>
@@ -187,14 +188,27 @@ export default function Contact() {
         </div>
       </section>
 
-      <section className="border-t border-border/70">
-        <iframe
-          title={t("แผนที่โชว์รูม Fonzo", "Fonzo showroom map")}
-          src={mapSrc}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          className="h-[420px] w-full border-0"
-        />
+      <section className="border-t border-border/70 bg-cream/40 px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
+        <div className="mx-auto max-w-[1400px]">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="eyebrow text-brand">{t("พิกัดโชว์รูม", "Showroom location")}</p>
+              <h2 className="mt-2 font-display text-2xl sm:text-3xl">{t("แวะมาหาเรา", "Find us")}</h2>
+            </div>
+            <a href={mapLink} target="_blank" rel="noreferrer" className="press inline-flex items-center gap-2 border border-border bg-background px-4 py-2.5 text-[10px] font-semibold tracking-[0.12em] text-brand uppercase transition hover:border-brand hover:bg-brand hover:text-brand-foreground">
+              {t("เปิดใน Google Maps", "Open in Google Maps")} <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </div>
+          <div className="mt-5 overflow-hidden rounded-sm border border-border bg-card shadow-[0_12px_35px_-24px_rgba(28,22,17,0.55)]">
+            <iframe
+              title={t("แผนที่โชว์รูม Fonzo", "Fonzo showroom map")}
+              src={mapSrc}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="h-[260px] w-full border-0 sm:h-[320px] lg:h-[360px]"
+            />
+          </div>
+        </div>
       </section>
     </>
   );
