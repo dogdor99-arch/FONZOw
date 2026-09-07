@@ -19,10 +19,12 @@ export default function Contact() {
         crumbs={[{ label: "Contact" }]}
       />
 
-      <section className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
-        <div className="grid items-stretch gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
+      <section className="relative isolate overflow-hidden px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
+        <img src="/brand-story.jpg" alt="" aria-hidden className="pointer-events-none absolute inset-0 -z-20 h-full w-full scale-110 object-cover blur-2xl" />
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-cream/88" />
+        <div className="relative mx-auto grid max-w-[1400px] items-stretch gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
           <Reveal>
-            <div className="h-full overflow-hidden rounded-sm border border-border bg-card shadow-[0_12px_35px_-24px_rgba(28,22,17,0.55)]">
+            <div className="h-full overflow-hidden rounded-sm border border-border bg-card/90 shadow-[0_12px_35px_-24px_rgba(28,22,17,0.55)] backdrop-blur-sm">
               <div className="flex items-center justify-between border-b border-border px-5 py-4 sm:px-7">
                 <div><p className="eyebrow text-brand">{t("พิกัดโชว์รูม", "Showroom location")}</p><h2 className="mt-1 font-display text-2xl">{t("แวะมาหาเรา", "Find us")}</h2></div>
                 <a href={mapLink} target="_blank" rel="noreferrer" className="press inline-flex items-center gap-2 border border-border px-3 py-2 text-[10px] font-semibold tracking-[0.1em] text-brand uppercase transition hover:border-brand hover:bg-brand hover:text-brand-foreground">{t("นำทาง", "Directions")}<ExternalLink className="h-3.5 w-3.5" /></a>
@@ -32,7 +34,7 @@ export default function Contact() {
           </Reveal>
 
           <Reveal delay={80}>
-            <div className="h-full border border-border bg-card p-7 sm:p-9">
+            <div className="h-full border border-border bg-card/90 p-7 backdrop-blur-sm sm:p-9">
               <p className="eyebrow">{t("โชว์รูม", "Showroom")}</p>
               <h3 className="mt-3 font-display text-2xl">{BRAND.showroom.nameTh}</h3>
               <ul className="mt-6 space-y-4 text-sm text-muted-foreground">
@@ -43,7 +45,7 @@ export default function Contact() {
               <div className="my-7 hairline" />
               <p className="eyebrow">{t("วันและเวลาทำการ", "Opening hours")}</p><p className="mt-2 text-sm text-muted-foreground">{t(BRAND.showroom.hoursTh, BRAND.showroom.hoursEn)}</p>
               <div className="my-7 hairline" />
-              <p className="eyebrow">{t("ช่องทางออนไลน์", "Social")}</p><div className="mt-4 flex flex-wrap gap-2">{[{ href: BRAND.contact.facebook, icon: Facebook, label: "Facebook" }, { href: BRAND.contact.youtube, icon: Youtube, label: "YouTube" }, { href: BRAND.contact.line, icon: MessageCircle, label: "Line" }, { href: BRAND.contact.instagram, icon: Instagram, label: "Instagram" }].map(social => <a key={social.label} href={social.href} target="_blank" rel="noreferrer" className="press inline-flex items-center gap-2 border border-border px-4 py-2 text-xs text-muted-foreground hover:border-brand/50 hover:text-brand"><social.icon className="h-3.5 w-3.5" strokeWidth={1.6} />{social.label}</a>)}<button type="button" onClick={() => window.dispatchEvent(new Event("fonzo:open-chat"))} className="press inline-flex items-center gap-2 border border-brand bg-brand px-4 py-2 text-xs text-brand-foreground transition hover:bg-brand/90"><MessageCircle className="h-3.5 w-3.5" strokeWidth={1.6} />{t("ติดต่อทันที", "Chat now")}</button></div>
+              <p className="eyebrow">{t("ช่องทางออนไลน์", "Social")}</p><div className="mt-4 flex flex-nowrap gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{[{ href: BRAND.contact.facebook, icon: Facebook, label: "Facebook" }, { href: BRAND.contact.youtube, icon: Youtube, label: "YouTube" }, { href: BRAND.contact.line, icon: MessageCircle, label: "Line" }, { href: BRAND.contact.instagram, icon: Instagram, label: "Instagram" }].map(social => <a key={social.label} href={social.href} target="_blank" rel="noreferrer" className="press inline-flex shrink-0 items-center gap-2 whitespace-nowrap border border-border px-4 py-2 text-xs text-muted-foreground hover:border-brand/50 hover:text-brand"><social.icon className="h-3.5 w-3.5" strokeWidth={1.6} />{social.label}</a>)}<button type="button" onClick={() => window.dispatchEvent(new Event("fonzo:open-chat"))} className="press inline-flex shrink-0 items-center gap-2 whitespace-nowrap border border-brand bg-brand px-4 py-2 text-xs text-brand-foreground transition hover:bg-brand/90"><MessageCircle className="h-3.5 w-3.5" strokeWidth={1.6} />{t("ติดต่อทันที", "Chat now")}</button></div>
             </div>
           </Reveal>
         </div>
