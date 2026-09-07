@@ -3,7 +3,6 @@ import { CalendarDays, ExternalLink, Images, MoveRight, Users } from "lucide-rea
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
-import { PageHeading } from "@/components/site/SiteLayout";
 import { Reveal } from "@/components/site/Reveal";
 
 function WorksRail({ items, emptyLabel }: { items: any[]; emptyLabel: string }) {
@@ -29,7 +28,22 @@ export default function Works() {
   const students = useMemo(() => works.filter(item => item.kind === "student"), [works]);
 
   return <>
-    <PageHeading eyebrow={t("ผลงานของแบรนด์", "Brand works")} title="Works" description={t("บันทึก Event ของแบรนด์ และเส้นทางการเรียนรู้ของนักเรียนคุณเบิร์ด", "A living record of brand events and Bird's students.")} crumbs={[{ label: "Works" }]} index="05" />
+    <section className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-[1500px]">
+        <p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase">
+          {t("หน้าแรก", "Home")} <span className="mx-1.5 text-brand">›</span> Works
+        </p>
+        <p className="mt-2 text-[10px] tracking-[0.16em] text-brand uppercase">
+          {t("ผลงานของแบรนด์", "Brand works")}
+        </p>
+        <div className="mt-1 flex flex-wrap items-end justify-between gap-2">
+          <h1 className="font-display text-3xl leading-none sm:text-4xl">Works</h1>
+          <p className="max-w-md text-xs text-muted-foreground">
+            {t("บันทึก Event ของแบรนด์ และเส้นทางการเรียนรู้ของนักเรียนคุณเบิร์ด", "A living record of brand events and Bird's students.")}
+          </p>
+        </div>
+      </div>
+    </section>
     <section className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6 lg:px-10 lg:py-18"><div className="space-y-20">
       <article><div className="mb-7 flex items-end justify-between gap-5 border-b border-border/70 pb-5"><div><p className="eyebrow inline-flex items-center gap-2"><CalendarDays className="h-3.5 w-3.5" /> Events</p><h2 className="mt-2 font-display text-3xl sm:text-4xl">{t("การออกบูทและกิจกรรมของแบรนด์", "Brand events")}</h2></div><span className="hidden text-xs text-muted-foreground sm:block">{t("แสดงทั้งหมด", "All events")}</span></div>{isLoading ? <div className="grid gap-5 md:grid-cols-3">{[1, 2, 3].map(item => <div key={item} className="aspect-[4/3] animate-pulse bg-secondary" />)}</div> : <WorksRail items={events} emptyLabel={t("ยังไม่มี Event ในระบบ — เพิ่มได้จาก Admin", "No events yet — add them from Admin.")} />}</article>
       <article><div className="mb-7 flex items-end justify-between gap-5 border-b border-border/70 pb-5"><div><p className="eyebrow inline-flex items-center gap-2"><Users className="h-3.5 w-3.5" /> Students</p><h2 className="mt-2 font-display text-3xl sm:text-4xl">{t("นักเรียนของคุณเบิร์ด", "Bird's students")}</h2></div></div>{isLoading ? <div className="grid gap-5 md:grid-cols-3">{[1, 2, 3].map(item => <div key={item} className="aspect-[4/3] animate-pulse bg-secondary" />)}</div> : <WorksRail items={students} emptyLabel={t("ยังไม่มีข้อมูลนักเรียนในระบบ — เพิ่มได้จาก Admin", "No student profiles yet — add them from Admin.")} />}</article>
