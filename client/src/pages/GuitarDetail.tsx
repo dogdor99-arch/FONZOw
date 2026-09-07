@@ -197,29 +197,6 @@ export default function GuitarDetail() {
               {Number(guitar.price || 0) > 0 ? `฿${Number(guitar.price).toLocaleString()}` : t("สอบถามราคา", "Contact for price")}
             </div>
 
-            {/* แสดงปุ่มสั่งซื้อ Shopee และ Lazada */}
-            <div className="space-y-3 pt-2 pb-2">
-              <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">ช่องทางสั่งซื้อ / ร้านค้าออนไลน์</p>
-              
-              <div className="flex flex-col gap-2.5">
-                {guitar.shopee_url && (
-                  <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#ee4d2d] hover:bg-[#d73211] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
-                    <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Shopee <ExternalLink className="ml-2 h-3.5 w-3.5" />
-                  </a>
-                )}
-
-                {guitar.lazada_url && (
-                  <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#0f146d] hover:bg-[#0b0e52] text-white px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
-                    <ShoppingBag className="mr-2 h-4 w-4" /> สั่งซื้อผ่าน Lazada <ExternalLink className="ml-2 h-3.5 w-3.5" />
-                  </a>
-                )}
-
-                <Link href={guitar.line_url || "/contact"} className="inline-flex items-center justify-center bg-brand hover:bg-brand/90 text-brand-foreground px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all shadow-sm">
-                  <MessageCircle className="mr-2 h-4 w-4" /> ติดต่อสอบถาม / สั่งซื้อโดยตรง
-                </Link>
-              </div>
-            </div>
-
             <div className="border-t border-border pt-6 space-y-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <ShieldCheck className="h-4 w-4 text-brand" /> รับประกันคุณภาพมาตรฐานโรงงาน Fonzo Guitar
@@ -228,33 +205,38 @@ export default function GuitarDetail() {
                 <Truck className="h-4 w-4 text-brand" /> จัดส่งปลอดภัยด้วยกล่องกันกระแทกมาตรฐานสูง
               </div>
             </div>
+
+            {guitar.description && (
+              <div className="border-t border-border pt-6">
+                <h2 className="text-xl font-display">{t("รายละเอียดกีตาร์", "Guitar details")}</h2>
+                <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{guitar.description}</p>
+              </div>
+            )}
+
+            {specsEntries.length > 0 && (
+              <div className="border-t border-border pt-6 space-y-3">
+                <h3 className="text-xs uppercase tracking-widest font-semibold text-foreground">สเปคทางเทคนิค (Specifications)</h3>
+                <div className="grid border border-border divide-y divide-border text-xs sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
+                  {specsEntries.map(([key, val], idx) => (
+                    <div key={idx} className="flex justify-between gap-4 border-b border-border p-3 last:border-b-0 sm:odd:border-r">
+                      <span className="text-muted-foreground uppercase font-medium">{key}</span>
+                      <span className="text-right font-semibold text-foreground">{val}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {(guitar.description || specsEntries.length > 0) && (
-          <div className="mt-14 border-t border-border pt-10 lg:mt-16">
-            <div className="max-w-4xl">
-              <h2 className="text-2xl font-display sm:text-3xl">{t("รายละเอียดกีตาร์", "Guitar details")}</h2>
-              {guitar.description && (
-                <p className="mt-5 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{guitar.description}</p>
-              )}
-
-              {specsEntries.length > 0 && (
-                <div className="mt-10 space-y-3">
-                  <h3 className="text-xs uppercase tracking-widest font-semibold text-foreground">สเปคทางเทคนิค (Specifications)</h3>
-                  <div className="grid border border-border divide-y divide-border text-xs sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
-                    {specsEntries.map(([key, val], idx) => (
-                      <div key={idx} className="flex justify-between gap-4 border-b border-border p-3 last:border-b-0 sm:odd:border-r">
-                        <span className="text-muted-foreground uppercase font-medium">{key}</span>
-                        <span className="text-right font-semibold text-foreground">{val}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+        <div className="mt-12 border-t border-border pt-8">
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">ช่องทางสั่งซื้อ / ร้านค้าออนไลน์</p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {guitar.shopee_url && <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#ee4d2d] px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-[#d73211]"><ShoppingBag className="mr-2 h-4 w-4" />สั่งซื้อผ่าน Shopee<ExternalLink className="ml-2 h-3.5 w-3.5" /></a>}
+            {guitar.lazada_url && <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-[#0f146d] px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-[#0b0e52]"><ShoppingBag className="mr-2 h-4 w-4" />สั่งซื้อผ่าน Lazada<ExternalLink className="ml-2 h-3.5 w-3.5" /></a>}
+            <Link href={guitar.line_url || "/contact"} className="inline-flex items-center justify-center bg-brand px-6 py-3 text-xs font-bold uppercase tracking-widest text-brand-foreground transition-all hover:bg-brand/90"><MessageCircle className="mr-2 h-4 w-4" />ติดต่อสอบถาม / สั่งซื้อโดยตรง</Link>
           </div>
-        )}
+        </div>
       </section>
     </>
   );
