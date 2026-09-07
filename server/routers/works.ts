@@ -14,7 +14,7 @@ const optionalUrl = z.preprocess(value => {
 }, z.string().max(1024).nullish());
 const worksInput = z.object({
   kind: z.enum(["event", "student"]), title: z.string().min(1).max(240), titleEn: z.string().max(240).nullish(),
-  eventDate: z.string().max(120).nullish(), description: z.string().max(4000).nullish(), descriptionEn: z.string().max(4000).nullish(),
+  eventDate: z.string().max(120).nullish(), description: z.string().max(4000).nullish(), descriptionEn: z.string().max(4000).nullish(), imageUrl: z.string().max(8_000_000).nullish(),
   imageUrls: z.array(z.string().max(8_000_000)).max(30).default([]), sourceUrl: optionalUrl,
   published: z.boolean().optional(), sortOrder: z.number().int().min(-999).max(999).optional(),
 });

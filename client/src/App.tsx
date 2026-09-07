@@ -22,6 +22,8 @@ import Catalog from "./pages/Catalog";
 import Gallery from "./pages/Gallery";
 import Works from "./pages/Works";
 import Artists from "./pages/Artists";
+import ArtistDetail from "./pages/ArtistDetail";
+import WorkDetail from "./pages/WorkDetail";
 import Dealers from "./pages/Dealers";
 import Contact from "./pages/Contact";
 import Shop from "./pages/Shop";
@@ -65,7 +67,9 @@ function Router() {
       <Route path="/catalog" component={Catalog} />
       <Route path="/gallery" component={Gallery} />
       <Route path="/works" component={Works} />
+      <Route path="/works/:id" component={WorkDetail} />
       <Route path="/artists" component={Artists} />
+      <Route path="/artists/:id" component={ArtistDetail} />
       <Route path="/dealers" component={Dealers} />
       <Route path="/contact" component={Contact} />
       <Route path="/shop" component={Shop} />

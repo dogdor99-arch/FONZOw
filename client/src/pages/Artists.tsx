@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, ExternalLink, MoveRight, Music2 } from "lucide-react";
+import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { FEATURED_ARTISTS } from "@/lib/artistContent";
@@ -93,6 +94,7 @@ export default function Artists() {
               <p className="mt-5 max-w-lg text-[15px] leading-[1.95] text-muted-foreground">{description || t("เพิ่มข้อมูลศิลปินและเรื่องราวการร่วมงานได้จากหน้า Admin", "Add the artist biography and collaboration story from Admin.")}</p>
               {current.guitar && <p className="mt-8 border-l border-gold pl-4 text-xs tracking-[0.14em] text-foreground/65">{current.guitar}</p>}
               <a href={current.sourceUrl} target="_blank" rel="noreferrer" className="mt-10 inline-flex w-fit items-center gap-3 text-[11px] tracking-[0.17em] text-brand uppercase transition-colors hover:text-gold">{t("ดูเรื่องราวต้นฉบับ", "View original story")}<ExternalLink className="h-3.5 w-3.5" /></a>
+              <Link href={`/artists/${current.id}`} className="mt-4 inline-flex w-fit items-center gap-3 text-[11px] font-semibold tracking-[0.17em] text-brand uppercase transition-colors hover:text-gold">{t("ดูข้อมูลศิลปินแบบเต็ม", "View full artist profile")}<MoveRight className="h-3.5 w-3.5" /></Link>
             </div>
           </div>
 
