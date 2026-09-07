@@ -44,6 +44,11 @@ export function FloatingChat() {
     return () => observer.disconnect();
   }, []);
   useEffect(() => {
+    const openChat = () => { setOpen(true); setChatOpen(true); };
+    window.addEventListener("fonzo:open-chat", openChat);
+    return () => window.removeEventListener("fonzo:open-chat", openChat);
+  }, []);
+  useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
     window.addEventListener("keydown", onKey);
