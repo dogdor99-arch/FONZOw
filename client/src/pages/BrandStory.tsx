@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { ArrowRight } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
-import { PageHeading } from "@/components/site/SiteLayout";
+import { CompactPageHeading } from "@/components/site/SiteLayout";
 import { EditorialArticle } from "@/components/site/EditorialArticle";
 
 export default function BrandStory() {
@@ -13,15 +13,9 @@ export default function BrandStory() {
 
   return (
     <>
-      <PageHeading
-        eyebrow={t("เรื่องราวแบรนด์", "Brand story")}
+      <CompactPageHeading
         title="Brand Story"
-        description={t(
-          "จากประสบการณ์บนเวทีนานาชาติ สู่แบรนด์กีตาร์ที่ให้ความสำคัญกับโครงสร้าง วัสดุ และคุณภาพเสียงเป็นอันดับแรก",
-          "From the international concert stage to a guitar brand that puts structure, materials and tone first.",
-        )}
         crumbs={[{ label: "Brand Story" }]}
-        index="02"
       />
 
       <EditorialArticle

@@ -52,7 +52,7 @@ export function PageHeading({
         aria-hidden
         className="pointer-events-none absolute -right-24 -top-32 h-[26rem] w-[26rem] rounded-full bg-[radial-gradient(circle,color-mix(in_oklch,var(--brand)_9%,transparent)_0%,transparent_70%)]"
       />
-      <div className="relative mx-auto max-w-[1400px] px-4 pb-8 pt-7 sm:px-6 lg:px-10 lg:pb-10 lg:pt-9 lg:pl-8">
+      <div className="relative mx-auto max-w-[1400px] px-4 pb-8 pt-7 sm:px-6 lg:px-10 lg:pb-10 lg:pt-9 lg:pl-12">
         <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <Link href="/" className="tracking-[0.14em] uppercase transition-colors hover:text-brand">
             {t("หน้าแรก", "Home")}
@@ -98,5 +98,5 @@ export function PageHeading({
 
 export function CompactPageHeading({ eyebrow, title, crumbs = [] }: { eyebrow?: string; title: string; crumbs?: Crumb[] }) {
   const { t } = useLocale();
-  return <section className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px] lg:pl-8"><nav aria-label="breadcrumb" className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase"><Link href="/" className="transition-colors hover:text-brand">{t("หน้าแรก", "Home")}</Link>{crumbs.map(crumb => <span key={crumb.label}><span className="mx-1.5 text-brand">›</span>{crumb.label}</span>)}</nav>{eyebrow && <p className="mt-2 text-[10px] tracking-[0.16em] text-brand uppercase">{eyebrow}</p>}<h1 className="mt-1 font-display text-3xl leading-none sm:text-4xl">{title}</h1></div></section>;
+  return <section className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px] lg:pl-12"><nav aria-label="breadcrumb" className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase"><Link href="/" className="transition-colors hover:text-brand">{t("หน้าแรก", "Home")}</Link>{crumbs.map(crumb => <span key={crumb.label}><span className="mx-1.5 text-brand">›</span>{crumb.label}</span>)}</nav>{eyebrow && <p className="mt-2 text-[10px] tracking-[0.16em] text-brand uppercase">{eyebrow}</p>}<h1 className="mt-1 font-display text-3xl leading-none sm:text-4xl">{title}</h1></div></section>;
 }

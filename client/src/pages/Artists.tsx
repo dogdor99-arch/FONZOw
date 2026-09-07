@@ -59,18 +59,18 @@ export default function Artists() {
   };
 
   if (isLoading) {
-    return <><div className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px] lg:pl-8"><p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase">หน้าแรก <span className="mx-1.5 text-brand">›</span> Artists</p><h1 className="mt-2 font-display text-3xl leading-none sm:text-4xl">Artists</h1></div></div><main className="mx-auto max-w-5xl px-4 py-20 text-center text-muted-foreground">{t("กำลังโหลดข้อมูลศิลปิน...", "Loading artist profiles...")}</main></>;
+    return <><div className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px] lg:pl-12"><p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase">หน้าแรก <span className="mx-1.5 text-brand">›</span> Artists</p><h1 className="mt-2 font-display text-3xl leading-none sm:text-4xl">Artists</h1></div></div><main className="mx-auto max-w-5xl px-4 py-20 text-center text-muted-foreground">{t("กำลังโหลดข้อมูลศิลปิน...", "Loading artist profiles...")}</main></>;
   }
 
   if (!current) {
-    return <><div className="border-b border-border/70 bg-cream/40 px-4 py-9 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px] lg:pl-8"><p className="text-[10px] tracking-[0.18em] text-muted-foreground uppercase">หน้าแรก <span className="mx-2 text-brand">›</span> Artists</p><h1 className="mt-2 font-display text-4xl leading-none sm:text-5xl">Artists</h1></div></div><div className="mx-auto max-w-5xl px-4 py-20 text-center text-muted-foreground">{t("ยังไม่มีข้อมูลศิลปิน", "No artist profiles yet")}</div></>;
+    return <><div className="border-b border-border/70 bg-cream/40 px-4 py-9 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px] lg:pl-12"><p className="text-[10px] tracking-[0.18em] text-muted-foreground uppercase">หน้าแรก <span className="mx-2 text-brand">›</span> Artists</p><h1 className="mt-2 font-display text-4xl leading-none sm:text-5xl">Artists</h1></div></div><div className="mx-auto max-w-5xl px-4 py-20 text-center text-muted-foreground">{t("ยังไม่มีข้อมูลศิลปิน", "No artist profiles yet")}</div></>;
   }
 
   const title = locale === "th" ? current.name : current.nameEn;
   const role = locale === "th" ? current.role : current.roleEn;
   const description = locale === "th" ? current.description : current.descriptionEn;
   return <>
-    <div className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px] lg:pl-8"><p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase">หน้าแรก <span className="mx-1.5 text-brand">›</span> Artists</p><h1 className="mt-2 font-display text-3xl leading-none sm:text-4xl">Artists</h1></div></div>
+    <div className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px] lg:pl-12"><p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase">หน้าแรก <span className="mx-1.5 text-brand">›</span> Artists</p><h1 className="mt-2 font-display text-3xl leading-none sm:text-4xl">Artists</h1></div></div>
     <main className="overflow-hidden bg-cream/35">
       <section onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)} className="mx-auto max-w-[1400px] px-4 pb-12 pt-2 sm:px-6 lg:px-10 lg:pb-20 lg:pt-4">
         <div className={`relative transition duration-500 ease-out ${switching ? "translate-x-5 opacity-0" : "translate-x-0 opacity-100"}`}>
