@@ -31,7 +31,7 @@ export default function BrandStory() {
           "เครื่องดนตรีที่ดีเริ่มจากการฟัง ไม่ใช่จากการตกแต่ง",
           "A fine instrument begins with listening, not with ornament.",
         )}
-        image={article?.image}
+        image="/brand-story.jpg"
         imageAlt={t("เรื่องราวแบรนด์ Fonzo", "Fonzo brand story")}
         html={article?.html}
         isLoading={isLoading}
