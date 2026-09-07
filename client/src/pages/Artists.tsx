@@ -78,7 +78,6 @@ export default function Artists() {
 
           <div className="grid min-h-[470px] items-center gap-6 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10">
             <div className="relative flex min-h-[330px] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,rgba(194,151,78,0.16),transparent_62%)] sm:min-h-[440px] lg:min-h-[540px] lg:px-10">
-              <div className="pointer-events-none absolute left-5 top-5 text-[9px] tracking-[0.2em] text-brand/70 uppercase">{String(active + 1).padStart(2, "0")} / {String(artists.length).padStart(2, "0")}</div>
               {current.image ? <Link href={`/artists/${current.id}`} className="block h-full w-full cursor-pointer"><img src={current.image} alt={title} className="h-full max-h-[620px] w-full object-contain object-center mix-blend-multiply transition duration-500 hover:opacity-90" /></Link> : <div className="flex flex-col items-center gap-4 text-muted-foreground"><Music2 className="h-12 w-12 text-gold" strokeWidth={1.1} /><span className="eyebrow">{t("ใส่รูปศิลปินจาก Admin", "Add an artist image from Admin")}</span></div>}
               <div className="pointer-events-none absolute bottom-0 left-1/2 h-px w-3/4 -translate-x-1/2 bg-linear-to-r from-transparent via-brand/40 to-transparent" />
             </div>
