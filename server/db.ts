@@ -16,8 +16,10 @@ export async function ensureEditorialTables() {
     "ALTER TABLE `worksItems` ADD COLUMN `imageUrl` TEXT NULL",
   ]) {
     try { await db.execute(sql.raw(statement)); } catch (error) {
-      const code = (error as { code?: string }).code;
-      if (code !== "ER_DUP_FIELDNAME") throw error;
+      const wrapped = error as { code?: string; cause?: { code?: string; errno?: number } };
+      const code = wrapped.code ?? wrapped.cause?.code;
+      const errno = wrapped.cause?.errno;
+      if (code !== "ER_DUP_FIELDNAME" && errno !== 1060) throw error;
     }
   }
 }
