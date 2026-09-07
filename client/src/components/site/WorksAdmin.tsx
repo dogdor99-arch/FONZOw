@@ -1,27 +1,107 @@
-import { useMemo, useState } from "react";
-import { Edit2, ImagePlus, Loader2, Plus, Save, Trash2, Users, X, Upload } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Edit2, Eye, EyeOff, ImagePlus, Loader2, Plus, Save, Trash2, Users, X, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { useLocale } from "@/contexts/LocaleContext";
 
-type Draft = { id?: number; kind: "event" | "student"; title: string; titleEn: string; eventDate: string; description: string; descriptionEn: string; imageUrl: string; imageUrls: string[]; sourceUrl: string; published: boolean; sortOrder: number };
-const emptyDraft: Draft = { kind: "event", title: "", titleEn: "", eventDate: "", description: "", descriptionEn: "", imageUrl: "", imageUrls: [], sourceUrl: "", published: true, sortOrder: 0 };
+const EMPTY_FORM = {
+  kind: "event" as "event" | "student",
+  title: "",
+  titleEn: "",
+  eventDate: "",
+  description: "",
+  descriptionEn: "",
+  imageUrl: "",
+  imageUrls: [] as string[],
+  sourceUrl: "",
+  published: true,
+  sortOrder: "0",
+};
+
+type FormState = typeof EMPTY_FORM;
 
 export function WorksAdmin() {
+  const { t } = useLocale();
   const utils = trpc.useUtils();
   const { data: items = [], isLoading } = trpc.works.listAll.useQuery();
-  const create = trpc.works.create.useMutation({ onSuccess: () => { toast.success("บันทึกข้อมูล Works แล้ว"); utils.works.listAll.invalidate(); utils.works.list.invalidate(); setDraft(emptyDraft); setEditing(false); }, onError: error => toast.error(error.message) });
-  const update = trpc.works.update.useMutation({ onSuccess: () => { toast.success("อัปเดตข้อมูลแล้ว"); utils.works.listAll.invalidate(); utils.works.list.invalidate(); setDraft(emptyDraft); setEditing(false); }, onError: error => toast.error(error.message) });
-  const remove = trpc.works.remove.useMutation({ onSuccess: () => { toast.success("ลบข้อมูลแล้ว"); utils.works.listAll.invalidate(); utils.works.list.invalidate(); } });
+  const create = trpc.works.create.useMutation();
+  const update = trpc.works.update.useMutation();
+  const remove = trpc.works.remove.useMutation();
   const uploadImage = trpc.works.uploadImage.useMutation();
-  const [draft, setDraft] = useState<Draft>(emptyDraft); const [editing, setEditing] = useState(false);
-  const events = useMemo(() => items.filter(item => item.kind === "event"), [items]); const students = useMemo(() => items.filter(item => item.kind === "student"), [items]);
-  const edit = (item: any) => { setDraft({ ...emptyDraft, ...item, imageUrl: item.imageUrl ?? item.imageUrls?.[0] ?? "", imageUrls: item.imageUrls?.length ? item.imageUrls : [] }); setEditing(true); window.scrollTo({ top: 0, behavior: "smooth" }); };
-  const uploadLocalImage = async (file: File, target: "main" | "gallery") => { if (file.size > 8 * 1024 * 1024) throw new Error("Image must be smaller than 8MB"); const base64 = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsDataURL(file); }); const result = await uploadImage.mutateAsync({ base64, contentType: file.type as "image/jpeg" | "image/png" | "image/webp" | "image/gif" }); setDraft(current => target === "main" ? { ...current, imageUrl: result.url } : { ...current, imageUrls: [...current.imageUrls, result.url] }); };
-  const submit = (event: React.FormEvent) => { event.preventDefault(); const payload = { ...draft, title: draft.title.trim(), titleEn: draft.titleEn.trim() || undefined, eventDate: draft.eventDate.trim() || undefined, description: draft.description.trim() || undefined, descriptionEn: draft.descriptionEn.trim() || undefined, imageUrl: draft.imageUrl.trim() || undefined, sourceUrl: draft.sourceUrl.trim() || undefined, imageUrls: draft.imageUrls.map(image => image.trim()).filter(Boolean) }; if (!payload.title) return toast.error("กรุณาใส่ชื่อ Event หรือชื่อนักเรียน"); if (draft.id) update.mutate(payload as any); else create.mutate(payload as any); };
-  const addImage = () => setDraft(current => ({ ...current, imageUrls: [...current.imageUrls, ""] }));
-  const updateImage = (index: number, value: string) => setDraft(current => ({ ...current, imageUrls: current.imageUrls.map((image, imageIndex) => imageIndex === index ? value : image) }));
-  return <div className="space-y-8"><form onSubmit={submit} className="border border-border bg-card p-5 sm:p-7"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4"><div><p className="eyebrow text-brand">Works editor</p><h2 className="mt-2 font-display text-2xl">{editing ? "แก้ไขรายการ" : "เพิ่ม Event หรือนักเรียน"}</h2></div>{editing && <Button type="button" variant="outline" onClick={() => { setDraft(emptyDraft); setEditing(false); }} className="h-9 rounded-none"><X className="mr-2 h-4 w-4" />ยกเลิกแก้ไข</Button>}</div><div className="mt-6 grid gap-4 sm:grid-cols-2"><label className="text-xs text-muted-foreground">ประเภท<select value={draft.kind} onChange={event => setDraft({ ...draft, kind: event.target.value as Draft["kind"] })} className="mt-1 h-10 w-full border border-border bg-background px-3 text-sm"><option value="event">Event / ผลงานกิจกรรม</option><option value="student">Student / นักเรียนคุณเบิร์ด</option></select></label><label className="text-xs text-muted-foreground">วันที่หรือปีจัดงาน<Input value={draft.eventDate} onChange={event => setDraft({ ...draft, eventDate: event.target.value })} className="mt-1 h-10 rounded-none" /></label><label className="text-xs text-muted-foreground">ชื่อภาษาไทย<Input value={draft.title} onChange={event => setDraft({ ...draft, title: event.target.value })} className="mt-1 h-10 rounded-none" required /></label><label className="text-xs text-muted-foreground">ชื่อภาษาอังกฤษ<Input value={draft.titleEn} onChange={event => setDraft({ ...draft, titleEn: event.target.value })} className="mt-1 h-10 rounded-none" /></label><label className="text-xs text-muted-foreground sm:col-span-2">คำบรรยาย<textarea value={draft.description} onChange={event => setDraft({ ...draft, description: event.target.value })} rows={3} className="mt-1 w-full border border-border bg-background p-3 text-sm" /></label><label className="text-xs text-muted-foreground sm:col-span-2">Description (English)<textarea value={draft.descriptionEn} onChange={event => setDraft({ ...draft, descriptionEn: event.target.value })} rows={2} className="mt-1 w-full border border-border bg-background p-3 text-sm" /></label><label className="text-xs text-muted-foreground">ลิงก์ต้นฉบับ<Input value={draft.sourceUrl} onChange={event => setDraft({ ...draft, sourceUrl: event.target.value })} className="mt-1 h-10 rounded-none" /></label><label className="text-xs text-muted-foreground">ลำดับ<Input type="number" value={draft.sortOrder} onChange={event => setDraft({ ...draft, sortOrder: Number(event.target.value) })} className="mt-1 h-10 rounded-none" /></label></div><div className="mt-6 border-t border-border pt-5"><div className="flex flex-wrap items-center justify-between gap-3"><p className="flex items-center gap-2 text-xs font-semibold tracking-[0.12em] uppercase"><ImagePlus className="h-4 w-4 text-brand" />ภาพหลักและภาพประกอบ</p><div className="mt-3 w-full sm:w-72"><Input value={draft.imageUrl} onChange={event => setDraft({ ...draft, imageUrl: event.target.value })} placeholder="URL ภาพหลัก" className="h-10 rounded-none" />{draft.imageUrl && <a href={draft.imageUrl} target="_blank" rel="noreferrer" className="mt-2 block h-24 overflow-hidden bg-secondary"><img src={draft.imageUrl} alt="Main preview" className="h-full w-full object-cover" /></a>}</div><div className="flex gap-4"><label className="inline-flex cursor-pointer items-center text-xs text-brand hover:underline"><Upload className="mr-1 h-3.5 w-3.5" />เลือกภาพหลัก<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={async event => { try { const file = event.target.files?.[0]; if (file) await uploadLocalImage(file, "main"); } catch (error) { toast.error(error instanceof Error ? error.message : "อัปโหลดไม่สำเร็จ"); } event.target.value = ""; }} /></label><label className="inline-flex cursor-pointer items-center text-xs text-brand hover:underline"><Upload className="mr-1 h-3.5 w-3.5" />เพิ่มภาพประกอบ<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple className="hidden" onChange={async event => { try { for (const file of Array.from(event.target.files ?? [])) await uploadLocalImage(file, "gallery"); } catch (error) { toast.error(error instanceof Error ? error.message : "อัปโหลดไม่สำเร็จ"); } event.target.value = ""; }} /></label><button type="button" onClick={addImage} className="text-xs text-brand hover:underline"><Plus className="mr-1 inline h-3.5 w-3.5" />เพิ่ม URL</button></div></div><div className="mt-3 space-y-2">{draft.imageUrls.map((image, index) => <div key={index} className="flex gap-2">{image && <a href={image} target="_blank" rel="noreferrer" className="h-10 w-14 shrink-0 overflow-hidden bg-secondary"><img src={image} alt="" className="h-full w-full object-cover" /></a>}<Input value={image} onChange={event => updateImage(index, event.target.value)} placeholder="https://.../image.jpg" className="h-10 rounded-none" />{draft.imageUrls.length > 1 && <button type="button" onClick={() => setDraft(current => ({ ...current, imageUrls: current.imageUrls.filter((_, imageIndex) => imageIndex !== index) }))} className="px-2 text-muted-foreground hover:text-red-500"><Trash2 className="h-4 w-4" /></button>}</div>)}</div></div><div className="mt-6 flex items-center justify-between border-t border-border pt-5"><label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={draft.published} onChange={event => setDraft({ ...draft, published: event.target.checked })} />เผยแพร่บนหน้า Works</label><Button type="submit" disabled={create.isPending || update.isPending} className="h-10 rounded-none bg-brand text-brand-foreground"><Save className="mr-2 h-4 w-4" />บันทึก</Button></div></form><section className="space-y-5"><div className="flex items-center gap-2"><Users className="h-5 w-5 text-brand" /><h2 className="font-display text-xl">รายการที่มีอยู่</h2></div>{isLoading ? <Loader2 className="h-5 w-5 animate-spin text-brand" /> : <div className="grid gap-3">{[...events, ...students].map(item => <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 border border-border bg-card p-4"><div className="flex min-w-0 items-center gap-3">{(item.imageUrl || item.imageUrls?.[0]) && <a href={item.imageUrl || item.imageUrls?.[0]} target="_blank" rel="noreferrer"><img src={item.imageUrl || item.imageUrls?.[0]} alt="" className="h-14 w-20 shrink-0 object-cover" /></a>}<div><div className="flex items-center gap-2 text-[10px] tracking-[0.14em] text-brand uppercase"><span>{item.kind === "event" ? "Event" : "Student"}</span><span className={cn("h-1.5 w-1.5 rounded-full", item.published ? "bg-emerald-500" : "bg-muted-foreground")} /></div><h3 className="mt-1 font-medium">{item.title}</h3><p className="text-xs text-muted-foreground">{item.eventDate || "ไม่มีวันที่"} · {item.imageUrls?.length || 0} ภาพ</p></div></div><div className="flex gap-2"><Button type="button" variant="outline" onClick={() => edit(item)} className="h-8 rounded-none text-xs"><Edit2 className="mr-1 h-3.5 w-3.5" />แก้ไข</Button><Button type="button" variant="ghost" onClick={() => { if (confirm("ลบรายการนี้หรือไม่?")) remove.mutate({ id: item.id }); }} className="h-8 rounded-none text-red-500"><Trash2 className="h-3.5 w-3.5" /></Button></div></div>)}</div>}</section></div>;
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [open, setOpen] = useState(false);
+  const events = useMemo(() => items.filter(item => item.kind === "event"), [items]);
+  const students = useMemo(() => items.filter(item => item.kind === "student"), [items]);
+
+  useEffect(() => {
+    if (!open && items.length === 0) setOpen(true);
+  }, [items.length, open]);
+
+  const reset = () => { setForm(EMPTY_FORM); setEditingId(null); setOpen(false); };
+  const fill = (item: (typeof items)[number]) => {
+    setEditingId(item.id);
+    setForm({
+      kind: item.kind,
+      title: item.title,
+      titleEn: item.titleEn ?? "",
+      eventDate: item.eventDate ?? "",
+      description: item.description ?? "",
+      descriptionEn: item.descriptionEn ?? "",
+      imageUrl: item.imageUrl ?? item.imageUrls?.[0] ?? "",
+      imageUrls: item.imageUrls ?? [],
+      sourceUrl: item.sourceUrl ?? "",
+      published: item.published,
+      sortOrder: String(item.sortOrder),
+    });
+    setOpen(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const set = (key: keyof FormState, value: string | boolean | string[]) => setForm(current => ({ ...current, [key]: value }));
+  const uploadFile = async (file: File, target: "main" | "gallery") => {
+    if (file.size > 8 * 1024 * 1024) throw new Error("Image must be smaller than 8MB");
+    const base64 = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsDataURL(file); });
+    const result = await uploadImage.mutateAsync({ base64, contentType: file.type as "image/jpeg" | "image/png" | "image/webp" | "image/gif" });
+    if (target === "main") set("imageUrl", result.url);
+    else setForm(current => ({ ...current, imageUrls: [...current.imageUrls, result.url] }));
+  };
+  const save = async () => {
+    if (!form.title.trim()) { toast.error(t("กรุณาใส่ชื่อ Event หรือชื่อนักเรียน", "Please enter a title")); return; }
+    const payload = { kind: form.kind, title: form.title.trim(), titleEn: form.titleEn.trim() || null, eventDate: form.eventDate.trim() || null, description: form.description.trim() || null, descriptionEn: form.descriptionEn.trim() || null, imageUrl: form.imageUrl || null, imageUrls: form.imageUrls, sourceUrl: form.sourceUrl.trim() || null, published: form.published, sortOrder: Number(form.sortOrder) || 0 };
+    try {
+      if (editingId) await update.mutateAsync({ id: editingId, ...payload }); else await create.mutateAsync(payload);
+      await utils.works.listAll.invalidate(); await utils.works.list.invalidate();
+      toast.success(t("บันทึกข้อมูลแล้ว", "Work saved")); reset();
+    } catch (error) { toast.error(error instanceof Error ? error.message : t("บันทึกไม่สำเร็จ", "Could not save")); }
+  };
+  const destroy = async (id: number) => {
+    if (!window.confirm(t("ลบรายการนี้หรือไม่?", "Delete this item?"))) return;
+    try { await remove.mutateAsync({ id }); await utils.works.listAll.invalidate(); await utils.works.list.invalidate(); toast.success(t("ลบข้อมูลแล้ว", "Item deleted")); if (editingId === id) reset(); }
+    catch (error) { toast.error(error instanceof Error ? error.message : t("ลบไม่สำเร็จ", "Could not delete")); }
+  };
+  const fileInput = (target: "main" | "gallery", multiple = false) => <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple={multiple} className="hidden" onChange={async event => { try { for (const file of Array.from(event.target.files ?? [])) await uploadFile(file, target); } catch (error) { toast.error(error instanceof Error ? error.message : t("อัปโหลดไม่สำเร็จ", "Upload failed")); } finally { event.target.value = ""; } }} />;
+
+  return <div className="space-y-8">
+    <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border/70 pb-5"><div><p className="eyebrow">Works editorial</p><h2 className="mt-2 text-2xl">{t("จัดการ Event และ Student", "Manage events and students")}</h2><p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("เพิ่มและแก้ไขผลงานกิจกรรมกับข้อมูลนักเรียน พร้อมอัปโหลดภาพจากเครื่อง", "Add and edit events and student stories with image uploads.")}</p></div><Button type="button" onClick={() => { setForm(EMPTY_FORM); setEditingId(null); setOpen(true); }} className="press rounded-none bg-brand text-brand-foreground"><Plus className="mr-2 h-4 w-4" />{t("เพิ่มรายการ", "Add item")}</Button></div>
+    {open && <div className="border border-brand/40 bg-card p-6 sm:p-8"><div className="flex items-center justify-between"><div><p className="eyebrow text-brand">{editingId ? t("แก้ไขรายการ", "Edit item") : t("รายการใหม่", "New item")}</p><h3 className="mt-2 font-display text-2xl">{form.kind === "event" ? t("ข้อมูล Event", "Event details") : t("ข้อมูล Student", "Student details")}</h3></div><button type="button" onClick={reset} className="text-muted-foreground hover:text-foreground" aria-label="Close"><X className="h-5 w-5" /></button></div>
+      <div className="mt-7 grid gap-4 md:grid-cols-2">
+        <label className="block text-sm"><span className="mb-2 block text-xs tracking-[0.12em] text-muted-foreground uppercase">{t("ประเภท", "Type")}</span><select value={form.kind} onChange={event => set("kind", event.target.value as FormState["kind"])} className="h-11 w-full border border-input bg-background px-3 text-sm"><option value="event">Event / ผลงานกิจกรรม</option><option value="student">Student / นักเรียนคุณเบิร์ด</option></select></label>
+        <Field label={t("วันที่หรือปีจัดงาน", "Date or year")} value={form.eventDate} onChange={value => set("eventDate", value)} />
+        <Field label={t("ชื่อภาษาไทย", "Thai title")} value={form.title} onChange={value => set("title", value)} required />
+        <Field label={t("ชื่อภาษาอังกฤษ", "English title")} value={form.titleEn} onChange={value => set("titleEn", value)} />
+        <TextAreaField label={t("คำบรรยาย", "Description")} value={form.description} onChange={value => set("description", value)} />
+        <TextAreaField label="Description (English)" value={form.descriptionEn} onChange={value => set("descriptionEn", value)} />
+        <Field label={t("ลิงก์ต้นฉบับ", "Source URL")} value={form.sourceUrl} onChange={value => set("sourceUrl", value)} />
+        <Field label={t("ลำดับการแสดงผล", "Display order")} value={form.sortOrder} onChange={value => set("sortOrder", value)} type="number" />
+        <div className="md:col-span-2"><p className="mb-2 flex items-center gap-2 text-xs tracking-[0.12em] text-muted-foreground uppercase"><ImagePlus className="h-4 w-4 text-brand" />{t("ภาพหลัก", "Main image")}</p><div className="flex items-start gap-4">{form.imageUrl ? <div className="relative h-28 w-40 overflow-hidden bg-secondary"><img src={form.imageUrl} alt="Main preview" className="h-full w-full object-cover" /><button type="button" onClick={() => set("imageUrl", "")} className="absolute right-1 top-1 bg-ink/75 px-1.5 text-xs text-white">×</button></div> : <div className="flex h-28 w-40 items-center justify-center border border-dashed border-border text-xs text-muted-foreground">{t("ยังไม่มีภาพ", "No image")}</div>}<label className="inline-flex cursor-pointer items-center text-xs text-brand hover:underline"><Upload className="mr-1 h-3.5 w-3.5" />{t("เลือกภาพจากเครื่อง", "Upload from computer")}{fileInput("main")}</label></div></div>
+        <div className="md:col-span-2"><p className="mb-2 text-xs tracking-[0.12em] text-muted-foreground uppercase">{t("ภาพประกอบ", "Supporting images")}</p><label className="inline-flex cursor-pointer items-center text-xs text-brand hover:underline"><Upload className="mr-1 h-3.5 w-3.5" />{t("เพิ่มภาพประกอบจากเครื่อง", "Add supporting images")}{fileInput("gallery", true)}</label><div className="mt-3 flex gap-2 overflow-x-auto">{form.imageUrls.map((url, index) => <div key={`${url}-${index}`} className="relative h-20 w-28 shrink-0 overflow-hidden bg-secondary"><img src={url} alt="" className="h-full w-full object-cover" /><button type="button" onClick={() => setForm(current => ({ ...current, imageUrls: current.imageUrls.filter((_, itemIndex) => itemIndex !== index) }))} className="absolute right-1 top-1 bg-ink/75 px-1.5 text-xs text-white">×</button></div>)}</div></div>
+        <label className="flex items-center gap-3 pt-2 text-sm"><input type="checkbox" checked={form.published} onChange={event => set("published", event.target.checked)} className="h-4 w-4 accent-brand" />{t("เผยแพร่บนหน้า Works", "Publish on Works page")}</label>
+      </div><div className="mt-6 flex flex-wrap gap-3"><Button type="button" onClick={save} disabled={create.isPending || update.isPending} className="press rounded-none bg-brand text-brand-foreground"><Save className="mr-2 h-4 w-4" />{t("บันทึก", "Save")}</Button><Button type="button" variant="outline" onClick={reset} className="press rounded-none">{t("ยกเลิก", "Cancel")}</Button></div></div>}
+    <section className="space-y-5"><div className="flex items-center gap-2"><Users className="h-5 w-5 text-brand" /><h2 className="font-display text-xl">{t("รายการที่มีอยู่", "Existing items")}</h2></div>{isLoading ? <Loader2 className="h-5 w-5 animate-spin text-brand" /> : items.length === 0 ? <div className="border border-border p-10 text-center text-sm text-muted-foreground">{t("ยังไม่มีรายการ กดเพิ่มรายการเพื่อเริ่มต้น", "No items yet. Add one to get started.")}</div> : <div className="space-y-3">{[...events, ...students].map(item => <div key={item.id} className="flex flex-col gap-5 border border-border bg-card p-5 sm:flex-row sm:items-center"><div className="h-24 w-32 shrink-0 overflow-hidden bg-secondary">{(item.imageUrl || item.imageUrls?.[0]) ? <img src={item.imageUrl || item.imageUrls?.[0]} alt={item.title} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No image</div>}</div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-3"><h3 className="font-display text-xl">{item.title}</h3><span className={`inline-flex items-center gap-1 text-[10px] tracking-[0.12em] uppercase ${item.published ? "text-green-700" : "text-muted-foreground"}`}>{item.published ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}{item.published ? t("เผยแพร่", "Published") : t("ซ่อน", "Hidden")}</span></div><p className="mt-1 text-xs text-muted-foreground">{item.kind === "event" ? "Event" : "Student"} · {item.eventDate || t("ไม่มีวันที่", "No date")} · {item.imageUrls?.length || 0} {t("ภาพประกอบ", "supporting images")}</p><p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{item.description ?? t("ยังไม่มีคำบรรยาย", "No description yet")}</p></div><div className="flex shrink-0 gap-2"><Button type="button" variant="outline" onClick={() => fill(item)} className="press rounded-none"><Edit2 className="mr-2 h-3.5 w-3.5" />{t("แก้ไข", "Edit")}</Button><Button type="button" variant="outline" onClick={() => destroy(item.id)} className="press rounded-none text-red-600 hover:border-red-300 hover:text-red-700"><Trash2 className="h-3.5 w-3.5" /></Button></div></div>)}</div>}</section>
+  </div>;
 }
+
+function Field({ label, value, onChange, required, type = "text" }: { label: string; value: string; onChange: (value: string) => void; required?: boolean; type?: string }) { return <label className="block text-sm"><span className="mb-2 block text-xs tracking-[0.12em] text-muted-foreground uppercase">{label}{required ? " *" : ""}</span><Input type={type} value={value} onChange={event => onChange(event.target.value)} className="h-11 rounded-none" required={required} /></label>; }
+function TextAreaField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) { return <label className="block text-sm"><span className="mb-2 block text-xs tracking-[0.12em] text-muted-foreground uppercase">{label}</span><textarea value={value} onChange={event => onChange(event.target.value)} rows={4} className="w-full border border-input bg-background px-3 py-2 text-sm outline-none focus:border-brand" /></label>; }
