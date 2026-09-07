@@ -30,6 +30,7 @@ export function ArtistsAdmin() {
   const create = trpc.artists.create.useMutation();
   const update = trpc.artists.update.useMutation();
   const remove = trpc.artists.remove.useMutation();
+  const uploadImage = trpc.artists.uploadImage.useMutation();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
@@ -61,7 +62,8 @@ export function ArtistsAdmin() {
   const uploadLocalImage = async (file: File, key: "imageUrl" | "collaborationImageUrl") => {
     if (file.size > 8 * 1024 * 1024) throw new Error("Image must be smaller than 8MB");
     const base64 = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsDataURL(file); });
-    set(key, base64);
+    const result = await uploadImage.mutateAsync({ base64, contentType: file.type as "image/jpeg" | "image/png" | "image/webp" | "image/gif" });
+    set(key, result.url);
   };
 
   const save = async () => {
