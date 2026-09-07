@@ -6,10 +6,11 @@ import { getDb } from "../db";
 import { uploadImageToCloudinary } from "../cloudinary";
 import { worksItems } from "../../drizzle/schema";
 
+const optionalUrl = z.preprocess(value => typeof value === "string" && value.trim() === "" ? null : value, z.string().url().max(1024).nullish());
 const worksInput = z.object({
   kind: z.enum(["event", "student"]), title: z.string().min(1).max(240), titleEn: z.string().max(240).nullish(),
   eventDate: z.string().max(120).nullish(), description: z.string().max(4000).nullish(), descriptionEn: z.string().max(4000).nullish(),
-  imageUrls: z.array(z.string().max(8_000_000)).max(30).default([]), sourceUrl: z.string().url().max(1024).nullish(),
+  imageUrls: z.array(z.string().max(8_000_000)).max(30).default([]), sourceUrl: optionalUrl,
   published: z.boolean().optional(), sortOrder: z.number().int().min(-999).max(999).optional(),
 });
 const imageUploadInput = z.object({ base64: z.string().min(1), contentType: z.string().regex(/^image\/(jpeg|png|webp|gif)$/) });
