@@ -10,8 +10,10 @@ import { registerSocialMediaProxy } from "./socialMedia";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { ensureEditorialTables } from "../db";
 
 async function startServer() {
+  await ensureEditorialTables();
   const app = express();
 
   // ตั้งค่า trust proxy รองรับ Reverse Proxy ของ Render เพื่อให้รับส่ง Secure Cookie บน HTTPS ได้ถูกต้อง
