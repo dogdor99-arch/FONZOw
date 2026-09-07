@@ -51,8 +51,8 @@ export function FloatingChat() {
   }, [open]);
 
   const roomQuery = trpc.chat.room.useQuery({ token }, { enabled: Boolean(token && chatOpen), refetchInterval: chatOpen ? 5000 : false });
-  const start = trpc.chat.start.useMutation({ onSuccess: () => roomQuery.refetch() });
-  const send = trpc.chat.send.useMutation({ onSuccess: () => { setBody(""); roomQuery.refetch(); } });
+  const start = trpc.chat.start.useMutation({ onSuccess: () => roomQuery.refetch(), onError: error => toast.error(error.message) });
+  const send = trpc.chat.send.useMutation({ onSuccess: () => { setBody(""); roomQuery.refetch(); }, onError: error => toast.error(error.message) });
   const room = roomQuery.data?.room;
   const messages = roomQuery.data?.messages ?? [];
 

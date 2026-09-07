@@ -50,7 +50,6 @@ export const chatRouter = router({
   send: publicProcedure.input(z.object({ token: z.string().min(24).max(96), body: bodyInput })).mutation(async ({ input }) => {
     const room = await findRoom(input.token);
     if (!room) throw new TRPCError({ code: "NOT_FOUND", message: "Chat room not found" });
-    if (room.status === "closed") throw new TRPCError({ code: "BAD_REQUEST", message: "This chat room is closed" });
     const db = await dbOrThrow();
     const result = await db.insert(chatMessages).values({ roomId: room.id, senderType: "visitor", body: input.body });
     await db.update(chatRooms).set({ lastMessageAt: new Date(), status: "open" }).where(eq(chatRooms.id, room.id));
@@ -80,6 +79,19 @@ export const chatRouter = router({
   close: adminProcedure.input(z.object({ roomId: z.number().int().positive() })).mutation(async ({ input }) => {
     const db = await dbOrThrow();
     await db.update(chatRooms).set({ status: "closed" }).where(eq(chatRooms.id, input.roomId));
+    return { success: true as const };
+  }),
+
+  reopen: adminProcedure.input(z.object({ roomId: z.number().int().positive() })).mutation(async ({ input }) => {
+    const db = await dbOrThrow();
+    await db.update(chatRooms).set({ status: "open" }).where(eq(chatRooms.id, input.roomId));
+    return { success: true as const };
+  }),
+
+  remove: adminProcedure.input(z.object({ roomId: z.number().int().positive() })).mutation(async ({ input }) => {
+    const db = await dbOrThrow();
+    await db.delete(chatMessages).where(eq(chatMessages.roomId, input.roomId));
+    await db.delete(chatRooms).where(eq(chatRooms.id, input.roomId));
     return { success: true as const };
   }),
 });
