@@ -162,7 +162,7 @@ export default function GuitarDetail() {
 
   return (
     <>
-      <PageHeading eyebrow={t("รายละเอียดกีตาร์", "Guitar details")} title={guitar.name || guitar.code} description={guitar.description || t("กีตาร์งานฝีมือระดับพรีเมียมจาก Fonzo", "Premium handcrafted guitar by Fonzo.")} crumbs={[{ label: "Guitar", href: "/guitar" }, { label: guitar.name || guitar.code }]} index="03" />
+      <PageHeading eyebrow={t("รายละเอียดกีตาร์", "Guitar details")} title={guitar.name || guitar.code} crumbs={[{ label: "Guitar", href: "/guitar" }, { label: guitar.name || guitar.code }]} index="03" />
 
       <section className="mx-auto max-w-[1300px] px-4 py-12 sm:px-6 lg:px-10">
         <div className="mb-8">
@@ -220,24 +220,6 @@ export default function GuitarDetail() {
               </div>
             </div>
 
-            {guitar.description && (
-              <p className="text-xs text-muted-foreground leading-relaxed">{guitar.description}</p>
-            )}
-
-            {specsEntries.length > 0 && (
-              <div className="border-t border-border pt-6 space-y-3">
-                <h3 className="text-xs uppercase tracking-widest font-semibold text-foreground">สเปคทางเทคนิค (Specifications)</h3>
-                <div className="border border-border divide-y divide-border text-xs">
-                  {specsEntries.map(([key, val], idx) => (
-                    <div key={idx} className="flex justify-between p-3">
-                      <span className="text-muted-foreground uppercase font-medium">{key}</span>
-                      <span className="text-foreground font-semibold text-right">{val}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             <div className="border-t border-border pt-6 space-y-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <ShieldCheck className="h-4 w-4 text-brand" /> รับประกันคุณภาพมาตรฐานโรงงาน Fonzo Guitar
@@ -248,6 +230,31 @@ export default function GuitarDetail() {
             </div>
           </div>
         </div>
+
+        {(guitar.description || specsEntries.length > 0) && (
+          <div className="mt-14 border-t border-border pt-10 lg:mt-16">
+            <div className="max-w-4xl">
+              <h2 className="text-2xl font-display sm:text-3xl">{t("รายละเอียดกีตาร์", "Guitar details")}</h2>
+              {guitar.description && (
+                <p className="mt-5 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{guitar.description}</p>
+              )}
+
+              {specsEntries.length > 0 && (
+                <div className="mt-10 space-y-3">
+                  <h3 className="text-xs uppercase tracking-widest font-semibold text-foreground">สเปคทางเทคนิค (Specifications)</h3>
+                  <div className="grid border border-border divide-y divide-border text-xs sm:grid-cols-2 sm:divide-y-0 sm:divide-x">
+                    {specsEntries.map(([key, val], idx) => (
+                      <div key={idx} className="flex justify-between gap-4 border-b border-border p-3 last:border-b-0 sm:odd:border-r">
+                        <span className="text-muted-foreground uppercase font-medium">{key}</span>
+                        <span className="text-right font-semibold text-foreground">{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </section>
     </>
   );
