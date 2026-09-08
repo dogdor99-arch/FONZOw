@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload, Guitar, Headphones, Download, BookOpen } from "lucide-react";
+import { Bell, Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload, Guitar, Headphones, Download, BookOpen, Search, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -83,14 +83,17 @@ function StockManager() {
   const { t } = useLocale();
   const { data: catalogGuitars = [], isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
   const { data: catalogAccessories = [], isLoading: accessoriesLoading } = trpc.fonzo.accessories.list.useQuery();
-  
+
   const [view, setView] = useState<SubView>("list");
   const [supabaseProducts, setSupabaseProducts] = useState<any[]>([]);
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [loadingSupa, setLoadingSupa] = useState(true);
   const [editingItem, setEditingItem] = useState<any>(null);
 
-  const [categoryTab, setCategoryTab] = useState<"guitars" | "accessories" | "courses">("guitars");
+  const [categoryTab, setCategoryTab] = useState<"shop" | "custom" | "accessories" | "courses">("shop");
+  const [query, setQuery] = useState("");
+  const [sortKey, setSortKey] = useState<"price" | "stock" | "date">("date");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const isAccessoryProduct = (product: any) => {
     if (product.itemKind === "accessory") return true;
@@ -140,8 +143,8 @@ function StockManager() {
           ...supaMatch,
           itemKind: g.itemKind,
           id: supaMatch.id,
-          image_urls: supaMatch.image_urls && supaMatch.image_urls.length > 0 
-            ? supaMatch.image_urls 
+          image_urls: supaMatch.image_urls && supaMatch.image_urls.length > 0
+            ? supaMatch.image_urls
             : (g.images || [g.image || "/fonzo-logo.png"]),
           shopee_url: getVal(supaMatch, "shopee_url", "shopeeUrl", "shopee") || getVal(g, "shopee_url", "shopeeUrl", "shopee"),
           lazada_url: getVal(supaMatch, "lazada_url", "lazadaUrl", "lazada") || getVal(g, "lazada_url", "lazadaUrl", "lazada"),
@@ -231,7 +234,13 @@ function StockManager() {
     const cat = (p.category || "").toLowerCase();
     const isAcc = isAccessoryProduct(p);
     if (categoryTab === "courses") return cat.includes("course") || cat.includes("คอร์ส") || cat.includes("เรียน");
-    return categoryTab === "accessories" ? isAcc : !isAcc && !(cat.includes("course") || cat.includes("คอร์ส") || cat.includes("เรียน"));
+    if (categoryTab === "accessories") return isAcc;
+    const isCustom = inferPurchaseMode(p) === "custom";
+    return categoryTab === "custom" ? !isAcc && isCustom : !isAcc && !isCustom && !(cat.includes("course") || cat.includes("คอร์ส") || cat.includes("เรียน"));
+  }).filter(p => String(p.name || "").toLowerCase().includes(query.trim().toLowerCase())).sort((a, b) => {
+    const av = sortKey === "price" ? Number(a.price || 0) : sortKey === "stock" ? Number(a.stock || 0) : new Date(a.created_at || a.createdAt || 0).getTime();
+    const bv = sortKey === "price" ? Number(b.price || 0) : sortKey === "stock" ? Number(b.stock || 0) : new Date(b.created_at || b.createdAt || 0).getTime();
+    return (av - bv) * (sortDirection === "asc" ? 1 : -1);
   });
 
   return (
@@ -257,16 +266,17 @@ function StockManager() {
       </div>
 
       <div className="flex border-b border-border gap-6">
-        <button 
+        <button
           type="button"
-          onClick={() => setCategoryTab("guitars")} 
-          className={cn("pb-3 text-xs uppercase tracking-widest font-semibold flex items-center gap-2 transition-all", categoryTab === "guitars" ? "text-brand border-b-2 border-brand" : "text-muted-foreground hover:text-foreground")}
+          onClick={() => setCategoryTab("shop")}
+          className={cn("pb-3 text-xs uppercase tracking-widest font-semibold flex items-center gap-2 transition-all", categoryTab === "shop" ? "text-brand border-b-2 border-brand" : "text-muted-foreground hover:text-foreground")}
         >
-          <Guitar className="h-4 w-4" /> กีตาร์ทั้งหมด (Guitars)
+          <Guitar className="h-4 w-4" /> Guitar Shop
         </button>
-        <button 
+        <button type="button" onClick={() => setCategoryTab("custom")} className={cn("pb-3 text-xs uppercase tracking-widest font-semibold flex items-center gap-2 transition-all", categoryTab === "custom" ? "text-brand border-b-2 border-brand" : "text-muted-foreground hover:text-foreground")}><Guitar className="h-4 w-4" /> Guitar Custom</button>
+        <button
           type="button"
-          onClick={() => setCategoryTab("accessories")} 
+          onClick={() => setCategoryTab("accessories")}
           className={cn("pb-3 text-xs uppercase tracking-widest font-semibold flex items-center gap-2 transition-all", categoryTab === "accessories" ? "text-brand border-b-2 border-brand" : "text-muted-foreground hover:text-foreground")}
         >
             <Headphones className="h-4 w-4" /> อุปกรณ์เสริม (Accessories & Strings)
@@ -275,6 +285,8 @@ function StockManager() {
             <BookOpen className="h-4 w-4" /> คอร์สเรียนพี่เบิร์ด (Courses)
           </button>
       </div>
+
+      <div className="flex flex-wrap items-center gap-3"><div className="relative min-w-[220px] flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={query} onChange={event => setQuery(event.target.value)} placeholder="ค้นหาชื่อสินค้า / รุ่น" className="h-10 rounded-none pl-9" /></div><select value={sortKey} onChange={event => setSortKey(event.target.value as typeof sortKey)} className="h-10 border border-border bg-card px-3 text-xs"><option value="date">วันที่ลง</option><option value="price">ราคา</option><option value="stock">จำนวนสต็อก</option></select><Button type="button" variant="outline" onClick={() => setSortDirection(value => value === "asc" ? "desc" : "asc")} className="h-10 rounded-none text-xs"><ArrowUpDown className="mr-2 h-3.5 w-3.5" />{sortDirection === "asc" ? "น้อย → มาก" : "มาก → น้อย"}</Button></div>
 
       <div className="border border-border bg-card overflow-x-auto">
         <table className="w-full text-left text-xs">
@@ -308,20 +320,20 @@ function StockManager() {
                   <td className="p-4 font-bold">฿{Number(p.price || 0).toLocaleString()}</td>
                   <td className="p-4">{p.stock} ตัว</td>
                   <td className="p-4 text-right flex items-center justify-end gap-2">
-                    <Button 
-                      type="button" 
-                      size="sm" 
-                      onClick={() => { setEditingItem(p); setView("edit"); }} 
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => { setEditingItem(p); setView("edit"); }}
                       className="h-8 rounded-none bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 text-[10px] uppercase"
                     >
                       <Edit2 className="h-3 w-3 mr-1" /> แก้ไขรายละเอียด
                     </Button>
                     {!p.isCatalogItem && (
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleDelete(p.id, p.isCatalogItem)} 
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(p.id, p.isCatalogItem)}
                         className="text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 w-8 p-0"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -347,7 +359,7 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
   const [productType, setProductType] = useState<"guitar" | "accessory" | "course">(defaultProductType ?? (isCourseInitial ? "course" : isAccInitial ? "accessory" : "guitar"));
   const [purchaseMode, setPurchaseMode] = useState<"shop" | "custom">(inferPurchaseMode(initialData));
   const [customFamily, setCustomFamily] = useState<"custom" | "selection">(inferCustomFamily(initialData) || "custom");
-  
+
   const getInitialImages = () => {
     if (initialData?.image_urls && Array.isArray(initialData.image_urls) && initialData.image_urls.length > 0) {
       return initialData.image_urls;
@@ -625,16 +637,16 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
               <p className="text-xs text-muted-foreground mt-1">คลิกปุ่มด้านขวาเพื่อเลือกไฟล์รูปภาพจากคอมพิวเตอร์ (เลือกหลายรูปพร้อมกันได้ทันที)</p>
             </div>
             <div>
-              <input 
-                type="file" 
-                id="local-images-upload-btn" 
-                multiple 
-                accept="image/*" 
-                className="hidden" 
-                onChange={handleLocalFilesUpload} 
+              <input
+                type="file"
+                id="local-images-upload-btn"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={handleLocalFilesUpload}
               />
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 onClick={() => document.getElementById("local-images-upload-btn")?.click()}
                 className="h-11 rounded-none bg-brand text-brand-foreground text-xs uppercase tracking-wider px-6 font-bold shadow-sm hover:opacity-90"
               >
@@ -654,9 +666,9 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
                 {formData.image_urls.map((url, index) => (
                   <div key={index} className="flex items-center gap-3 bg-secondary/20 p-2.5 border border-border">
                     <div className="h-16 w-16 bg-background border border-border flex items-center justify-center overflow-hidden shrink-0">
-                      <img 
-                        src={url && url.trim() !== "" ? url : "/fonzo-logo.png"} 
-                        alt={`Preview ${index + 1}`} 
+                      <img
+                        src={url && url.trim() !== "" ? url : "/fonzo-logo.png"}
+                        alt={`Preview ${index + 1}`}
                         className="h-full w-full object-contain"
                         onError={(e) => { (e.target as HTMLImageElement).src = "/fonzo-logo.png"; }}
                       />

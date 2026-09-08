@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { adminProcedure, publicProcedure, router } from "../_core/trpc";
@@ -56,9 +56,10 @@ export const chatRouter = router({
     return { id: Number((result as unknown as { insertId?: number }).insertId ?? 0) };
   }),
 
-  rooms: adminProcedure.query(async () => {
+  rooms: adminProcedure.input(z.object({ query: z.string().trim().max(160).optional() }).optional()).query(async ({ input }) => {
     const db = await dbOrThrow();
-    return db.select({
+    const query = input?.query?.trim();
+    const base = db.select({
       id: chatRooms.id,
       visitorToken: chatRooms.visitorToken,
       name: chatRooms.name,
@@ -69,7 +70,10 @@ export const chatRouter = router({
       createdAt: chatRooms.createdAt,
       updatedAt: chatRooms.updatedAt,
       unreadCount: sql<number>`(select count(*) from chatMessages cm where cm.roomId = ${chatRooms.id} and cm.senderType = 'visitor' and cm.readAt is null)`,
-    }).from(chatRooms).orderBy(desc(chatRooms.lastMessageAt)).limit(200);
+    }).from(chatRooms);
+    if (!query) return base.orderBy(desc(chatRooms.lastMessageAt)).limit(200);
+    const pattern = `%${query}%`;
+    return base.where(or(like(chatRooms.name, pattern), like(chatRooms.email, pattern), sql`exists (select 1 from chatMessages cm2 where cm2.roomId = ${chatRooms.id} and cm2.body like ${pattern})`)).orderBy(desc(chatRooms.lastMessageAt)).limit(200);
   }),
 
   unreadCount: adminProcedure.query(async () => {
