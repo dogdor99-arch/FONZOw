@@ -9,6 +9,15 @@ import { CustomConfigurator } from "@/components/site/CustomConfigurator";
 import { readCustomizer, withProductMeta } from "@shared/fonzo/customizer";
 import { cn } from "@/lib/utils";
 
+function youtubeEmbed(url: string): string | null {
+  const patterns = [/[?&]v=([\w-]{6,})/, /youtu\.be\/([\w-]{6,})/, /embed\/([\w-]{6,})/];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return `https://www.youtube.com/embed/${match[1]}`;
+  }
+  return null;
+}
+
 export default function GuitarCustomDetail() {
   const { code } = useParams();
   const { t } = useLocale();
@@ -66,12 +75,14 @@ export default function GuitarCustomDetail() {
       specs: mergedSpecs,
       shopeeUrl: override.shopee_url || override.shopeeUrl || override.shopee || base.shopeeUrl || null,
       lazadaUrl: override.lazada_url || override.lazadaUrl || override.lazada || base.lazadaUrl || null,
+      videoUrl: override.video_url || override.videoUrl || override.video || override.guitar_vdo || override.specs?.videoUrl || override.specs?.video_url || base.videoUrl || null,
     });
   }, [catalogRows, catalogDetail, supabaseProducts, code]);
 
   const images = useMemo(() => product?.images?.map((image: any) => typeof image === "string" ? image : image.url).filter(Boolean) || ["/fonzo-logo.png"], [product]);
   useEffect(() => { setSelectedImage(images[0] || ""); }, [images]);
   const config = useMemo(() => product ? readCustomizer(product) : null, [product]);
+  const videoEmbed = product?.videoUrl ? youtubeEmbed(product.videoUrl) : null;
   const specs = product?.specs || {};
   const specsEntries = useMemo(() => {
     if (Array.isArray(specs)) {
@@ -109,6 +120,7 @@ export default function GuitarCustomDetail() {
             <div><p className="eyebrow">{product.typeName || product.seriesName}</p><p className="mt-2 text-xs tracking-[0.16em] text-muted-foreground uppercase">{t("รหัสสินค้า", "Reference")} {product.code}</p></div>
             <CustomConfigurator config={config} fallbackImage={images[0]} basePrice={product.price} />
             {product.description && <div className="border-t border-border pt-6"><h2 className="text-xl font-display">{t("ประวัติกีตาร์", "Guitar story")}</h2><p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{product.description}</p></div>}
+            {videoEmbed && <div className="border-t border-border pt-6"><p className="eyebrow">{t("ฟังเสียงจริง", "Hear it played")}</p><h2 className="mt-3 text-2xl sm:text-3xl">{t("วิดีโอสาธิตเสียง", "Sound demonstration")}</h2><div className="mt-6 aspect-video w-full bg-ink"><iframe src={videoEmbed} title={title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="h-full w-full border-0" /></div></div>}
             {specsEntries.length > 0 && <div className="border-t border-border pt-6"><p className="eyebrow">{t("รายละเอียดและสเปกกีต้าเดิม", "Original details and specifications")}</p><dl className="mt-4 divide-y divide-border border-y border-border">{specsEntries.map(([key, value]) => <div key={String(key)} className="flex justify-between gap-4 py-3 text-sm"><dt className="text-muted-foreground">{String(key)}</dt><dd className="text-right">{String(value)}</dd></div>)}</dl></div>}
             <div className="border-t border-border pt-6"><Link href="/contact" className="inline-flex w-full items-center justify-center bg-brand px-6 py-3 text-xs font-bold uppercase tracking-widest text-brand-foreground transition-all hover:bg-brand/90">{t("ติดต่อผู้ขาย", "Contact the seller")}</Link></div>
           </div>
