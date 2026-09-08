@@ -94,6 +94,7 @@ function StockManager() {
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<"price" | "stock" | "date">("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [accessoryType, setAccessoryType] = useState("all");
 
   const isAccessoryProduct = (product: any) => {
     if (product.itemKind === "accessory") return true;
@@ -101,6 +102,16 @@ function StockManager() {
     if (sourceCode.startsWith("A")) return true;
     const haystack = [product.category, product.typeName, product.type, product.name, product.nameEn].filter(Boolean).join(" ");
     return /accessor|อุปกรณ์|อะไหล่|string|สายกีตาร์|strings|bag|case|pick|pickup|capo|tuner|เครื่องตั้งสาย/i.test(haystack);
+  };
+  const getAccessoryType = (product: any) => {
+    const text = [product.category, product.typeName, product.type, product.name, product.nameEn, product.specs?.type, product.specs?.ประเภท].filter(Boolean).join(" ").toLowerCase();
+    if (/capo|คาโป้|คาโป/.test(text)) return "คาโป้ / Capo";
+    if (/string|สาย|เบอร์สาย/.test(text)) return "สาย / Strings";
+    if (/bag|case|กระเป๋า|เคส/.test(text)) return "กระเป๋า / Case";
+    if (/pick|ปิ๊ก|ปิ๊ค/.test(text)) return "ปิ๊ก / Picks";
+    if (/pickup|preamp|piezo|อุปกรณ์ไฟฟ้า/.test(text)) return "Pickup / Electronics";
+    if (/tuner|เครื่องตั้งสาย/.test(text)) return "เครื่องตั้งสาย / Tuner";
+    return product.category || "อื่น ๆ / Other";
   };
 
   const fetchSupabaseProducts = async () => {
@@ -230,6 +241,7 @@ function StockManager() {
 
   const isLoading = catalogLoading || accessoriesLoading || loadingSupa;
 
+  const accessoryTypes = Array.from(new Set(allProducts.filter(isAccessoryProduct).map(getAccessoryType))).filter(Boolean);
   const displayProducts = allProducts.filter((p) => {
     const cat = (p.category || "").toLowerCase();
     const isAcc = isAccessoryProduct(p);
@@ -237,7 +249,7 @@ function StockManager() {
     if (categoryTab === "accessories") return isAcc;
     const isCustom = inferPurchaseMode(p) === "custom";
     return categoryTab === "custom" ? !isAcc && isCustom : !isAcc && !isCustom && !(cat.includes("course") || cat.includes("คอร์ส") || cat.includes("เรียน"));
-  }).filter(p => String(p.name || "").toLowerCase().includes(query.trim().toLowerCase())).sort((a, b) => {
+  }).filter(p => String(p.name || "").toLowerCase().includes(query.trim().toLowerCase())).filter(p => categoryTab !== "accessories" || accessoryType === "all" || getAccessoryType(p) === accessoryType).sort((a, b) => {
     const av = sortKey === "price" ? Number(a.price || 0) : sortKey === "stock" ? Number(a.stock || 0) : new Date(a.created_at || a.createdAt || 0).getTime();
     const bv = sortKey === "price" ? Number(b.price || 0) : sortKey === "stock" ? Number(b.stock || 0) : new Date(b.created_at || b.createdAt || 0).getTime();
     return (av - bv) * (sortDirection === "asc" ? 1 : -1);
@@ -288,7 +300,9 @@ function StockManager() {
 
       <div className="flex flex-wrap items-center gap-3"><div className="relative min-w-[220px] flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={query} onChange={event => setQuery(event.target.value)} placeholder="ค้นหาชื่อสินค้า / รุ่น" className="h-10 rounded-none pl-9" /></div><select value={sortKey} onChange={event => setSortKey(event.target.value as typeof sortKey)} className="h-10 border border-border bg-card px-3 text-xs"><option value="date">วันที่ลง</option><option value="price">ราคา</option><option value="stock">จำนวนสต็อก</option></select><Button type="button" variant="outline" onClick={() => setSortDirection(value => value === "asc" ? "desc" : "asc")} className="h-10 rounded-none text-xs"><ArrowUpDown className="mr-2 h-3.5 w-3.5" />{sortDirection === "asc" ? "น้อย → มาก" : "มาก → น้อย"}</Button></div>
 
-      <div className="border border-border bg-card overflow-x-auto">
+      {categoryTab === "accessories" && <div className="flex flex-wrap gap-2 border-b border-border pb-4">{[{ key: "all", label: "ทั้งหมด" }, ...accessoryTypes.map(type => ({ key: type, label: type }))].map(type => <button key={type.key} type="button" onClick={() => setAccessoryType(type.key)} className={cn("border px-4 py-2 text-xs transition-colors", accessoryType === type.key ? "border-brand bg-brand text-brand-foreground" : "border-border text-muted-foreground hover:border-brand/50 hover:text-brand")}>{type.label}</button>)}</div>}
+
+      {categoryTab === "accessories" ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{isLoading ? Array.from({ length: 8 }).map((_, index) => <div key={index} className="aspect-[3/4] animate-pulse bg-secondary" />) : displayProducts.map((p, idx) => <article key={p.id || idx} className="group overflow-hidden border border-border bg-card transition hover:-translate-y-1 hover:border-brand/50 hover:shadow-lg"><div className="aspect-[3/4] overflow-hidden bg-secondary"><img src={p.image_urls?.[0] || p.image_url || p.image || "/fonzo-logo.png"} alt={p.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" onError={event => { event.currentTarget.src = "/fonzo-logo.png"; }} /></div><div className="p-4"><p className="text-[10px] tracking-[0.14em] text-brand uppercase">{getAccessoryType(p)}</p><h3 className="mt-1 line-clamp-2 font-display text-lg">{p.name}</h3><div className="mt-3 flex items-center justify-between text-sm"><span>฿{Number(p.price || 0).toLocaleString()}</span><span className="text-xs text-muted-foreground">{p.stock ?? 0} ชิ้น</span></div><div className="mt-4 flex gap-2"><Button type="button" onClick={() => { setEditingItem(p); setView("edit"); }} className="h-8 flex-1 rounded-none bg-brand px-2 text-[10px] text-brand-foreground"><Edit2 className="mr-1 h-3 w-3" />แก้ไข</Button>{!p.isCatalogItem && <Button type="button" variant="outline" onClick={() => handleDelete(p.id, p.isCatalogItem)} className="h-8 w-8 rounded-none p-0 text-red-500"><Trash2 className="h-3.5 w-3.5" /></Button>}</div></div></article>)}</div> : <div className="border border-border bg-card overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead className="bg-secondary/50 border-b border-border uppercase tracking-widest text-muted-foreground">
             <tr>
@@ -313,7 +327,7 @@ function StockManager() {
                   </td>
                   <td className="p-4 font-medium text-foreground">{p.name}</td>
                   <td className="p-4">
-                    <span className={cn("px-2 py-0.5 text-[10px] uppercase font-semibold", p.isCatalogItem ? "bg-amber-500/10 text-amber-600" : (categoryTab === "accessories" ? "bg-purple-500/10 text-purple-600" : "bg-brand/10 text-brand"))}>
+                    <span className={cn("px-2 py-0.5 text-[10px] uppercase font-semibold", p.isCatalogItem ? "bg-amber-500/10 text-amber-600" : "bg-brand/10 text-brand")}>
                       {p.category || "Acoustic Guitar"}
                     </span>
                   </td>
@@ -345,7 +359,7 @@ function StockManager() {
             )}
           </tbody>
         </table>
-      </div>
+      </div>}
     </div>
   );
 }
