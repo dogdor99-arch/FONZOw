@@ -18,16 +18,16 @@ type WorkItem = {
   sourceUrl?: string | null;
 };
 
-function WorkCard({ item, index }: { item: WorkItem; index: number }) {
+function WorkCard({ item, index, square }: { item: WorkItem; index: number; square: boolean }) {
   const { locale } = useLocale();
   const title = locale === "th" ? item.title : item.titleEn || item.title;
   const image = item.imageUrl || item.imageUrls?.[0];
-  return <Reveal key={item.id} delay={index * 45}><article className="group overflow-hidden border border-border/80 bg-card transition hover:-translate-y-1 hover:border-brand/50 hover:shadow-lg"><Link href={`/works/${item.id}`} className="block"><div className="aspect-[5/4] overflow-hidden bg-secondary">{image ? <img src={image} alt={title} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]" /> : <div className="flex h-full items-center justify-center text-muted-foreground"><Images className="h-8 w-8" strokeWidth={1.2} /></div>}</div><div className="flex items-center justify-between gap-3 p-3 sm:p-4"><h3 className="min-w-0 truncate font-display text-lg leading-tight sm:text-xl">{title}</h3>{item.eventDate && <span className="inline-flex shrink-0 items-center gap-1 text-[10px] tracking-[0.08em] text-brand"><CalendarDays className="h-3 w-3" />{item.eventDate}</span>}</div></Link></article></Reveal>;
+  return <Reveal key={item.id} delay={index * 45}><article className="group overflow-hidden border border-border/80 bg-card transition hover:-translate-y-1 hover:border-brand/50 hover:shadow-lg"><Link href={`/works/${item.id}`} className="block"><div className={`${square ? "aspect-square" : "aspect-[5/4]"} overflow-hidden bg-secondary`}>{image ? <img src={image} alt={title} loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]" /> : <div className="flex h-full items-center justify-center text-muted-foreground"><Images className="h-8 w-8" strokeWidth={1.2} /></div>}</div><div className="flex items-center justify-between gap-3 p-3 sm:p-4"><h3 className="min-w-0 truncate font-display text-lg leading-tight sm:text-xl">{title}</h3>{item.eventDate && <span className="inline-flex shrink-0 items-center gap-1 text-[10px] tracking-[0.08em] text-brand"><CalendarDays className="h-3 w-3" />{item.eventDate}</span>}</div></Link></article></Reveal>;
 }
 
 function WorksRail({ items, emptyLabel, showAll }: { items: WorkItem[]; emptyLabel: string; showAll: boolean }) {
   if (!items.length) return <div className="border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">{emptyLabel}</div>;
-  return <div className={showAll ? "grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6" : "flex snap-x gap-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"}>{items.map((item, index) => <div key={item.id} className={showAll ? "min-w-0" : "w-[88vw] max-w-[440px] shrink-0 snap-start sm:w-[48vw]"}><WorkCard item={item} index={index} /></div>)}</div>;
+  return <div className={showAll ? "grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6" : "flex snap-x gap-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"}>{items.map((item, index) => <div key={item.id} className={showAll ? "min-w-0" : "w-[88vw] max-w-[440px] shrink-0 snap-start sm:w-[48vw]"}><WorkCard item={item} index={index} square={showAll} /></div>)}</div>;
 }
 
 export default function Works() {
@@ -43,7 +43,7 @@ export default function Works() {
     const isExpanded = expanded === "both" || expanded === section;
     const Icon = icon;
     const controlLabel = !isExpanded ? t("เปิดดูทั้งหมด", "Open all") : showAll === section ? t("ย่อรายการ", "Show less") : t("แสดงทั้งหมด", "Show all");
-    const handleControl = () => { if (!isExpanded) { setExpanded(section); setShowAll(section); } else if (showAll === section) setShowAll(null); else { setExpanded(section); setShowAll(section); } };
+    const handleControl = () => { if (!isExpanded) { setExpanded(section); setShowAll(section); } else if (showAll === section) { setExpanded("both"); setShowAll(null); } else { setExpanded(section); setShowAll(section); } };
     return <article className={`transition-all duration-300 ${isExpanded ? "" : "border-b border-border/70 pb-3"}`}><div className="flex items-center justify-between gap-3"><button type="button" onClick={() => toggle(section)} className="flex min-w-0 items-center gap-2 text-left"><Icon className="h-3.5 w-3.5 shrink-0 text-brand" /><span className={`font-display ${isExpanded ? "text-xl sm:text-2xl" : "text-base sm:text-lg"}`}>{title}</span></button><button type="button" onClick={handleControl} className="inline-flex shrink-0 items-center gap-1.5 text-[9px] font-semibold tracking-[0.12em] text-brand uppercase transition hover:text-gold">{controlLabel}<MoveRight className="h-3 w-3" /></button></div>{isExpanded && <div className="mt-3 border-t border-border/70 pt-4"><div className="mb-3 text-[10px] text-muted-foreground">{items.length} {t("รายการ", "items")}</div>{isLoading ? <div className={showAll === section ? "grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6" : "grid gap-5 sm:grid-cols-2"}>{[1, 2, 3].map(item => <div key={item} className="aspect-[5/4] animate-pulse bg-secondary" />)}</div> : <WorksRail items={items} emptyLabel={emptyLabel} showAll={showAll === section} />}</div>}</article>;
   };
 
