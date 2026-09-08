@@ -376,7 +376,7 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
   }>({
     name: initialData?.name || "",
     price: initialData?.price || 0,
-    stock: initialData?.stock || 10,
+    stock: initialData?.stock ?? 0,
     category: initialData?.category || defaultCategory || (isAccInitial ? "Accessories & Strings" : "Fonzo Acoustic"),
     description: initialData?.description || "",
     shopee_url: getInitVal("shopee_url", "shopeeUrl", "shopee"),
@@ -407,10 +407,6 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
     type: initialData?.specs?.["Type"] || initialData?.specs?.["ประเภท"] || "",
   });
 
-  const [customizerJson, setCustomizerJson] = useState(() => {
-    const raw = initialData?.specs?.customizer || initialData?.customizer;
-    return raw ? JSON.stringify(raw, null, 2) : "";
-  });
   const [saving, setSaving] = useState(false);
   const isStringAccessory = /string|สาย|เบอร์สาย|savarez|d['’]?addario|elixir|cantiga|phosphor bronze|nylon/i.test(`${formData.name} ${formData.category} ${accessorySpecs.type} ${accessorySpecs.material}`);
 
@@ -471,20 +467,13 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
         specs = { "Content Type": "Bird Guitar Course" };
       }
 
-      let customizer = null;
-      if (productType === "guitar" && purchaseMode === "custom" && customizerJson.trim()) {
-        try {
-          customizer = JSON.parse(customizerJson);
-        } catch {
-          throw new Error("รูปแบบ Customizer JSON ไม่ถูกต้อง");
-        }
-      }
+      const customizer = initialData?.specs?.customizer || initialData?.customizer || null;
       const specsWithMetadata = {
         ...(initialData?.specs || {}),
         ...specs,
         purchaseMode: productType === "guitar" ? purchaseMode : "shop",
         customFamily: productType === "guitar" && purchaseMode === "custom" ? customFamily : null,
-        customizer,
+        ...(customizer ? { customizer } : {}),
       };
 
       const payload = {
@@ -560,42 +549,39 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {productType === "guitar" && <div className="border border-brand/20 bg-brand/5 p-4">
+          <label className="flex cursor-pointer items-center gap-3 text-xs font-semibold text-brand">
+            <input type="checkbox" checked={purchaseMode === "custom"} onChange={event => setPurchaseMode(event.target.checked ? "custom" : "shop")} className="h-4 w-4 accent-[var(--brand)]" />
+            กีตาร์ Custom
+          </label>
+          {purchaseMode === "custom" && <div className="mt-3 max-w-sm">
+            <label className="text-[11px] tracking-[0.16em] text-brand uppercase font-semibold">กลุ่ม Custom</label>
+            <select value={customFamily} onChange={event => setCustomFamily(event.target.value as "custom" | "selection")} className="mt-1 h-10 w-full rounded-none border border-border bg-background px-3 text-sm">
+              <option value="custom">Fonzo Custom</option>
+              <option value="selection">Fonzo Selection</option>
+            </select>
+          </div>}
+        </div>}
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">ชื่อสินค้า / รุ่น</label>
-            <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Fonzo F-30 Custom" className="mt-1 h-10 rounded-none border-border" required />
+            <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="mt-1 h-10 rounded-none border-border" required />
           </div>
           <div>
             <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">หมวดหมู่ย่อย</label>
-            <Input value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} placeholder="Master Series" className="mt-1 h-10 rounded-none border-border" />
+            <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="mt-1 h-10 w-full rounded-none border border-border bg-background px-3 text-sm">
+              {(productType === "guitar" ? ["Fonzo Acoustic", "Fonzo Classic", "Fonzo Custom", "Fonzo Selection"] : productType === "accessory" ? ["คาโป้ / Capo", "สาย / Strings", "กระเป๋า / Case", "ปิ๊ก / Picks", "Pickup / Electronics", "เครื่องตั้งสาย / Tuner", "อื่น ๆ / Other"] : ["Bird Course"]).map(option => <option key={option} value={option}>{option}</option>)}
+              {formData.category && !(productType === "guitar" ? ["Fonzo Acoustic", "Fonzo Classic", "Fonzo Custom", "Fonzo Selection"] : productType === "accessory" ? ["คาโป้ / Capo", "สาย / Strings", "กระเป๋า / Case", "ปิ๊ก / Picks", "Pickup / Electronics", "เครื่องตั้งสาย / Tuner", "อื่น ๆ / Other"] : ["Bird Course"]).includes(formData.category) && <option value={formData.category}>{formData.category}</option>}
+            </select>
           </div>
-          {productType === "guitar" && (
-            <div className="sm:col-span-2 grid gap-4 border border-brand/20 bg-brand/5 p-4 sm:grid-cols-2">
-              <div>
-                <label className="text-[11px] tracking-[0.16em] text-brand uppercase font-semibold">โหมดการขาย</label>
-                <select value={purchaseMode} onChange={event => setPurchaseMode(event.target.value as "shop" | "custom")} className="mt-1 h-10 w-full rounded-none border border-border bg-background px-3 text-sm">
-                  <option value="shop">Guitar Shop — ซื้อผ่าน Marketplace/ติดต่อร้าน</option>
-                  <option value="custom">Guitar Custom — ปรับแต่งและประเมินราคา</option>
-                </select>
-              </div>
-              {purchaseMode === "custom" && (
-                <div>
-                  <label className="text-[11px] tracking-[0.16em] text-brand uppercase font-semibold">กลุ่ม Custom</label>
-                  <select value={customFamily} onChange={event => setCustomFamily(event.target.value as "custom" | "selection")} className="mt-1 h-10 w-full rounded-none border border-border bg-background px-3 text-sm">
-                    <option value="custom">Fonzo Custom</option>
-                    <option value="selection">Fonzo Selection</option>
-                  </select>
-                </div>
-              )}
-            </div>
-          )}
           <div>
             <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">ราคา (บาท)</label>
             <Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: Number(e.target.value.replace(/^0+/, ''))})} placeholder="0" className="mt-1 h-10 rounded-none border-border" />
           </div>
           <div>
             <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">จำนวนสต็อก</label>
-            <Input type="number" value={formData.stock} onChange={(e) => setFormData({...formData, stock: Number(e.target.value)})} placeholder="10" className="mt-1 h-10 rounded-none border-border" />
+            <Input type="number" min="0" value={formData.stock} onChange={(e) => setFormData({...formData, stock: Math.max(0, Number(e.target.value))})} placeholder="0" className="mt-1 h-10 rounded-none border-border" />
           </div>
         </div>
 
@@ -682,41 +668,41 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-[11px] text-muted-foreground uppercase">Top Wood (ไม้หน้า)</label>
-                <Input value={guitarSpecs.top_wood} onChange={(e) => setGuitarSpecs({...guitarSpecs, top_wood: e.target.value})} placeholder="Solid Engelmann Spruce" className="mt-1 h-9 rounded-none border-border" />
+                <Input value={guitarSpecs.top_wood} onChange={(e) => setGuitarSpecs({...guitarSpecs, top_wood: e.target.value})} placeholder="กรุณากรอก Top Wood" className="mt-1 h-9 rounded-none border-border" />
               </div>
               <div>
                 <label className="text-[11px] text-muted-foreground uppercase">Back & Sides (ไม้ข้างและหลัง)</label>
-                <Input value={guitarSpecs.back_sides} onChange={(e) => setGuitarSpecs({...guitarSpecs, back_sides: e.target.value})} placeholder="Solid Indian Rosewood" className="mt-1 h-9 rounded-none border-border" />
+                <Input value={guitarSpecs.back_sides} onChange={(e) => setGuitarSpecs({...guitarSpecs, back_sides: e.target.value})} placeholder="กรุณากรอก Back & Sides" className="mt-1 h-9 rounded-none border-border" />
               </div>
               <div>
                 <label className="text-[11px] text-muted-foreground uppercase">Neck (คอกีตาร์)</label>
-                <Input value={guitarSpecs.neck} onChange={(e) => setGuitarSpecs({...guitarSpecs, neck: e.target.value})} placeholder="Mahogany" className="mt-1 h-9 rounded-none border-border" />
+                <Input value={guitarSpecs.neck} onChange={(e) => setGuitarSpecs({...guitarSpecs, neck: e.target.value})} placeholder="กรุณากรอก Neck" className="mt-1 h-9 rounded-none border-border" />
               </div>
               <div>
                 <label className="text-[11px] text-muted-foreground uppercase">Fingerboard (ฟิงเกอร์บอร์ด)</label>
-                <Input value={guitarSpecs.fingerboard} onChange={(e) => setGuitarSpecs({...guitarSpecs, fingerboard: e.target.value})} placeholder="Ebony" className="mt-1 h-9 rounded-none border-border" />
+                <Input value={guitarSpecs.fingerboard} onChange={(e) => setGuitarSpecs({...guitarSpecs, fingerboard: e.target.value})} placeholder="กรุณากรอก Fingerboard" className="mt-1 h-9 rounded-none border-border" />
               </div>
               <div>
                 <label className="text-[11px] text-muted-foreground uppercase">Scale Length (สเกล - หน่วย mm)</label>
                 <div className="relative mt-1">
-                  <Input value={guitarSpecs.scale_length} onChange={(e) => setGuitarSpecs({...guitarSpecs, scale_length: e.target.value})} placeholder="650" className="h-9 rounded-none border-border pr-12" />
+                  <Input value={guitarSpecs.scale_length} onChange={(e) => setGuitarSpecs({...guitarSpecs, scale_length: e.target.value})} placeholder="กรุณากรอก Scale Length" className="h-9 rounded-none border-border pr-12" />
                   <span className="absolute right-3 top-2 text-xs text-muted-foreground font-semibold">mm</span>
                 </div>
               </div>
               <div>
                 <label className="text-[11px] text-muted-foreground uppercase">Nut Width (ความกว้างนัท - หน่วย mm)</label>
                 <div className="relative mt-1">
-                  <Input value={guitarSpecs.nut_width} onChange={(e) => setGuitarSpecs({...guitarSpecs, nut_width: e.target.value})} placeholder="52" className="h-9 rounded-none border-border pr-12" />
+                  <Input value={guitarSpecs.nut_width} onChange={(e) => setGuitarSpecs({...guitarSpecs, nut_width: e.target.value})} placeholder="กรุณากรอก Nut Width" className="h-9 rounded-none border-border pr-12" />
                   <span className="absolute right-3 top-2 text-xs text-muted-foreground font-semibold">mm</span>
                 </div>
               </div>
               <div>
                 <label className="text-[11px] text-muted-foreground uppercase">Bridge (สะพานสาย)</label>
-                <Input value={guitarSpecs.bridge} onChange={(e) => setGuitarSpecs({...guitarSpecs, bridge: e.target.value})} placeholder="Ebony" className="mt-1 h-9 rounded-none border-border" />
+                <Input value={guitarSpecs.bridge} onChange={(e) => setGuitarSpecs({...guitarSpecs, bridge: e.target.value})} placeholder="กรุณากรอก Bridge" className="mt-1 h-9 rounded-none border-border" />
               </div>
               <div>
                 <label className="text-[11px] text-muted-foreground uppercase">Finish (เคลือบผิว)</label>
-                <Input value={guitarSpecs.finish} onChange={(e) => setGuitarSpecs({...guitarSpecs, finish: e.target.value})} placeholder="High Gloss Nitrocellulose" className="mt-1 h-9 rounded-none border-border" />
+                <Input value={guitarSpecs.finish} onChange={(e) => setGuitarSpecs({...guitarSpecs, finish: e.target.value})} placeholder="กรุณากรอก Finish" className="mt-1 h-9 rounded-none border-border" />
               </div>
             </div>
           </div>
@@ -744,16 +730,6 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
           </div>
         ) : (
           <div className="border-t border-border pt-6"><div className="border border-brand/20 bg-brand/5 p-5 text-sm leading-relaxed text-muted-foreground">คอร์สเรียนของพี่เบิร์ดใช้ชื่อ ราคา รายละเอียด รูปภาพ และลิงก์ร้านค้าจากช่องด้านบนเป็นข้อมูลหลัก สามารถทยอยเพิ่มหรือแก้ไขรายการได้จากแท็บนี้ใน Admin</div></div>
-        )}
-
-        {productType === "guitar" && purchaseMode === "custom" && (
-          <div className="border-t border-border pt-6 space-y-3">
-            <div>
-              <p className="text-xs uppercase tracking-widest font-semibold text-brand">ตัวเลือก Custom / Layered Images</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">ใส่ JSON ของกลุ่มวัสดุและชิ้นส่วน เช่น Top Wood, Back & Sides, ปิ๊กการ์ด และราคาเพิ่มของแต่ละตัวเลือก ระบบจะใช้ข้อมูลนี้คำนวณราคาและซ้อนภาพตาม zIndex</p>
-            </div>
-            <textarea value={customizerJson} onChange={event => setCustomizerJson(event.target.value)} rows={14} placeholder={'{\n  "enabled": true,\n  "basePrice": 0,\n  "groups": []\n}'} className="w-full rounded-none border border-border bg-background p-3 font-mono text-xs leading-relaxed focus:border-brand focus:outline-none" />
-          </div>
         )}
 
         <div className="pt-6 border-t border-border flex justify-end gap-3">
