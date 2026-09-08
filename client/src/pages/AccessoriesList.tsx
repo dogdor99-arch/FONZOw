@@ -11,9 +11,9 @@ export default function AccessoriesList() {
   return (
     <>
       <CompactPageHeading
-        eyebrow={t("อุปกรณ์และอะไหล่", "Accessories & parts")}
         title="Accessories"
         crumbs={[{ label: "Accessories" }]}
+        storeNav
       />
       <CatalogBrowser
         products={accessories}

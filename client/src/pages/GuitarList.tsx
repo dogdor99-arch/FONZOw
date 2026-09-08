@@ -160,9 +160,9 @@ export default function GuitarList() {
   return (
     <>
       <CompactPageHeading
-        eyebrow={t("แคตตาล็อกกีตาร์", "Guitar catalogue")}
         title={t("Guitar Shop", "Guitar Shop")}
         crumbs={[{ label: "Guitar" }]}
+        storeNav
       />
       <CatalogBrowser
         products={shopGuitars}

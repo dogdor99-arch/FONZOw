@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Guitar, ShoppingBag, Wrench } from "lucide-react";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
 import { FloatingChat } from "./FloatingChat";
@@ -96,7 +96,19 @@ export function PageHeading({
   );
 }
 
-export function CompactPageHeading({ eyebrow, title, crumbs = [] }: { eyebrow?: string; title: string; crumbs?: Crumb[] }) {
+const storeSections = [
+  { href: "/guitars/catalog", labelTh: "กีตาร์", labelEn: "Guitars", icon: Guitar },
+  { href: "/guitar-custom", labelTh: "กีตาร์สั่งทำ", labelEn: "Custom", icon: Wrench },
+  { href: "/accessories", labelTh: "อุปกรณ์", labelEn: "Accessories", icon: ShoppingBag },
+];
+
+function StoreSectionNav() {
+  const { locale } = useLocale();
+  const [location] = useLocation();
+  return <nav aria-label="Store sections" className="flex items-center gap-1.5 border-r border-border/70 pr-3 sm:gap-2 sm:pr-5">{storeSections.map(section => { const Icon = section.icon; const active = location === section.href || location.startsWith(`${section.href}/`); return <Link key={section.href} href={section.href} aria-label={locale === "th" ? section.labelTh : section.labelEn} className={`group flex h-9 w-9 items-center justify-center border transition sm:h-10 sm:w-10 ${active ? "border-brand bg-brand text-brand-foreground" : "border-border bg-card text-muted-foreground hover:border-brand/60 hover:text-brand"}`}><Icon className="h-4 w-4" strokeWidth={1.5} /><span className="sr-only">{locale === "th" ? section.labelTh : section.labelEn}</span></Link>; })}</nav>;
+}
+
+export function CompactPageHeading({ eyebrow, title, crumbs = [], storeNav = false }: { eyebrow?: string; title: string; crumbs?: Crumb[]; storeNav?: boolean }) {
   const { t } = useLocale();
-  return <section className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px] lg:pl-12"><nav aria-label="breadcrumb" className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase"><Link href="/" className="transition-colors hover:text-brand">{t("หน้าแรก", "Home")}</Link>{crumbs.map(crumb => <span key={crumb.label}><span className="mx-1.5 text-brand">›</span>{crumb.label}</span>)}</nav>{eyebrow && <p className="mt-2 text-[10px] tracking-[0.16em] text-brand uppercase">{eyebrow}</p>}<h1 className="mt-1 font-display text-3xl leading-none sm:text-4xl">{title}</h1></div></section>;
+  return <section className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px] lg:pl-12"><nav aria-label="breadcrumb" className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase"><Link href="/" className="transition-colors hover:text-brand">{t("หน้าแรก", "Home")}</Link>{crumbs.map(crumb => <span key={crumb.label}><span className="mx-1.5 text-brand">›</span>{crumb.label}</span>)}</nav><div className="mt-4 flex items-center gap-3 sm:gap-5">{storeNav && <StoreSectionNav />}<div>{eyebrow && <p className="text-[10px] tracking-[0.16em] text-brand uppercase">{eyebrow}</p>}<h1 className="mt-1 font-display text-3xl leading-none sm:text-4xl">{title}</h1></div></div></div></section>;
 }
