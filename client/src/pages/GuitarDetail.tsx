@@ -175,17 +175,17 @@ export default function GuitarDetail() {
     <>
       <PageHeading eyebrow={t("รายละเอียดกีตาร์", "Guitar details")} title={guitar.name || guitar.code} crumbs={[{ label: "Guitar", href: "/guitar" }, { label: guitar.name || guitar.code }]} index="03" />
 
-      <section className="mx-auto max-w-[1300px] px-4 py-12 sm:px-6 lg:px-10">
+      <section className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
         <div className="mb-8">
           <Link href="/guitar" className="inline-flex items-center text-xs tracking-widest uppercase text-muted-foreground hover:text-brand">
             <ArrowLeft className="mr-2 h-4 w-4" /> กลับไปหน้าแคตตาล็อก
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          <div className="lg:sticky lg:top-24 lg:col-span-7 lg:self-start">
-            <div className="border border-border bg-card p-4 flex items-center justify-center h-[450px] sm:h-[550px] overflow-hidden">
-              <img src={selectedImage || imagesList[0]} alt={guitar.name || guitar.code} className="max-h-full max-w-full object-contain transition-all duration-300" onError={(e) => { (e.target as HTMLImageElement).src = "/fonzo-logo.png"; }} />
+        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+          <div className="lg:sticky lg:top-24">
+            <div className="relative flex min-h-[480px] items-center justify-center overflow-hidden border border-border bg-card p-6">
+              <img src={selectedImage || imagesList[0]} alt={guitar.name || guitar.code} className="max-h-[620px] w-full object-contain transition-all duration-300" onError={(e) => { (e.target as HTMLImageElement).src = "/fonzo-logo.png"; }} />
             </div>
             {imagesList.length > 1 && (
               <div className="flex gap-3 overflow-x-auto pb-2">
@@ -206,7 +206,7 @@ export default function GuitarDetail() {
             </div>
           </div>
 
-          <div className="lg:col-span-5 space-y-8">
+          <div className="space-y-8">
             <div>
               <h1 className="text-2xl sm:text-3xl font-display">{guitar.name || guitar.code}</h1>
             </div>
