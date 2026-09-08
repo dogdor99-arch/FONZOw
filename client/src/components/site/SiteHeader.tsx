@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Menu, X } from "lucide-react";
 import { useLocale } from "@/contexts/LocaleContext";
 import { BRAND } from "@/lib/brand";
 
 export function SiteHeader() {
   const { t, locale, setLocale } = useLocale();
+  const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navItems = [
     { href: "/", label: t("หน้าแรก", "Home"), featured: true },
@@ -35,7 +36,7 @@ export function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className={`inline-flex shrink-0 whitespace-nowrap rounded-sm px-1.5 py-2 transition-colors hover:text-gold xl:px-2 ${item.featured ? "font-semibold text-gold" : ""}`}
+              className={`inline-flex shrink-0 whitespace-nowrap rounded-sm px-1.5 py-2 text-cream transition-colors hover:text-gold xl:px-2 ${location === item.href || (item.href !== "/" && location.startsWith(`${item.href}/`)) ? "font-semibold text-gold" : ""}`}
             >
               {item.label}
             </Link>
@@ -71,7 +72,7 @@ export function SiteHeader() {
               key={item.href}
               href={item.href}
               onClick={closeMobile}
-              className={`block whitespace-nowrap px-3 py-3 text-xs tracking-[0.16em] transition-colors hover:bg-white/5 hover:text-gold ${item.featured ? "font-semibold text-gold" : "text-cream/80"}`}
+              className={`block whitespace-nowrap px-3 py-3 text-xs tracking-[0.16em] text-cream transition-colors hover:bg-white/5 hover:text-gold ${location === item.href || (item.href !== "/" && location.startsWith(`${item.href}/`)) ? "font-semibold text-gold" : ""}`}
             >
               {item.label}
             </Link>
