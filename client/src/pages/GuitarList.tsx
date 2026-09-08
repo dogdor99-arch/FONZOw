@@ -142,7 +142,7 @@ export default function GuitarList() {
         product: { ...product, typeCode: normalizeShopTypeCode(product, types) },
         index,
       }))
-      .sort((a, b) => shopOrder(a.product) - shopOrder(b.product) || a.index - b.index)
+      .sort((a, b) => Number(Boolean(b.product.videoUrl)) - Number(Boolean(a.product.videoUrl)) || shopOrder(a.product) - shopOrder(b.product) || a.index - b.index)
       .map(({ product }) => product),
     [allGuitars, types],
   );
