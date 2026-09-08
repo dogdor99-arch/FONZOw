@@ -92,8 +92,8 @@ export default function GuitarCustomList() {
         storeNav
       />
 
-      <section className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-10">
-        <div className="grid gap-10 lg:grid-cols-[230px_1fr] lg:gap-16">
+      <section className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 sm:py-8 lg:px-10">
+        <div className="grid gap-6 lg:grid-cols-[230px_1fr] lg:gap-10">
           <aside className="lg:sticky lg:top-28 lg:self-start lg:border-r lg:border-border/60 lg:pr-8"><p className="eyebrow">{t("หมวดกีตาร์สั่งทำ", "Custom categories")}</p><div className="mt-3 h-px w-10 bg-brand/40" /><div className="mt-4 space-y-1.5">
           {[
             { key: "all" as const, label: t("ทั้งหมด", "All"), count: products.length },
@@ -111,7 +111,7 @@ export default function GuitarCustomList() {
           </div></aside>
           <div>
             <p className="text-xs tracking-[0.14em] text-muted-foreground uppercase">{loading ? t("กำลังโหลด…", "Loading…") : `${filtered.length} ${t("รายการ", "models")}`}</p>
-            <div className="mt-6 grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="mt-4 grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {loading ? Array.from({ length: 8 }).map((_, index) => <ProductCardSkeleton key={index} />) : filtered.map(product => <ProductCard key={product.code} product={product} basePath="/guitar-custom" />)}
             </div>
             {!loading && filtered.length === 0 && <div className="mt-12 border border-border p-10 text-center text-sm text-muted-foreground">{t("ยังไม่มีรุ่น Custom ที่ตั้งค่าข้อมูลในระบบ", "No Custom models have been configured yet.")}</div>}

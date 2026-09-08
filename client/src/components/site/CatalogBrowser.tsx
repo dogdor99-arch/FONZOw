@@ -209,14 +209,14 @@ export function CatalogBrowser({
   );
 
   return (
-    <section className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6 lg:px-10 lg:py-16">
-      <div className="grid gap-10 lg:grid-cols-[230px_1fr] lg:gap-16">
+    <section className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+      <div className="grid gap-6 lg:grid-cols-[230px_1fr] lg:gap-10">
         <aside className="hidden lg:block">
           <div className="sticky top-28 border-r border-border/60 pr-8">{FilterPanel}</div>
         </aside>
 
         <div>
-          <div className="flex flex-wrap items-center gap-3 border-b border-border/70 pb-5">
+          <div className="flex flex-wrap items-center gap-3 border-b border-border/70 pb-3">
             <div className="relative min-w-[200px] flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -255,13 +255,13 @@ export function CatalogBrowser({
             <div className="mt-6 border border-border bg-card p-6 lg:hidden">{FilterPanel}</div>
           )}
 
-          <p className="mt-6 text-xs tracking-[0.14em] text-muted-foreground uppercase">
+          <p className="mt-4 text-xs tracking-[0.14em] text-muted-foreground uppercase">
             {isLoading
               ? t("กำลังโหลด…", "Loading…")
               : `${filtered.length} ${t("รายการ", filtered.length === 1 ? "item" : "items")}`}
           </p>
 
-          <div className="mt-6 grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-4 grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {isLoading
               ? Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)
               : filtered.map((product, index) => (
