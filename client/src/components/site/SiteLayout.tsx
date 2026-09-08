@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { ChevronRight, Guitar, ShoppingBag, Wrench } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
 import { FloatingChat } from "./FloatingChat";
@@ -97,15 +97,15 @@ export function PageHeading({
 }
 
 const storeSections = [
-  { href: "/guitars/catalog", labelTh: "กีตาร์", labelEn: "Guitars", icon: Guitar },
-  { href: "/guitar-custom", labelTh: "กีตาร์สั่งทำ", labelEn: "Custom", icon: Wrench },
-  { href: "/accessories", labelTh: "อุปกรณ์", labelEn: "Accessories", icon: ShoppingBag },
+  { href: "/guitars/catalog", labelTh: "กีตาร์", labelEn: "Guitars", icon: "shop" },
+  { href: "/guitar-custom", labelTh: "กีตาร์สั่งทำ", labelEn: "Custom", icon: "custom" },
+  { href: "/accessories", labelTh: "อุปกรณ์", labelEn: "Accessories", icon: "ass" },
 ];
 
 function StoreSectionNav() {
   const { locale } = useLocale();
   const [location] = useLocation();
-  return <nav aria-label="Store sections" className="flex items-center gap-1.5 border-r border-border/70 pr-3 sm:gap-2 sm:pr-5">{storeSections.map(section => { const Icon = section.icon; const active = location === section.href || location.startsWith(`${section.href}/`); return <Link key={section.href} href={section.href} aria-label={locale === "th" ? section.labelTh : section.labelEn} className={`group flex h-9 w-9 items-center justify-center border transition sm:h-10 sm:w-10 ${active ? "border-brand bg-brand text-brand-foreground" : "border-border bg-card text-muted-foreground hover:border-brand/60 hover:text-brand"}`}><Icon className="h-4 w-4" strokeWidth={1.5} /><span className="sr-only">{locale === "th" ? section.labelTh : section.labelEn}</span></Link>; })}</nav>;
+  return <nav aria-label="Store sections" className="flex items-center gap-1.5 border-r border-border/70 pr-3 sm:gap-2 sm:pr-5">{storeSections.map(section => { const active = location === section.href || location.startsWith(`${section.href}/`); return <Link key={section.href} href={section.href} aria-label={locale === "th" ? section.labelTh : section.labelEn} className={`group flex h-10 w-16 items-center justify-center border px-1 transition sm:h-11 sm:w-20 ${active ? "border-brand bg-brand" : "border-border bg-card hover:border-brand/60"}`}><img src={`/fonzo-icons/icon-${section.icon}${active ? "-white" : ""}.png`} alt="" className="max-h-full w-full object-contain" /><span className="sr-only">{locale === "th" ? section.labelTh : section.labelEn}</span></Link>; })}</nav>;
 }
 
 export function CompactPageHeading({ eyebrow, title, crumbs = [], storeNav = false }: { eyebrow?: string; title: string; crumbs?: Crumb[]; storeNav?: boolean }) {
