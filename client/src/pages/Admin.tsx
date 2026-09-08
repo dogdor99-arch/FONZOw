@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload, Guitar, Headphones, Download, BookOpen, Search, ArrowUpDown } from "lucide-react";
+import { Bell, Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload, Guitar, Headphones, BookOpen, Search, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -48,13 +48,7 @@ export default function Admin() {
 
   return (
     <>
-      <CompactPageHeading
-        eyebrow={t("สำหรับทีมงาน", "Staff only")}
-        title={t("จัดการร้าน", "Shop console")}
-        crumbs={[{ label: t("จัดการร้าน", "Shop console") }]}
-      />
-      <section className="mx-auto max-w-[1300px] px-4 py-12 sm:px-6 lg:px-10">
-        <div className="flex flex-wrap gap-2 border-b border-border/70 pb-5">
+      <section className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto flex max-w-[1400px] flex-wrap items-end justify-between gap-5 lg:pl-12"><div><nav aria-label="breadcrumb" className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase"><a href="/" className="transition-colors hover:text-brand">{t("หน้าแรก", "Home")}</a><span className="mx-1.5 text-brand">›</span>{t("จัดการร้าน", "Shop console")}</nav><h1 className="mt-2 font-display text-3xl leading-none sm:text-4xl">{t("จัดการร้าน", "Shop console")}</h1></div><div className="flex flex-wrap gap-2">
           {[
             { key: "stock", label: t("จัดการสต็อกและสินค้า", "Products & Inventory"), unread: 0 },
             { key: "artists", label: t("ศิลปิน", "Artists"), unread: 0 },
@@ -66,9 +60,8 @@ export default function Admin() {
               {item.label}
               {item.key === "chat" && item.unread ? <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-cream px-1.5 py-0.5 text-[9px] text-brand">{item.unread > 99 ? "99+" : item.unread}</span> : null}
             </button>
-          ))}
-        </div>
-        <div className="mt-8">
+          ))}</div></div></section>
+      <section className="mx-auto max-w-[1300px] px-4 py-12 sm:px-6 lg:px-10"><div>
           {tab === "stock" && <StockManager />}
           {tab === "artists" && <ArtistsAdmin />}
           {tab === "works" && <WorksAdmin />}
@@ -207,30 +200,6 @@ function StockManager() {
     }
   };
 
-  const handleDownloadJSON = async () => {
-    try {
-      const { data, error } = await supabase.from("products").select("*");
-      if (error) throw error;
-
-      const exportData = {
-        products: allProducts,
-        supabaseCustomProducts: data || [],
-        exportedAt: new Date().toISOString(),
-      };
-
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `fonzo-products-export-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("ดาวน์โหลดข้อมูลสำเร็จ!");
-    } catch (err: any) {
-      toast.error("ดาวน์โหลดไม่สำเร็จ: " + err.message);
-    }
-  };
-
   if (view === "add") {
     return <ProductForm mode="add" defaultCategory={categoryTab === "courses" ? "Bird Course" : undefined} defaultProductType={categoryTab === "courses" ? "course" : undefined} onBack={() => { setView("list"); fetchSupabaseProducts(); }} />;
   }
@@ -265,9 +234,6 @@ function StockManager() {
           <p className="text-xs text-muted-foreground mt-1">จัดการสต็อก ราคา และเลือกแก้ไขสเปครายตัวได้ครบทุกรุ่น</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button onClick={handleDownloadJSON} variant="outline" size="sm" className="h-9 rounded-none border-border">
-            <Download className="mr-2 h-3.5 w-3.5" /> ดาวน์โหลด JSON
-          </Button>
           <Button onClick={() => setView("add")} className="h-9 rounded-none bg-brand text-brand-foreground text-[11px] tracking-widest uppercase">
             <Plus className="mr-2 h-4 w-4" /> {categoryTab === "courses" ? "เพิ่มคอร์สเรียน" : t("เพิ่มสินค้าใหม่", "Add New Product")}
           </Button>
@@ -302,7 +268,7 @@ function StockManager() {
 
       {categoryTab === "accessories" && <div className="flex flex-wrap gap-2 border-b border-border pb-4">{[{ key: "all", label: "ทั้งหมด" }, ...accessoryTypes.map(type => ({ key: type, label: type }))].map(type => <button key={type.key} type="button" onClick={() => setAccessoryType(type.key)} className={cn("border px-4 py-2 text-xs transition-colors", accessoryType === type.key ? "border-brand bg-brand text-brand-foreground" : "border-border text-muted-foreground hover:border-brand/50 hover:text-brand")}>{type.label}</button>)}</div>}
 
-      {categoryTab === "accessories" ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{isLoading ? Array.from({ length: 8 }).map((_, index) => <div key={index} className="aspect-[3/4] animate-pulse bg-secondary" />) : displayProducts.map((p, idx) => <article key={p.id || idx} className="group overflow-hidden border border-border bg-card transition hover:-translate-y-1 hover:border-brand/50 hover:shadow-lg"><div className="aspect-[3/4] overflow-hidden bg-secondary"><img src={p.image_urls?.[0] || p.image_url || p.image || "/fonzo-logo.png"} alt={p.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" onError={event => { event.currentTarget.src = "/fonzo-logo.png"; }} /></div><div className="p-4"><p className="text-[10px] tracking-[0.14em] text-brand uppercase">{getAccessoryType(p)}</p><h3 className="mt-1 line-clamp-2 font-display text-lg">{p.name}</h3><div className="mt-3 flex items-center justify-between text-sm"><span>฿{Number(p.price || 0).toLocaleString()}</span><span className="text-xs text-muted-foreground">{p.stock ?? 0} ชิ้น</span></div><div className="mt-4 flex gap-2"><Button type="button" onClick={() => { setEditingItem(p); setView("edit"); }} className="h-8 flex-1 rounded-none bg-brand px-2 text-[10px] text-brand-foreground"><Edit2 className="mr-1 h-3 w-3" />แก้ไข</Button>{!p.isCatalogItem && <Button type="button" variant="outline" onClick={() => handleDelete(p.id, p.isCatalogItem)} className="h-8 w-8 rounded-none p-0 text-red-500"><Trash2 className="h-3.5 w-3.5" /></Button>}</div></div></article>)}</div> : <div className="border border-border bg-card overflow-x-auto">
+      {categoryTab !== "courses" ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{isLoading ? Array.from({ length: 8 }).map((_, index) => <div key={index} className="aspect-[3/4] animate-pulse bg-secondary" />) : displayProducts.map((p, idx) => <article key={p.id || idx} className="group overflow-hidden border border-border bg-card transition hover:-translate-y-1 hover:border-brand/50 hover:shadow-lg"><div className="aspect-[3/4] overflow-hidden bg-secondary"><img src={p.image_urls?.[0] || p.image_url || p.image || "/fonzo-logo.png"} alt={p.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" onError={event => { event.currentTarget.src = "/fonzo-logo.png"; }} /></div><div className="p-4"><p className="text-[10px] tracking-[0.14em] text-brand uppercase">{categoryTab === "accessories" ? getAccessoryType(p) : p.category || "Guitar"}</p><h3 className="mt-1 line-clamp-2 font-display text-lg">{p.name}</h3><div className="mt-3 flex items-center justify-between text-sm"><span>฿{Number(p.price || 0).toLocaleString()}</span><span className="text-xs text-muted-foreground">{p.stock ?? 0} ชิ้น</span></div><div className="mt-4 flex gap-2"><Button type="button" onClick={() => { setEditingItem(p); setView("edit"); }} className="h-8 flex-1 rounded-none bg-brand px-2 text-[10px] text-brand-foreground"><Edit2 className="mr-1 h-3 w-3" />แก้ไข</Button>{!p.isCatalogItem && <Button type="button" variant="outline" onClick={() => handleDelete(p.id, p.isCatalogItem)} className="h-8 w-8 rounded-none p-0 text-red-500"><Trash2 className="h-3.5 w-3.5" /></Button>}</div></div></article>)}</div> : <div className="border border-border bg-card overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead className="bg-secondary/50 border-b border-border uppercase tracking-widest text-muted-foreground">
             <tr>
