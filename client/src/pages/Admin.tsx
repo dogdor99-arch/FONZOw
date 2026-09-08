@@ -400,6 +400,12 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
     finish: initialData?.specs?.["FINISH"] || initialData?.specs?.["Finish"] || initialData?.specs?.finish || "",
   });
 
+  const standardGuitarSpecKeys = new Set(["TOP WOOD", "Top Wood", "topWood", "top_wood", "BACK & SIDES", "Back & Sides", "backSides", "back_sides", "NECK", "Neck", "neck", "FINGERBOARD", "Fingerboard", "fingerboard", "SCALE LENGTH", "Scale Length", "scaleLength", "scale_length", "NUT WIDTH", "Nut Width", "nutWidth", "nut_width", "BRIDGE", "Bridge", "bridge", "FINISH", "Finish", "finish"]);
+  const initialExtraGuitarSpecs = Object.entries(initialData?.specs && typeof initialData.specs === "object" && !Array.isArray(initialData.specs) ? initialData.specs : {})
+    .filter(([key, value]) => !standardGuitarSpecKeys.has(key) && !/^(sourceurl|source_url|sourcecode|source_code|purchaseMode|purchase_mode|customFamily|custom_family|customizer)$/i.test(key) && (typeof value === "string" || typeof value === "number"))
+    .reduce<Record<string, string>>((result, [key, value]) => { result[key] = String(value); return result; }, {});
+  const [extraGuitarSpecs, setExtraGuitarSpecs] = useState<Record<string, string>>(initialExtraGuitarSpecs);
+
   const [accessorySpecs, setAccessorySpecs] = useState({
     string_gauge: initialData?.specs?.["String Gauge"] || initialData?.specs?.["เบอร์สาย"] || "",
     material: initialData?.specs?.["Material"] || initialData?.specs?.["ชนิดสาย"] || "",
@@ -454,7 +460,8 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
           "SCALE LENGTH": guitarSpecs.scale_length ? `${guitarSpecs.scale_length} mm` : "",
           "NUT WIDTH": guitarSpecs.nut_width ? `${guitarSpecs.nut_width} mm` : "",
           "BRIDGE": guitarSpecs.bridge,
-          "FINISH": guitarSpecs.finish
+          "FINISH": guitarSpecs.finish,
+          ...extraGuitarSpecs
         };
       } else if (productType === "accessory") {
         specs = {
@@ -704,6 +711,10 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
                 <label className="text-[11px] text-muted-foreground uppercase">Finish (เคลือบผิว)</label>
                 <Input value={guitarSpecs.finish} onChange={(e) => setGuitarSpecs({...guitarSpecs, finish: e.target.value})} placeholder="กรุณากรอก Finish" className="mt-1 h-9 rounded-none border-border" />
               </div>
+              {purchaseMode === "custom" && Object.entries(extraGuitarSpecs).map(([key, value]) => <div key={key}>
+                <label className="text-[11px] text-muted-foreground uppercase">{key}</label>
+                <Input value={value} onChange={event => setExtraGuitarSpecs(current => ({ ...current, [key]: event.target.value }))} placeholder={`กรุณากรอก ${key}`} className="mt-1 h-9 rounded-none border-border" />
+              </div>)}
             </div>
           </div>
         ) : productType === "accessory" ? (
