@@ -94,7 +94,7 @@ export default function GuitarCustomList() {
 
       <section className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-10">
         <div className="grid gap-10 lg:grid-cols-[230px_1fr] lg:gap-16">
-          <aside className="lg:border-r lg:border-border/60 lg:pr-8"><p className="eyebrow">{t("หมวดกีตาร์สั่งทำ", "Custom categories")}</p><div className="mt-3 h-px w-10 bg-brand/40" /><div className="mt-4 space-y-1.5">
+          <aside className="lg:sticky lg:top-28 lg:self-start lg:border-r lg:border-border/60 lg:pr-8"><p className="eyebrow">{t("หมวดกีตาร์สั่งทำ", "Custom categories")}</p><div className="mt-3 h-px w-10 bg-brand/40" /><div className="mt-4 space-y-1.5">
           {[
             { key: "all" as const, label: t("ทั้งหมด", "All"), count: products.length },
             { key: "custom" as const, label: "Fonzo Custom", count: countCustom },
@@ -104,7 +104,7 @@ export default function GuitarCustomList() {
               key={item.key}
               type="button"
               onClick={() => setFamily(item.key)}
-              className={cn("border px-4 py-2.5 text-xs tracking-[0.12em] uppercase transition-colors", family === item.key ? "border-brand bg-brand text-brand-foreground" : "border-border text-muted-foreground hover:border-brand/50 hover:text-brand")}>
+              className={cn("block w-full border px-4 py-2.5 text-center text-xs tracking-[0.12em] uppercase transition-colors", family === item.key ? "border-brand bg-brand text-brand-foreground" : "border-border text-muted-foreground hover:border-brand/50 hover:text-brand")}>
               {item.label} <span className="ml-1 opacity-70">{item.count}</span>
             </button>
           ))}
