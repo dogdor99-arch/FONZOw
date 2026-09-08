@@ -64,6 +64,7 @@ export default function GuitarCustomList() {
         images,
         shopeeUrl: item.shopee_url || item.shopeeUrl || item.shopee || null,
         lazadaUrl: item.lazada_url || item.lazadaUrl || item.lazada || null,
+        videoUrl: item.video_url || item.videoUrl || item.video || item.specs?.videoUrl || item.specs?.video_url || catalog?.videoUrl || null,
         purchaseMode: item.specs?.purchaseMode || catalog?.purchaseMode || (!isAccessoryProduct(item) && noPrice ? "custom" : item.purchaseMode),
         customFamily: item.specs?.customFamily || catalog?.customFamily || (String(item.category || catalog?.seriesName || "").toLowerCase().includes("selection") ? "selection" : "custom"),
       });
@@ -73,7 +74,9 @@ export default function GuitarCustomList() {
       .filter((item: any) => !supaByCode.has(String(item.code || "").toUpperCase()) && !supaByName.has((item.name || item.code || "").toLowerCase().trim()))
       .map((item: any) => withProductMeta(item));
 
-    return [...formatted, ...legacy].filter(item => !isAccessoryProduct(item) && item.purchaseMode === "custom");
+    return [...formatted, ...legacy]
+      .filter(item => !isAccessoryProduct(item) && item.purchaseMode === "custom")
+      .sort((a, b) => Number(Boolean(b.videoUrl)) - Number(Boolean(a.videoUrl)) || Number(a.order ?? 0) - Number(b.order ?? 0));
   }, [catalogGuitars, supabaseProducts]);
 
   const filtered = useMemo(

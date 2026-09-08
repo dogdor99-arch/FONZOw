@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { Video } from "lucide-react";
 import type { FonzoProductSummary } from "@shared/fonzo/types";
 import { useLocale } from "@/contexts/LocaleContext";
 import { BuyChannels } from "./BuyChannels";
@@ -46,6 +47,7 @@ export function ProductCard({
               {t("แนะนำ", "Featured")}
             </span>
           )}
+          {product.videoUrl && <span className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-ink/85 px-2 py-1 text-[10px] text-cream backdrop-blur-sm" title={t("มีวิดีโอสาธิตเสียง", "Sound demonstration available")}><Video className="h-3.5 w-3.5" aria-hidden="true" /><span className="sr-only">{t("มีวิดีโอสาธิตเสียง", "Sound demonstration available")}</span></span>}
         </Link>
         {buyable && (
           <span className="absolute right-3 top-3 flex items-center gap-1.5 bg-background/92 px-2 py-1 backdrop-blur-sm">
