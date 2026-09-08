@@ -21,7 +21,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
       <main className="flex-1">{children}</main>
       <SiteFooter />
       {/* Contact launcher rides above every page — Messenger is Fonzo's live channel. */}
-      <FloatingChat />
+      {location !== "/admin" && <FloatingChat />}
     </div>
   );
 }

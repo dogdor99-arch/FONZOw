@@ -88,6 +88,7 @@ function StockManager() {
   const [sortKey, setSortKey] = useState<"price" | "stock" | "date">("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [accessoryType, setAccessoryType] = useState("all");
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const isAccessoryProduct = (product: any) => {
     if (product.itemKind === "accessory") return true;
@@ -234,16 +235,11 @@ function StockManager() {
           <p className="text-xs text-muted-foreground mt-1">จัดการสต็อก ราคา และเลือกแก้ไขสเปครายตัวได้ครบทุกรุ่น</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button onClick={() => setView("add")} className="h-9 rounded-none bg-brand text-brand-foreground text-[11px] tracking-widest uppercase">
-            <Plus className="mr-2 h-4 w-4" /> {categoryTab === "courses" ? "เพิ่มคอร์สเรียน" : t("เพิ่มสินค้าใหม่", "Add New Product")}
-          </Button>
-          <Button onClick={fetchSupabaseProducts} variant="outline" size="sm" className="h-9 rounded-none border-border">
-            <RefreshCw className="mr-2 h-3.5 w-3.5" /> {t("รีเฟรช", "Refresh")}
-          </Button>
         </div>
       </div>
 
-      <div className="flex border-b border-border gap-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border">
+        <div className="flex flex-wrap items-center gap-6">
         <button
           type="button"
           onClick={() => setCategoryTab("shop")}
@@ -262,9 +258,12 @@ function StockManager() {
           <button type="button" onClick={() => setCategoryTab("courses")} className={cn("pb-3 text-xs uppercase tracking-widest font-semibold flex items-center gap-2 transition-all", categoryTab === "courses" ? "text-brand border-b-2 border-brand" : "text-muted-foreground hover:text-brand")}>
             <BookOpen className="h-4 w-4" /> คอร์สเรียนพี่เบิร์ด (Courses)
           </button>
+        </div>
+        <div className="ml-auto flex items-center gap-2 pb-2"><button type="button" onClick={() => setSearchOpen(value => !value)} className="flex h-9 w-9 items-center justify-center border border-border text-muted-foreground transition hover:border-brand hover:text-brand" aria-label="ค้นหาสินค้า"><Search className="h-4 w-4" /></button><Button type="button" onClick={() => setView("add")} className="h-9 w-9 rounded-none bg-brand p-0 text-brand-foreground" aria-label="เพิ่มสินค้า"><Plus className="h-4 w-4" /></Button><Button type="button" onClick={fetchSupabaseProducts} variant="outline" className="h-9 w-9 rounded-none p-0" aria-label="รีเฟรช"><RefreshCw className="h-3.5 w-3.5" /></Button></div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3"><div className="relative min-w-[220px] flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={query} onChange={event => setQuery(event.target.value)} placeholder="ค้นหาชื่อสินค้า / รุ่น" className="h-10 rounded-none pl-9" /></div><select value={sortKey} onChange={event => setSortKey(event.target.value as typeof sortKey)} className="h-10 border border-border bg-card px-3 text-xs"><option value="date">วันที่ลง</option><option value="price">ราคา</option><option value="stock">จำนวนสต็อก</option></select><Button type="button" variant="outline" onClick={() => setSortDirection(value => value === "asc" ? "desc" : "asc")} className="h-10 rounded-none text-xs"><ArrowUpDown className="mr-2 h-3.5 w-3.5" />{sortDirection === "asc" ? "น้อย → มาก" : "มาก → น้อย"}</Button></div>
+      {searchOpen && <div className="relative max-w-sm"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input autoFocus value={query} onChange={event => setQuery(event.target.value)} placeholder="ค้นหาชื่อสินค้า / รุ่น" className="h-10 rounded-none pl-9" /></div>}
+      <div className="flex flex-wrap items-center gap-3"><select value={sortKey} onChange={event => setSortKey(event.target.value as typeof sortKey)} className="h-10 border border-border bg-card px-3 text-xs"><option value="date">วันที่ลง</option><option value="price">ราคา</option><option value="stock">จำนวนสต็อก</option></select><Button type="button" variant="outline" onClick={() => setSortDirection(value => value === "asc" ? "desc" : "asc")} className="h-10 rounded-none text-xs"><ArrowUpDown className="mr-2 h-3.5 w-3.5" />{sortDirection === "asc" ? "น้อย → มาก" : "มาก → น้อย"}</Button></div>
 
       {categoryTab === "accessories" && <div className="flex flex-wrap gap-2 border-b border-border pb-4">{[{ key: "all", label: "ทั้งหมด" }, ...accessoryTypes.map(type => ({ key: type, label: type }))].map(type => <button key={type.key} type="button" onClick={() => setAccessoryType(type.key)} className={cn("border px-4 py-2 text-xs transition-colors", accessoryType === type.key ? "border-brand bg-brand text-brand-foreground" : "border-border text-muted-foreground hover:border-brand/50 hover:text-brand")}>{type.label}</button>)}</div>}
 
