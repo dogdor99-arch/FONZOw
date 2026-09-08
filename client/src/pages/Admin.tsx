@@ -403,8 +403,8 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
   const standardGuitarSpecKeys = new Set(["TOP WOOD", "Top Wood", "topWood", "top_wood", "BACK & SIDES", "Back & Sides", "backSides", "back_sides", "NECK", "Neck", "neck", "FINGERBOARD", "Fingerboard", "fingerboard", "SCALE LENGTH", "Scale Length", "scaleLength", "scale_length", "NUT WIDTH", "Nut Width", "nutWidth", "nut_width", "BRIDGE", "Bridge", "bridge", "FINISH", "Finish", "finish"]);
   const initialExtraGuitarSpecs = Object.entries(initialData?.specs && typeof initialData.specs === "object" && !Array.isArray(initialData.specs) ? initialData.specs : {})
     .filter(([key, value]) => !standardGuitarSpecKeys.has(key) && !/^(sourceurl|source_url|sourcecode|source_code|purchaseMode|purchase_mode|customFamily|custom_family|customizer)$/i.test(key) && (typeof value === "string" || typeof value === "number"))
-    .reduce<Record<string, string>>((result, [key, value]) => { result[key] = String(value); return result; }, {});
-  const [extraGuitarSpecs, setExtraGuitarSpecs] = useState<Record<string, string>>(initialExtraGuitarSpecs);
+    .map(([key, value]) => ({ key, value: String(value) }));
+  const [extraGuitarSpecs, setExtraGuitarSpecs] = useState<Array<{ key: string; value: string }>>(initialExtraGuitarSpecs);
 
   const [accessorySpecs, setAccessorySpecs] = useState({
     string_gauge: initialData?.specs?.["String Gauge"] || initialData?.specs?.["เบอร์สาย"] || "",
@@ -461,7 +461,7 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
           "NUT WIDTH": guitarSpecs.nut_width ? `${guitarSpecs.nut_width} mm` : "",
           "BRIDGE": guitarSpecs.bridge,
           "FINISH": guitarSpecs.finish,
-          ...extraGuitarSpecs
+          ...Object.fromEntries(extraGuitarSpecs.filter(item => item.key.trim()).map(item => [item.key.trim(), item.value]))
         };
       } else if (productType === "accessory") {
         specs = {
@@ -711,10 +711,15 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
                 <label className="text-[11px] text-muted-foreground uppercase">Finish (เคลือบผิว)</label>
                 <Input value={guitarSpecs.finish} onChange={(e) => setGuitarSpecs({...guitarSpecs, finish: e.target.value})} placeholder="กรุณากรอก Finish" className="mt-1 h-9 rounded-none border-border" />
               </div>
-              {purchaseMode === "custom" && Object.entries(extraGuitarSpecs).map(([key, value]) => <div key={key}>
-                <label className="text-[11px] text-muted-foreground uppercase">{key}</label>
-                <Input value={value} onChange={event => setExtraGuitarSpecs(current => ({ ...current, [key]: event.target.value }))} placeholder={`กรุณากรอก ${key}`} className="mt-1 h-9 rounded-none border-border" />
+              {purchaseMode === "custom" && extraGuitarSpecs.map((item, index) => <div key={`${item.key}-${index}`} className="space-y-1">
+                <label className="text-[11px] text-muted-foreground uppercase">หัวข้อสเปกเพิ่มเติม</label>
+                <div className="flex gap-2">
+                  <Input value={item.key} onChange={event => setExtraGuitarSpecs(current => current.map((entry, row) => row === index ? { ...entry, key: event.target.value } : entry))} placeholder="ชื่อหัวข้อ เช่น ปิ๊กการ์ด" className="h-9 rounded-none border-border" />
+                  <Input value={item.value} onChange={event => setExtraGuitarSpecs(current => current.map((entry, row) => row === index ? { ...entry, value: event.target.value } : entry))} placeholder={`กรุณากรอก ${item.key || "รายละเอียด"}`} className="h-9 rounded-none border-border" />
+                  <Button type="button" variant="outline" onClick={() => setExtraGuitarSpecs(current => current.filter((_, row) => row !== index))} className="h-9 w-9 shrink-0 rounded-none p-0 text-red-500" aria-label="ลบหัวข้อสเปก"><Trash2 className="h-3.5 w-3.5" /></Button>
+                </div>
               </div>)}
+              {purchaseMode === "custom" && <Button type="button" variant="outline" onClick={() => setExtraGuitarSpecs(current => [...current, { key: "", value: "" }])} className="h-9 rounded-none text-xs"><Plus className="mr-2 h-3.5 w-3.5" />เพิ่มหัวข้อสเปก</Button>}
             </div>
           </div>
         ) : productType === "accessory" ? (
