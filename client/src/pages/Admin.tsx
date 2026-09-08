@@ -596,10 +596,10 @@ function ProductForm({ mode, initialData, onBack, defaultCategory, defaultProduc
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border pt-4">
-          {productType === "guitar" && purchaseMode === "custom" && <div className="sm:col-span-2">
-            <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">วิดีโอสาธิตเสียง (YouTube)</label>
+          {productType === "guitar" && <div className="sm:col-span-2 border border-brand/20 bg-brand/5 p-4">
+            <label className="text-[11px] tracking-[0.16em] text-brand uppercase font-semibold">วิดีโอสาธิตเสียง (YouTube)</label>
             <Input value={formData.video_url} onChange={(e) => setFormData({...formData, video_url: e.target.value})} placeholder="กรุณากรอกลิงก์ YouTube ของกีตาร์รุ่นนี้" className="mt-1 h-10 rounded-none border-border" />
-            <p className="mt-1 text-[11px] text-muted-foreground">รองรับลิงก์ youtube.com/watch และ youtu.be</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">ใช้ได้กับ Guitar Custom และ Guitar Selection รองรับลิงก์ youtube.com/watch และ youtu.be</p>
           </div>}
           <div>
             <label className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase font-bold text-[#ee4d2d]">ลิงก์ร้านค้า Shopee</label>
