@@ -4,7 +4,16 @@ import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
 import { PageHeading } from "@/components/site/SiteLayout";
 import { supabase } from "@/lib/supabase";
-import { ShieldCheck, Truck, ArrowLeft, Loader2, ExternalLink, ShoppingBag, MessageCircle } from "lucide-react";
+import { ShieldCheck, Truck, ArrowLeft, Loader2, ExternalLink, ShoppingBag, MessageCircle, Play } from "lucide-react";
+
+function youtubeEmbed(url: string): string | null {
+  const patterns = [/[?&]v=([\w-]{6,})/, /youtu\.be\/([\w-]{6,})/, /embed\/([\w-]{6,})/];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return `https://www.youtube.com/embed/${match[1]}`;
+  }
+  return null;
+}
 
 export default function GuitarDetail() {
   const { code } = useParams();
@@ -91,6 +100,7 @@ export default function GuitarDetail() {
         shopee_url: shopeeLink,
         lazada_url: lazadaLink,
         line_url: lineLink,
+        videoUrl: supa.video_url || supa.videoUrl || supa.video || supa.guitar_vdo || supa.specs?.videoUrl || supa.specs?.video_url || base.videoUrl || null,
       };
     }
 
@@ -146,6 +156,7 @@ export default function GuitarDetail() {
   }, [guitar]);
 
   const isLoading = catalogLoading || detailLoading || loadingSupa;
+  const videoEmbed = guitar?.videoUrl ? youtubeEmbed(guitar.videoUrl) : null;
 
   if (isLoading) {
     return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-brand" /></div>;
@@ -226,6 +237,8 @@ export default function GuitarDetail() {
                 </div>
               </div>
             )}
+
+            {videoEmbed && <div className="border-t border-border pt-6"><p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-brand"><Play className="h-3.5 w-3.5" fill="currentColor" />{t("ฟังเสียงจริง", "Hear it played")}</p><h2 className="mt-3 text-xl font-display">{t("วิดีโอสาธิตเสียง", "Sound demonstration")}</h2><div className="mt-5 aspect-video w-full bg-ink"><iframe src={videoEmbed} title={guitar.name || guitar.code} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="h-full w-full border-0" /></div></div>}
           </div>
         </div>
 
