@@ -173,10 +173,10 @@ export default function GuitarDetail() {
 
   return (
     <>
-      <PageHeading eyebrow={t("รายละเอียดกีตาร์", "Guitar details")} title={guitar.name || guitar.code} crumbs={[{ label: "Guitar", href: "/guitar" }, { label: guitar.name || guitar.code }]} index="03" />
+      <PageHeading title={guitar.name || guitar.code} crumbs={[{ label: "Guitar", href: "/guitar" }, { label: guitar.name || guitar.code }]} index="03" compact />
 
-      <section className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
-        <div className="mb-8">
+      <section className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+        <div className="mb-4">
           <Link href="/guitar" className="inline-flex items-center text-xs tracking-widest uppercase text-muted-foreground hover:text-brand">
             <ArrowLeft className="mr-2 h-4 w-4" /> กลับไปหน้าแคตตาล็อก
           </Link>

@@ -104,10 +104,11 @@ export default function GuitarCustomDetail() {
         title={title}
         crumbs={[{ label: "Guitar Custom", href: "/guitar-custom" }, { label: title }]}
         index="04"
+        compact
       />
-      <section className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
+      <section className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
         <Link href="/guitar-custom" className="inline-flex items-center text-xs tracking-widest uppercase text-muted-foreground hover:text-brand"><ArrowLeft className="mr-2 h-4 w-4" />{t("กลับไป Guitar Custom", "Back to Guitar Custom")}</Link>
-        <div className="mt-8 grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+        <div className="mt-4 grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div className="lg:sticky lg:top-24">
             <div className="relative flex min-h-[480px] items-center justify-center overflow-hidden border border-border bg-card p-6">
               <img src={selectedImage || images[0]} alt={title} className="max-h-[620px] w-full object-contain" onError={event => { event.currentTarget.src = "/fonzo-logo.png"; }} />

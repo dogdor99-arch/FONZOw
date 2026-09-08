@@ -34,6 +34,7 @@ export function PageHeading({
   align = "left",
   index,
   aside,
+  compact = false,
 }: {
   eyebrow?: string;
   title: string;
@@ -44,6 +45,8 @@ export function PageHeading({
   index?: string;
   /** Optional trailing content (counts, quick links) shown beside the title block. */
   aside?: ReactNode;
+  /** Reduced vertical padding for product detail headers. */
+  compact?: boolean;
 }) {
   const { t } = useLocale();
   return (
@@ -52,7 +55,7 @@ export function PageHeading({
         aria-hidden
         className="pointer-events-none absolute -right-24 -top-32 h-[26rem] w-[26rem] rounded-full bg-[radial-gradient(circle,color-mix(in_oklch,var(--brand)_9%,transparent)_0%,transparent_70%)]"
       />
-      <div className="relative mx-auto max-w-[1400px] px-4 pb-8 pt-7 sm:px-6 lg:px-10 lg:pb-10 lg:pt-9 lg:pl-12">
+      <div className={`relative mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-10 lg:pl-12 ${compact ? "pb-5 pt-4 lg:pb-6 lg:pt-5" : "pb-8 pt-7 lg:pb-10 lg:pt-9"}`}>
         <nav aria-label="breadcrumb" className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <Link href="/" className="tracking-[0.14em] uppercase transition-colors hover:text-brand">
             {t("หน้าแรก", "Home")}
@@ -71,11 +74,11 @@ export function PageHeading({
           ))}
         </nav>
 
-        <div className="mt-5 flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
+        <div className={`${compact ? "mt-3" : "mt-5"} flex flex-wrap items-end justify-between gap-x-10 gap-y-4`}>
           <div className={align === "center" ? "mx-auto max-w-3xl text-center" : "max-w-3xl"}>
             {eyebrow && <p className="eyebrow">{eyebrow}</p>}
-            <h1 className="mt-2 text-3xl leading-[1.05] sm:text-4xl lg:text-[2.85rem]">{title}</h1>
-            <div className={align === "center" ? "mx-auto mt-4 gold-rule" : "mt-4 gold-rule"} />
+            <h1 className={`${compact ? "mt-1 text-2xl sm:text-3xl lg:text-[2.35rem]" : "mt-2 text-3xl sm:text-4xl lg:text-[2.85rem]"} leading-[1.05]`}>{title}</h1>
+            <div className={align === "center" ? `mx-auto ${compact ? "mt-3" : "mt-4"} gold-rule` : `${compact ? "mt-3" : "mt-4"} gold-rule`} />
             {description && (
               <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">{description}</p>
             )}
