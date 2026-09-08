@@ -101,7 +101,6 @@ export default function GuitarCustomDetail() {
   return (
     <>
       <PageHeading
-        eyebrow={product.customFamily === "selection" ? "Fonzo Selection" : "Fonzo Custom"}
         title={title}
         crumbs={[{ label: "Guitar Custom", href: "/guitar-custom" }, { label: title }]}
         index="04"
@@ -118,7 +117,6 @@ export default function GuitarCustomDetail() {
             <div className="mt-6 space-y-3 border-t border-border pt-5 text-xs text-muted-foreground"><div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-brand" />{t("รองรับการประเมินราคาแบบกำหนดสเปก", "Specification-based price estimation")}</div><div className="flex items-center gap-2"><Truck className="h-4 w-4 text-brand" />{t("ทีมงาน Fonzo ติดต่อกลับเพื่อยืนยันรายละเอียด", "Fonzo team will confirm the final specification")}</div></div>
           </div>
           <div className="space-y-8">
-            <div><p className="eyebrow">{product.typeName || product.seriesName}</p><p className="mt-2 text-xs tracking-[0.16em] text-muted-foreground uppercase">{t("รหัสสินค้า", "Reference")} {product.code}</p></div>
             {videoEmbed && <div className="border-t border-border pt-6"><p className="eyebrow">{t("ฟังเสียงจริง", "Hear it played")}</p><h2 className="mt-3 text-2xl sm:text-3xl">{t("วิดีโอสาธิตเสียง", "Sound demonstration")}</h2><div className="mt-6 aspect-video w-full bg-ink"><iframe src={videoEmbed} title={title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="h-full w-full border-0" /></div></div>}
             <CustomConfigurator config={config} fallbackImage={images[0]} basePrice={product.price} />
             {product.description && <div className="border-t border-border pt-6"><h2 className="text-xl font-display">{t("ประวัติกีตาร์", "Guitar story")}</h2><p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{product.description}</p></div>}

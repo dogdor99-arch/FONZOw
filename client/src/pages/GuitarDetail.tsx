@@ -208,8 +208,7 @@ export default function GuitarDetail() {
 
           <div className="lg:col-span-5 space-y-8">
             <div>
-              <span className="text-[11px] tracking-[0.2em] uppercase text-brand font-semibold">{guitar.series || guitar.category || "Fonzo Acoustic"}</span>
-              <h1 className="text-2xl sm:text-3xl font-display mt-1">{guitar.name || guitar.code}</h1>
+              <h1 className="text-2xl sm:text-3xl font-display">{guitar.name || guitar.code}</h1>
             </div>
 
             <div className="text-2xl font-bold font-display text-foreground">
