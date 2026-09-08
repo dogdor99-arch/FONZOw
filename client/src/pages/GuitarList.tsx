@@ -119,6 +119,7 @@ export default function GuitarList() {
         inStock: item.stock == null ? catalog?.inStock : Number(item.stock || 0) > 0,
         shopeeUrl: item.shopee_url || item.shopeeUrl || item.shopee || catalog?.shopeeUrl || null,
         lazadaUrl: item.lazada_url || item.lazadaUrl || item.lazada || catalog?.lazadaUrl || null,
+        videoUrl: item.video_url || item.videoUrl || item.video || item.specs?.videoUrl || item.specs?.video_url || catalog?.videoUrl || null,
         raw: item,
         specs: item.specs || catalog?.specs || {},
       });

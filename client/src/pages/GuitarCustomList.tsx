@@ -8,6 +8,8 @@ import type { CustomFamily } from "@shared/fonzo/types";
 import { CompactPageHeading } from "@/components/site/SiteLayout";
 import { ProductCard, ProductCardSkeleton } from "@/components/site/ProductCard";
 import { cn } from "@/lib/utils";
+import { Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 function isAccessoryProduct(product: any) {
   const sourceCode = String(product?.specs?.sourceCode ?? product?.code ?? "").toUpperCase();
@@ -21,6 +23,7 @@ export default function GuitarCustomList() {
   const [supabaseProducts, setSupabaseProducts] = useState<any[]>([]);
   const [loadingSupabase, setLoadingSupabase] = useState(true);
   const [family, setFamily] = useState<"all" | CustomFamily>("all");
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -80,8 +83,16 @@ export default function GuitarCustomList() {
   }, [catalogGuitars, supabaseProducts]);
 
   const filtered = useMemo(
-    () => family === "all" ? products : products.filter(item => item.customFamily === family),
-    [family, products],
+    () => {
+      const q = query.trim().toLowerCase();
+      return products.filter(item => {
+        if (family !== "all" && item.customFamily !== family) return false;
+        if (!q) return true;
+        const haystack = `${item.name} ${item.nameEn} ${item.code} ${item.category} ${item.seriesName} ${item.typeName}`.toLowerCase();
+        return haystack.includes(q);
+      });
+    },
+    [family, products, query],
   );
   const countCustom = products.filter(item => item.customFamily === "custom").length;
   const countSelection = products.filter(item => item.customFamily === "selection").length;
@@ -113,6 +124,11 @@ export default function GuitarCustomList() {
           ))}
           </div></aside>
           <div>
+            <div className="relative mb-4">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={query} onChange={event => setQuery(event.target.value)} placeholder={t("ค้นหาชื่อรุ่น รหัส หรือหมวดหมู่", "Search model, code or category")} className="h-10 rounded-none border-border pl-10 pr-10" aria-label={t("ค้นหากีตาร์ Custom", "Search custom guitars")} />
+              {query && <button type="button" onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label={t("ล้างการค้นหา", "Clear search")}><X className="h-4 w-4" /></button>}
+            </div>
             <p className="text-xs tracking-[0.14em] text-muted-foreground uppercase">{loading ? t("กำลังโหลด…", "Loading…") : `${filtered.length} ${t("รายการ", "models")}`}</p>
             <div className="mt-4 grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {loading ? Array.from({ length: 8 }).map((_, index) => <ProductCardSkeleton key={index} />) : filtered.map(product => <ProductCard key={product.code} product={product} basePath="/guitar-custom" />)}

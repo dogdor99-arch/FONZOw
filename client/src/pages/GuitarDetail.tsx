@@ -207,6 +207,7 @@ export default function GuitarDetail() {
           </div>
 
           <div className="space-y-8">
+            {videoEmbed && <div className="border-t border-border pt-6"><p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-brand"><Play className="h-3.5 w-3.5" fill="currentColor" />{t("ฟังเสียงจริง", "Hear it played")}</p><h2 className="mt-3 text-xl font-display">{t("วิดีโอสาธิตเสียง", "Sound demonstration")}</h2><div className="mt-5 aspect-video w-full bg-ink"><iframe src={videoEmbed} title={guitar.name || guitar.code} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="h-full w-full border-0" /></div></div>}
             <div>
               <h1 className="text-2xl sm:text-3xl font-display">{guitar.name || guitar.code}</h1>
             </div>
@@ -223,8 +224,6 @@ export default function GuitarDetail() {
                 <Truck className="h-4 w-4 text-brand" /> จัดส่งปลอดภัยด้วยกล่องกันกระแทกมาตรฐานสูง
               </div>
             </div>
-
-            {videoEmbed && <div className="border-t border-border pt-6"><p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-brand"><Play className="h-3.5 w-3.5" fill="currentColor" />{t("ฟังเสียงจริง", "Hear it played")}</p><h2 className="mt-3 text-xl font-display">{t("วิดีโอสาธิตเสียง", "Sound demonstration")}</h2><div className="mt-5 aspect-video w-full bg-ink"><iframe src={videoEmbed} title={guitar.name || guitar.code} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="h-full w-full border-0" /></div></div>}
 
             {guitar.description && (
               <div className="border-t border-border pt-6">
