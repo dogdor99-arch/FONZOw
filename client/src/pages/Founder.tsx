@@ -1,6 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
-import { PageHeading } from "@/components/site/SiteLayout";
+import { CompactPageHeading } from "@/components/site/SiteLayout";
 import { RichText } from "@/components/site/RichText";
 import { Reveal } from "@/components/site/Reveal";
 import { BRAND } from "@/lib/brand";
@@ -21,10 +21,10 @@ export default function Founder() {
 
   return (
     <>
-      <PageHeading title={page.title || "Founder"} crumbs={[{ label: "Founder" }]} index="01" />
+      <CompactPageHeading title={page.title || "Founder"} crumbs={[{ label: "Founder" }]} />
 
-      <section className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
-        <div className="grid gap-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
+      <section className="mx-auto max-w-[1400px] px-4 pb-12 pt-3 sm:px-6 lg:px-10 lg:pb-16 lg:pt-5">
+        <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
           <Reveal>
             <div className="sticky top-28">
               {displayImage && (
@@ -94,7 +94,7 @@ export default function Founder() {
             )}
           </Reveal>
         </div>
-        {gallery.length > 0 && <div className="mt-10 ml-auto w-full lg:w-1/2"><div className="flex snap-x gap-3 overflow-x-auto pb-3">{gallery.map((url: string, index: number) => <img key={`${url}-${index}`} src={url} alt={`${page.title || "Founder"} ${index + 1}`} className="h-32 w-52 shrink-0 snap-start object-cover" loading="lazy" />)}</div></div>}
+        {gallery.length > 0 && <div className="mt-6 ml-auto w-full lg:w-1/2"><div className="flex snap-x gap-3 overflow-x-auto pb-3">{gallery.map((url: string, index: number) => <img key={`${url}-${index}`} src={url} alt={`${page.title || "Founder"} ${index + 1}`} className="h-32 w-52 shrink-0 snap-start object-cover" loading="lazy" />)}</div></div>}
       </section>
     </>
   );
