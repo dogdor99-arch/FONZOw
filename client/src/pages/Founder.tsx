@@ -30,7 +30,7 @@ export default function Founder() {
 
       <section className="mx-auto max-w-[1400px] px-4 pb-12 pt-3 sm:px-6 lg:px-10 lg:pb-16 lg:pt-5">
         <div className="grid gap-8 lg:grid-cols-[1fr_1.15fr] lg:gap-12">
-          <Reveal>
+          <Reveal className="w-full min-w-0">
             <div className="min-w-0">
               {displayImage && (
                 <div className="relative overflow-hidden">
@@ -76,7 +76,7 @@ export default function Founder() {
             </div>
           </Reveal>
 
-          <Reveal delay={80}>
+          <Reveal delay={80} className="w-full min-w-0">
             {isLoading ? (
               <div className="space-y-4">
                 {Array.from({ length: 12 }).map((_, i) => (
@@ -90,7 +90,7 @@ export default function Founder() {
             ) : displayArticle ? (
               <>
                 <RichText html={displayArticle.html} className="max-w-[46rem]" />
-                {gallery.length > 0 && <div className="mt-8 w-full border-t border-border/70 pt-5"><p className="mb-4 text-[10px] tracking-[0.14em] text-muted-foreground uppercase">{t("ภาพเพิ่มเติม", "More images")}</p><div className="flex snap-x gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{gallery.map((url: string, index: number) => <img key={`${url}-${index}`} src={url} alt={`${page.title || "Founder"} ${index + 1}`} className="h-44 w-72 shrink-0 snap-start object-cover sm:h-52 sm:w-80 lg:h-60 lg:w-[22rem]" loading="lazy" onError={event => { event.currentTarget.style.display = "none"; }} />)}</div></div>}
+                {gallery.length > 0 && <div className="mt-8 w-full border-t border-border/70 pt-5"><p className="mb-4 text-[10px] tracking-[0.14em] text-muted-foreground uppercase">{t("ภาพเพิ่มเติม", "More images")}</p><div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">{gallery.map((url: string, index: number) => <img key={`${url}-${index}`} src={url} alt={`${page.title || "Founder"} ${index + 1}`} className="block h-56 w-full object-cover sm:h-52 lg:h-60" loading="eager" onError={event => { event.currentTarget.style.display = "none"; }} />)}</div></div>}
               </>
             ) : (
               <p className="text-muted-foreground">
