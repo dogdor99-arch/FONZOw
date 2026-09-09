@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, ExternalLink, MoveRight, Music2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Guitar, MoveRight, Music2 } from "lucide-react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -24,6 +24,7 @@ export default function Artists() {
     collaborationImage: artist.collaborationImageUrl ?? undefined,
     sourceUrl: artist.sourceUrl ?? "https://www.facebook.com/Fonzoguitar",
     guitar: artist.guitar ?? undefined,
+    guitarUrl: artist.guitarUrl ?? undefined,
   }));
 
   const current = artists[active] ?? artists[0];
@@ -68,9 +69,8 @@ export default function Artists() {
 
   const title = locale === "th" ? current.name : current.nameEn;
   const role = locale === "th" ? current.role : current.roleEn;
-  const description = locale === "th" ? current.description : current.descriptionEn;
   return <>
-    <div className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px] lg:pl-12"><p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase">หน้าแรก <span className="mx-1.5 text-brand">›</span> Artists</p><h1 className="mt-2 font-display text-3xl leading-none sm:text-4xl">Artists</h1></div></div>
+    <div className="border-b border-border/70 bg-cream/40 px-4 py-3 sm:px-6 lg:px-10"><div className="mx-auto max-w-[1400px] lg:pl-12"><p className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase">หน้าแรก <span className="mx-1.5 text-brand">›</span> Artists</p><h1 className="mt-2 font-display text-3xl leading-none sm:text-4xl">Artists</h1></div></div>
     <main className="overflow-hidden bg-cream/35">
       <section onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)} className="mx-auto max-w-[1400px] px-4 pb-12 pt-2 sm:px-6 lg:px-10 lg:pb-20 lg:pt-4">
         <div className={`relative transition duration-500 ease-out ${switching ? "translate-x-5 opacity-0" : "translate-x-0 opacity-100"}`}>
@@ -86,9 +86,7 @@ export default function Artists() {
               <p className="eyebrow text-brand">{role}</p>
               <h2 className="mt-3 max-w-xl font-display text-4xl leading-[0.98] text-foreground sm:text-5xl lg:text-[4.5rem]">{title}</h2>
               <div className="mt-5 h-px w-16 bg-gold" />
-              <p className="mt-5 max-w-lg text-[15px] leading-[1.95] text-muted-foreground">{description || t("เพิ่มข้อมูลศิลปินและเรื่องราวการร่วมงานได้จากหน้า Admin", "Add the artist biography and collaboration story from Admin.")}</p>
-              {current.guitar && <p className="mt-8 border-l border-gold pl-4 text-xs tracking-[0.14em] text-foreground/65">{current.guitar}</p>}
-              <a href={current.sourceUrl} target="_blank" rel="noreferrer" className="mt-10 inline-flex w-fit items-center gap-3 text-[11px] tracking-[0.17em] text-brand uppercase transition-colors hover:text-gold">{t("ดูเรื่องราวต้นฉบับ", "View original story")}<ExternalLink className="h-3.5 w-3.5" /></a>
+              {current.guitar && <div className="mt-8 flex items-center gap-3 border-l border-gold pl-4 text-xs tracking-[0.14em] text-foreground/65"><span>{current.guitar}</span>{current.guitarUrl && <a href={current.guitarUrl} target="_blank" rel="noreferrer" aria-label={t("ดูกีตาร์รุ่นนี้", "View this guitar")} className="text-brand hover:text-gold"><Guitar className="h-5 w-5" /></a>}</div>}
               <Link href={`/artists/${current.id}`} className="mt-4 inline-flex w-fit items-center gap-3 text-[11px] font-semibold tracking-[0.17em] text-brand uppercase transition-colors hover:text-gold">{t("ดูข้อมูลศิลปินแบบเต็ม", "View full artist profile")}<MoveRight className="h-3.5 w-3.5" /></Link>
             </div>
           </div>

@@ -18,6 +18,7 @@ const EMPTY_FORM = {
   galleryUrls: [] as string[],
   sourceUrl: "",
   guitar: "",
+  guitarUrl: "",
   sortOrder: "0",
   published: true,
 };
@@ -57,6 +58,7 @@ export function ArtistsAdmin() {
       galleryUrls: artist.galleryUrls ?? [],
       sourceUrl: artist.sourceUrl ?? "",
       guitar: artist.guitar ?? "",
+      guitarUrl: artist.guitarUrl ?? "",
       sortOrder: String(artist.sortOrder),
       published: artist.published,
     });
@@ -82,7 +84,7 @@ export function ArtistsAdmin() {
       name: form.name.trim(), nameEn: form.nameEn.trim() || null, role: form.role.trim() || null, roleEn: form.roleEn.trim() || null,
       bio: form.bio.trim() || null, bioEn: form.bioEn.trim() || null, imageUrl: form.imageUrl.trim() || null,
       collaborationImageUrl: form.collaborationImageUrl.trim() || null, galleryUrls: form.galleryUrls, sourceUrl: form.sourceUrl.trim() || null,
-      guitar: form.guitar.trim() || null, sortOrder: Number(form.sortOrder) || 0, published: form.published,
+      guitar: form.guitar.trim() || null, guitarUrl: form.guitarUrl.trim() || null, sortOrder: Number(form.sortOrder) || 0, published: form.published,
     };
     try {
       if (editingId) await update.mutateAsync({ id: editingId, ...payload });
@@ -115,6 +117,7 @@ export function ArtistsAdmin() {
       <div className="md:col-span-2"><p className="mb-2 text-xs tracking-[0.12em] text-muted-foreground uppercase">{t("ภาพประกอบ", "Supporting images")}</p><label className="inline-flex cursor-pointer items-center text-xs text-brand hover:underline"><Upload className="mr-1 h-3.5 w-3.5" />{t("เพิ่มภาพประกอบจากเครื่อง", "Add supporting images")}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple className="hidden" onChange={async event => { try { for (const file of Array.from(event.target.files ?? [])) await uploadGalleryImage(file); } catch (error) { toast.error(error instanceof Error ? error.message : t("อัปโหลดไม่สำเร็จ", "Upload failed")); } finally { event.target.value = ""; } }} /></label><div className="mt-3 flex gap-2 overflow-x-auto">{form.galleryUrls.map((url, index) => <div key={`${url}-${index}`} className="relative h-20 w-28 shrink-0 overflow-hidden bg-secondary"><img src={url} alt="" className="h-full w-full object-cover" /><button type="button" onClick={() => setForm(current => ({ ...current, galleryUrls: current.galleryUrls.filter((_, itemIndex) => itemIndex !== index) }))} className="absolute right-1 top-1 bg-ink/75 px-1.5 text-xs text-white">×</button></div>)}</div></div>
       <Field label={t("ลิงก์โพสต์ต้นฉบับ", "Original source URL")} value={form.sourceUrl} onChange={value => set("sourceUrl", value)} />
       <Field label={t("รุ่นกีต้าที่ร่วมงาน", "Associated guitar")} value={form.guitar} onChange={value => set("guitar", value)} />
+      <Field label={t("ลิงก์หน้าสินค้ากีตาร์", "Guitar product URL")} value={form.guitarUrl} onChange={value => set("guitarUrl", value)} />
       <Field label={t("ลำดับการแสดงผล", "Display order")} value={form.sortOrder} onChange={value => set("sortOrder", value)} type="number" />
       <label className="flex items-center gap-3 pt-7 text-sm"><input type="checkbox" checked={form.published} onChange={event => set("published", event.target.checked)} className="h-4 w-4 accent-brand" />{t("เผยแพร่บนหน้า Artists", "Publish on Artists page")}</label>
       <TextAreaField label={t("ประวัติภาษาไทย", "Thai biography")} value={form.bio} onChange={value => set("bio", value)} />
