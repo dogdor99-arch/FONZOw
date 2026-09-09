@@ -343,9 +343,11 @@ function FounderAdmin() {
 
   useEffect(() => {
     supabase.from("products").select("*").eq("name", "__founder_page__").maybeSingle().then(({ data }) => {
-      const page = data?.specs?.founderPage || {};
+      const rawPage = data?.specs?.founderPage;
+      const page = typeof rawPage === "string" ? (() => { try { return JSON.parse(rawPage); } catch { return {}; } })() : (rawPage || {});
       setRowId(data?.id ?? null);
-      setForm({ title: page.title || "Founder", html: page.html || "", imageUrl: page.imageUrl || "", galleryUrls: Array.isArray(page.galleryUrls) ? page.galleryUrls : [] });
+      const storedImages = Array.isArray(data?.image_urls) ? data.image_urls.filter(Boolean) : [];
+      setForm({ title: page.title || "Founder", html: page.html || "", imageUrl: page.imageUrl || storedImages[0] || "", galleryUrls: Array.isArray(page.galleryUrls) && page.galleryUrls.length ? page.galleryUrls : storedImages.slice(1) });
       setLoading(false);
     });
   }, []);
@@ -355,7 +357,7 @@ function FounderAdmin() {
   const handleGalleryImages = (event: React.ChangeEvent<HTMLInputElement>) => { Array.from(event.target.files ?? []).forEach(file => readImage(file, url => setForm(current => ({ ...current, galleryUrls: [...current.galleryUrls, url] })))); event.target.value = ""; };
   const save = async () => {
     setSaving(true);
-    const payload = { name: "__founder_page__", category: "__site_content__", price: 0, stock: 0, image_url: form.imageUrl || "/founder-main.jpg", image_urls: [form.imageUrl, ...form.galleryUrls].filter(Boolean), description: "", specs: { founderPage: form } };
+    const payload = { name: "__founder_page__", category: "__site_content__", price: 0, stock: 0, image_url: form.imageUrl || "/founder-main.jpg", image_urls: [form.imageUrl, ...form.galleryUrls].filter(Boolean), description: "", specs: { founderPage: { ...form, galleryUrls: form.galleryUrls.filter(Boolean) } } };
     const result = rowId ? await supabase.from("products").update(payload).eq("id", rowId) : await supabase.from("products").insert([payload]);
     if (result.error) toast.error(t("บันทึกหน้า Founder ไม่สำเร็จ", "Could not save Founder page")); else toast.success(t("บันทึกหน้า Founder สำเร็จ", "Founder page saved"));
     setSaving(false);

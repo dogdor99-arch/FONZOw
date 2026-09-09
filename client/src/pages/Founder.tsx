@@ -14,10 +14,15 @@ export default function Founder() {
   const article = articles.find(a => a.locale === locale) ?? articles[0];
   const [override, setOverride] = useState<any>(null);
   useEffect(() => { supabase.from("products").select("*").eq("name", "__founder_page__").maybeSingle().then(({ data }) => setOverride(data)); }, []);
-  const page = override?.specs?.founderPage || {};
+  const rawPage = override?.specs?.founderPage;
+  const page = typeof rawPage === "string" ? (() => { try { return JSON.parse(rawPage); } catch { return {}; } })() : (rawPage || {});
   const displayArticle = page.html ? { ...article, html: page.html } : article;
   const displayImage = page.imageUrl || article?.image;
-  const gallery = Array.isArray(page.galleryUrls) ? page.galleryUrls.filter(Boolean) : [];
+  const storedImages = Array.isArray(override?.image_urls) ? override.image_urls.filter(Boolean) : [];
+  const gallery = Array.from(new Set([
+    ...(Array.isArray(page.galleryUrls) ? page.galleryUrls : []),
+    ...storedImages.filter((url: string) => url !== page.imageUrl),
+  ].filter(Boolean)));
 
   return (
     <>
@@ -94,7 +99,7 @@ export default function Founder() {
             )}
           </Reveal>
         </div>
-        {gallery.length > 0 && <div className="mt-6 ml-auto w-full lg:w-1/2"><div className="flex snap-x gap-3 overflow-x-auto pb-3">{gallery.map((url: string, index: number) => <img key={`${url}-${index}`} src={url} alt={`${page.title || "Founder"} ${index + 1}`} className="h-32 w-52 shrink-0 snap-start object-cover" loading="lazy" />)}</div></div>}
+        {gallery.length > 0 && <div className="mt-6 ml-auto w-full lg:w-1/2 border-t border-border/70 pt-4"><p className="mb-3 text-[10px] tracking-[0.14em] text-muted-foreground uppercase">{t("ภาพเพิ่มเติม", "More images")}</p><div className="flex snap-x gap-3 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{gallery.map((url: string, index: number) => <img key={`${url}-${index}`} src={url} alt={`${page.title || "Founder"} ${index + 1}`} className="h-32 w-52 shrink-0 snap-start object-cover" loading="lazy" onError={event => { event.currentTarget.style.display = "none"; }} />)}</div></div>}
       </section>
     </>
   );
