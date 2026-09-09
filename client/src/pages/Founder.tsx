@@ -88,7 +88,10 @@ export default function Founder() {
                 ))}
               </div>
             ) : displayArticle ? (
-              <RichText html={displayArticle.html} className="max-w-[46rem]" />
+              <>
+                <RichText html={displayArticle.html} className="max-w-[46rem]" />
+                {gallery.length > 0 && <div className="mt-8 w-full border-t border-border/70 pt-5"><p className="mb-4 text-[10px] tracking-[0.14em] text-muted-foreground uppercase">{t("ภาพเพิ่มเติม", "More images")}</p><div className="flex snap-x gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{gallery.map((url: string, index: number) => <img key={`${url}-${index}`} src={url} alt={`${page.title || "Founder"} ${index + 1}`} className="h-44 w-72 shrink-0 snap-start object-cover sm:h-52 sm:w-80 lg:h-60 lg:w-[22rem]" loading="lazy" onError={event => { event.currentTarget.style.display = "none"; }} />)}</div></div>}
+              </>
             ) : (
               <p className="text-muted-foreground">
                 {t("ไม่พบเนื้อหาในขณะนี้", "Content is unavailable right now.")}
@@ -96,7 +99,6 @@ export default function Founder() {
             )}
           </Reveal>
         </div>
-        {gallery.length > 0 && <div className="mt-6 ml-auto w-full lg:w-1/2 border-t border-border/70 pt-4"><p className="mb-3 text-[10px] tracking-[0.14em] text-muted-foreground uppercase">{t("ภาพเพิ่มเติม", "More images")}</p><div className="flex snap-x gap-3 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{gallery.map((url: string, index: number) => <img key={`${url}-${index}`} src={url} alt={`${page.title || "Founder"} ${index + 1}`} className="h-32 w-52 shrink-0 snap-start object-cover" loading="lazy" onError={event => { event.currentTarget.style.display = "none"; }} />)}</div></div>}
       </section>
     </>
   );
