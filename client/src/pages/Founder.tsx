@@ -29,7 +29,7 @@ export default function Founder() {
       <CompactPageHeading title={page.title || "Founder"} crumbs={[{ label: "Founder" }]} />
 
       <section className="mx-auto max-w-[1400px] px-4 pb-12 pt-3 sm:px-6 lg:px-10 lg:pb-16 lg:pt-5">
-        <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
+        <div className="grid gap-8 lg:grid-cols-[1fr_1.15fr] lg:gap-12">
           <Reveal>
             <div className="sticky top-28">
               {displayImage && (
@@ -37,7 +37,7 @@ export default function Founder() {
                   <img
                     src={displayImage}
                     alt={locale === "th" ? BRAND.founder.th : BRAND.founder.en}
-                    className="w-full object-cover"
+                    className="block w-full max-w-none object-cover"
                     loading="lazy"
                   />
                   <div
