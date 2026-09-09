@@ -73,9 +73,6 @@ export default function Founder() {
                 ))}
               </dl>
 
-              <div className="mt-7">
-                <p className="font-display text-[3.25rem] leading-none text-brand/15">01</p>
-              </div>
             </div>
           </Reveal>
 
