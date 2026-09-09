@@ -4,34 +4,33 @@ import { PageHeading } from "@/components/site/SiteLayout";
 import { RichText } from "@/components/site/RichText";
 import { Reveal } from "@/components/site/Reveal";
 import { BRAND } from "@/lib/brand";
+import { supabase } from "@/lib/supabase";
+import { useEffect, useState } from "react";
 
 export default function Founder() {
   const { locale, t } = useLocale();
   const { data: articles = [], isLoading } = trpc.fonzo.content.founder.useQuery();
 
   const article = articles.find(a => a.locale === locale) ?? articles[0];
+  const [override, setOverride] = useState<any>(null);
+  useEffect(() => { supabase.from("products").select("*").eq("name", "__founder_page__").maybeSingle().then(({ data }) => setOverride(data)); }, []);
+  const page = override?.specs?.founderPage || {};
+  const displayArticle = page.html ? { ...article, html: page.html } : article;
+  const displayImage = page.imageUrl || article?.image;
+  const gallery = Array.isArray(page.galleryUrls) ? page.galleryUrls.filter(Boolean) : [];
 
   return (
     <>
-      <PageHeading
-        eyebrow={t("ผู้ก่อตั้งแบรนด์", "The founder")}
-        title="Founder"
-        description={t(
-          "เรื่องราวของเบิร์ด เอกชัย เจียรกุล นักกีตาร์คลาสสิกคนไทยคนแรกที่คว้าแชมป์การแข่งขันระดับโลก และผู้ให้กำเนิดแบรนด์ Fonzo",
-          "The story of Bird Ekachai Jearakul — the first Thai classical guitarist to win the world's most prestigious competition, and the creator of Fonzo.",
-        )}
-        crumbs={[{ label: "Founder" }]}
-        index="01"
-      />
+      <PageHeading title={page.title || "Founder"} crumbs={[{ label: "Founder" }]} index="01" />
 
-      <section className="mx-auto max-w-[1400px] px-4 py-16 sm:px-6 lg:px-10 lg:py-24">
+      <section className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-10 lg:py-14">
         <div className="grid gap-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
           <Reveal>
             <div className="sticky top-28">
-              {article?.image && (
+              {displayImage && (
                 <div className="relative overflow-hidden">
                   <img
-                    src={article.image}
+                    src={displayImage}
                     alt={locale === "th" ? BRAND.founder.th : BRAND.founder.en}
                     className="w-full object-cover"
                     loading="lazy"
@@ -86,8 +85,8 @@ export default function Founder() {
                   />
                 ))}
               </div>
-            ) : article ? (
-              <RichText html={article.html} className="max-w-[46rem]" />
+            ) : displayArticle ? (
+              <RichText html={displayArticle.html} className="max-w-[46rem]" />
             ) : (
               <p className="text-muted-foreground">
                 {t("ไม่พบเนื้อหาในขณะนี้", "Content is unavailable right now.")}
@@ -95,6 +94,7 @@ export default function Founder() {
             )}
           </Reveal>
         </div>
+        {gallery.length > 0 && <div className="mt-10 ml-auto w-full lg:w-1/2"><div className="flex snap-x gap-3 overflow-x-auto pb-3">{gallery.map((url: string, index: number) => <img key={`${url}-${index}`} src={url} alt={`${page.title || "Founder"} ${index + 1}`} className="h-32 w-52 shrink-0 snap-start object-cover" loading="lazy" />)}</div></div>}
       </section>
     </>
   );

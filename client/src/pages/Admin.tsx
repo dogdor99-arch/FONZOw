@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { inferCustomFamily, inferPurchaseMode } from "@shared/fonzo/customizer";
 
-type Tab = "stock" | "artists" | "works" | "chat";
+type Tab = "stock" | "founder" | "artists" | "works" | "chat";
 type SubView = "list" | "add" | "edit";
 
 export default function Admin() {
@@ -51,6 +51,7 @@ export default function Admin() {
       <section className="border-b border-border/70 bg-cream/40 px-4 py-4 sm:px-6 lg:px-10"><div className="mx-auto flex max-w-[1400px] flex-wrap items-end justify-between gap-5 lg:pl-12"><div><nav aria-label="breadcrumb" className="text-[9px] tracking-[0.14em] text-muted-foreground uppercase"><a href="/" className="transition-colors hover:text-brand">{t("หน้าแรก", "Home")}</a><span className="mx-1.5 text-brand">›</span>{t("จัดการร้าน", "Shop console")}</nav><h1 className="mt-2 font-display text-3xl leading-none sm:text-4xl">{t("จัดการร้าน", "Shop console")}</h1></div><div className="flex flex-wrap gap-2">
           {[
             { key: "stock", label: t("จัดการสต็อกและสินค้า", "Products & Inventory"), unread: 0 },
+            { key: "founder", label: t("หน้า Founder", "Founder page"), unread: 0 },
             { key: "artists", label: t("ศิลปิน", "Artists"), unread: 0 },
             { key: "works", label: t("ผลงาน / Events", "Works / Events"), unread: 0 },
             { key: "chat", label: t("แชทลูกค้า", "Customer chat"), unread: unreadChat.data ?? 0 },
@@ -63,6 +64,7 @@ export default function Admin() {
           ))}</div></div></section>
       <section className="mx-auto max-w-[1300px] px-4 py-6 sm:px-6 sm:py-8 lg:px-10"><div>
           {tab === "stock" && <StockManager />}
+          {tab === "founder" && <FounderAdmin />}
           {tab === "artists" && <ArtistsAdmin />}
           {tab === "works" && <WorksAdmin />}
           {tab === "chat" && <ChatAdmin />}
@@ -184,7 +186,7 @@ function StockManager() {
       isCatalogItem: false
     }));
 
-    setAllProducts([...remainingCustomProducts, ...mergedList]);
+    setAllProducts([...remainingCustomProducts, ...mergedList].filter(product => product.name !== "__founder_page__"));
   }, [catalogGuitars, catalogAccessories, supabaseProducts]);
 
   const handleDelete = async (id: any, isCatalogItem?: boolean) => {
@@ -330,6 +332,44 @@ function StockManager() {
       </div>}
     </div>
   );
+}
+
+function FounderAdmin() {
+  const { t } = useLocale();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [rowId, setRowId] = useState<string | number | null>(null);
+  const [form, setForm] = useState({ title: "Founder", html: "", imageUrl: "", galleryUrls: [] as string[] });
+
+  useEffect(() => {
+    supabase.from("products").select("*").eq("name", "__founder_page__").maybeSingle().then(({ data }) => {
+      const page = data?.specs?.founderPage || {};
+      setRowId(data?.id ?? null);
+      setForm({ title: page.title || "Founder", html: page.html || "", imageUrl: page.imageUrl || "", galleryUrls: Array.isArray(page.galleryUrls) ? page.galleryUrls : [] });
+      setLoading(false);
+    });
+  }, []);
+
+  const readImage = (file: File, callback: (url: string) => void) => { const reader = new FileReader(); reader.onload = event => callback(String(event.target?.result || "")); reader.readAsDataURL(file); };
+  const handleMainImage = (event: React.ChangeEvent<HTMLInputElement>) => { const file = event.target.files?.[0]; if (file) readImage(file, url => setForm(current => ({ ...current, imageUrl: url }))); event.target.value = ""; };
+  const handleGalleryImages = (event: React.ChangeEvent<HTMLInputElement>) => { Array.from(event.target.files ?? []).forEach(file => readImage(file, url => setForm(current => ({ ...current, galleryUrls: [...current.galleryUrls, url] })))); event.target.value = ""; };
+  const save = async () => {
+    setSaving(true);
+    const payload = { name: "__founder_page__", category: "__site_content__", price: 0, stock: 0, image_url: form.imageUrl || "/founder-main.jpg", image_urls: [form.imageUrl, ...form.galleryUrls].filter(Boolean), description: "", specs: { founderPage: form } };
+    const result = rowId ? await supabase.from("products").update(payload).eq("id", rowId) : await supabase.from("products").insert([payload]);
+    if (result.error) toast.error(t("บันทึกหน้า Founder ไม่สำเร็จ", "Could not save Founder page")); else toast.success(t("บันทึกหน้า Founder สำเร็จ", "Founder page saved"));
+    setSaving(false);
+  };
+
+  if (loading) return <div className="flex min-h-40 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-brand" /></div>;
+  return <div className="mx-auto max-w-4xl space-y-6 border border-border bg-card p-6 sm:p-8">
+    <div><h2 className="font-display text-xl">{t("แก้ไขหน้า Founder", "Edit Founder page")}</h2><p className="mt-2 text-sm text-muted-foreground">{t("แก้ไขชื่อ เนื้อหา รูปหลัก และเพิ่มรูปแถบเลื่อนด้านขวาล่างได้จากส่วนนี้", "Edit the title, content, main image, and bottom-right image strip here.")}</p></div>
+    <div><label className="text-[11px] tracking-widest text-muted-foreground uppercase">{t("ชื่อหน้า", "Page title")}</label><Input value={form.title} onChange={event => setForm({ ...form, title: event.target.value })} className="mt-1 rounded-none" /></div>
+    <div><label className="text-[11px] tracking-widest text-muted-foreground uppercase">{t("เนื้อหา HTML", "HTML content")}</label><textarea value={form.html} onChange={event => setForm({ ...form, html: event.target.value })} rows={16} className="mt-1 w-full border border-border bg-background p-3 text-sm leading-relaxed outline-none focus:border-brand" placeholder="ใส่เนื้อหา HTML ของหน้า Founder" /></div>
+    <div><label className="text-[11px] tracking-widest text-muted-foreground uppercase">{t("รูปหลัก", "Main image")}</label><div className="mt-2 flex items-center gap-4"><label className="inline-flex cursor-pointer items-center gap-2 text-xs text-brand hover:underline"><Upload className="h-4 w-4" />{t("เลือกรูปจากเครื่อง", "Choose image")}<input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleMainImage} /></label>{form.imageUrl && <img src={form.imageUrl} alt="" className="h-20 w-28 object-cover" />}</div><Input value={form.imageUrl} onChange={event => setForm({ ...form, imageUrl: event.target.value })} placeholder="หรือวาง URL รูปภาพ" className="mt-3 rounded-none" /></div>
+    <div><label className="text-[11px] tracking-widest text-muted-foreground uppercase">{t("แถบรูปเลื่อนด้านขวาล่าง", "Bottom-right image strip")}</label><label className="mt-2 inline-flex cursor-pointer items-center gap-2 text-xs text-brand hover:underline"><Upload className="h-4 w-4" />{t("เพิ่มรูปหลายรูป", "Add multiple images")}<input type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={handleGalleryImages} /></label><div className="mt-3 flex gap-3 overflow-x-auto pb-2">{form.galleryUrls.map((url, index) => <div key={`${url}-${index}`} className="relative h-24 w-36 shrink-0"><img src={url} alt="" className="h-full w-full object-cover" /><button type="button" onClick={() => setForm(current => ({ ...current, galleryUrls: current.galleryUrls.filter((_, itemIndex) => itemIndex !== index) }))} className="absolute right-1 top-1 bg-ink/80 px-2 py-0.5 text-xs text-white">×</button></div>)}</div></div>
+    <Button type="button" onClick={save} disabled={saving} className="h-11 rounded-none bg-brand px-8 text-xs uppercase tracking-widest text-brand-foreground">{saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}{t("บันทึกหน้า Founder", "Save Founder page")}</Button>
+  </div>;
 }
 
 // ฟอร์มเพิ่ม/แก้ไขสินค้า
