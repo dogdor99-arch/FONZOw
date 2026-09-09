@@ -94,7 +94,7 @@ export default function GuitarList() {
 
     // แปลงข้อมูลจาก Supabase พร้อมรักษาข้อมูลประเภท/รหัสเดิมจาก catalog
     // เมื่อรายการใน Admin บันทึกไว้เฉพาะราคา ลิงก์ หรือรูปภาพ
-    const formattedSupabaseProducts = supabaseProducts.map((item) => {
+    const formattedSupabaseProducts = supabaseProducts.filter(item => item.name !== "__founder_page__" && item.category !== "__site_content__").map((item) => {
       const catalog = catalogByName.get(String(item.name || "").toLowerCase().trim());
       const validImages = item.image_urls && item.image_urls.length > 0
         ? item.image_urls

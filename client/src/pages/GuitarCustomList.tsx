@@ -46,7 +46,7 @@ export default function GuitarCustomList() {
     const catalogByCode = new Map<string, any>();
     catalogGuitars.forEach((item: any) => { if (item.code) catalogByCode.set(String(item.code).toUpperCase(), item); });
 
-    const formatted = supabaseProducts.map(item => {
+    const formatted = supabaseProducts.filter(item => item.name !== "__founder_page__" && item.category !== "__site_content__").map(item => {
       const sourceCode = String(item.specs?.sourceCode ?? item.code ?? "").toUpperCase();
       const catalog = catalogByCode.get(sourceCode) || supaByName.get(String(item.name || "").toLowerCase().trim());
       const images = Array.isArray(item.image_urls) && item.image_urls.length > 0

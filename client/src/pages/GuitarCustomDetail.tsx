@@ -34,7 +34,7 @@ export default function GuitarCustomDetail() {
   useEffect(() => {
     let active = true;
     supabase.from("products").select("*").then(({ data }) => {
-      if (active) setSupabaseProducts(data || []);
+      if (active) setSupabaseProducts((data ?? []).filter((item: any) => item.name !== "__founder_page__" && item.category !== "__site_content__"));
       if (active) setLoadingSupabase(false);
     });
     return () => { active = false; };
