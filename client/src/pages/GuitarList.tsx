@@ -132,7 +132,7 @@ export default function GuitarList() {
     });
 
     // รวมรายชื่อโดยให้สินค้าจาก Supabase (ที่แก้ไขแล้ว) ขึ้นแสดงแทนที่ตัวเก่าอย่างสะอาดตา
-    return [...formattedSupabaseProducts, ...filteredCatalog];
+    return [...formattedSupabaseProducts, ...filteredCatalog].filter((product: any) => String(product.name ?? "").trim().toLowerCase() !== "__founder_page__" && String(product.seriesName ?? product.category ?? "").trim().toLowerCase() !== "__site_content__");
   }, [catalogGuitars, supabaseProducts]);
 
   const isLoading = isLoadingCatalog || isLoadingSupabase;

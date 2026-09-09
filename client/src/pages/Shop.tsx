@@ -46,7 +46,7 @@ export default function Shop() {
   const { data: accessories = [], isLoading: loadingAccessories } =
     trpc.fonzo.accessories.list.useQuery();
   const [adminProducts, setAdminProducts] = useState<any[]>([]);
-  useEffect(() => { void supabase.from("products").select("*").then(({ data }) => setAdminProducts((data ?? []).filter((item: any) => item.name !== "__founder_page__" && item.category !== "__site_content__"))); }, []);
+  useEffect(() => { void supabase.from("products").select("*").then(({ data }) => setAdminProducts((data ?? []).filter((item: any) => String(item.name ?? "").trim().toLowerCase() !== "__founder_page__" && String(item.category ?? "").trim().toLowerCase() !== "__site_content__"))); }, []);
   const [query, setQuery] = useState("");
   const [group, setGroup] = useState<"guitar" | "accessory">("guitar");
 

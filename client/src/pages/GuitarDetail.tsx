@@ -35,7 +35,7 @@ export default function GuitarDetail() {
       try {
         const { data, error } = await supabase.from("products").select("*");
         if (!error && data) {
-          setSupabaseProducts(data.filter((item: any) => item.name !== "__founder_page__" && item.category !== "__site_content__"));
+          setSupabaseProducts(data.filter((item: any) => String(item.name ?? "").trim().toLowerCase() !== "__founder_page__" && String(item.category ?? "").trim().toLowerCase() !== "__site_content__"));
         }
       } catch (err) {
         console.error("Error fetching supabase products:", err);
