@@ -338,6 +338,7 @@ function FounderAdmin() {
   const { t } = useLocale();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [rowId, setRowId] = useState<string | number | null>(null);
   const [form, setForm] = useState({ title: "Founder", html: "", imageUrl: "", galleryUrls: [] as string[] });
 
@@ -352,10 +353,11 @@ function FounderAdmin() {
     });
   }, []);
 
-  const readImage = (file: File, callback: (url: string) => void) => { const reader = new FileReader(); reader.onload = event => callback(String(event.target?.result || "")); reader.readAsDataURL(file); };
-  const handleMainImage = (event: React.ChangeEvent<HTMLInputElement>) => { const file = event.target.files?.[0]; if (file) readImage(file, url => setForm(current => ({ ...current, imageUrl: url }))); event.target.value = ""; };
-  const handleGalleryImages = (event: React.ChangeEvent<HTMLInputElement>) => { Array.from(event.target.files ?? []).forEach(file => readImage(file, url => setForm(current => ({ ...current, galleryUrls: [...current.galleryUrls, url] })))); event.target.value = ""; };
+  const readImage = (file: File) => new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = event => resolve(String(event.target?.result || "")); reader.onerror = () => reject(new Error("อ่านไฟล์รูปไม่สำเร็จ")); reader.readAsDataURL(file); });
+  const handleMainImage = async (event: React.ChangeEvent<HTMLInputElement>) => { const file = event.target.files?.[0]; event.target.value = ""; if (!file) return; setUploading(true); try { const url = await readImage(file); setForm(current => ({ ...current, imageUrl: url })); } catch (error) { toast.error(error instanceof Error ? error.message : "อ่านไฟล์รูปไม่สำเร็จ"); } finally { setUploading(false); } };
+  const handleGalleryImages = async (event: React.ChangeEvent<HTMLInputElement>) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; if (!files.length) return; setUploading(true); try { const urls = await Promise.all(files.map(readImage)); setForm(current => ({ ...current, galleryUrls: [...current.galleryUrls, ...urls.filter(Boolean)] })); toast.success(t(`เพิ่มรูป ${urls.length} รูปแล้ว กดบันทึกเพื่อเผยแพร่`, `${urls.length} images added. Save to publish.`)); } catch (error) { toast.error(error instanceof Error ? error.message : "อ่านไฟล์รูปไม่สำเร็จ"); } finally { setUploading(false); } };
   const save = async () => {
+    if (uploading) return;
     setSaving(true);
     const payload = { name: "__founder_page__", category: "__site_content__", price: 0, stock: 0, image_url: form.imageUrl || "/founder-main.jpg", image_urls: [form.imageUrl, ...form.galleryUrls].filter(Boolean), description: "", specs: { founderPage: { ...form, galleryUrls: form.galleryUrls.filter(Boolean) } } };
     const result = rowId ? await supabase.from("products").update(payload).eq("id", rowId) : await supabase.from("products").insert([payload]);
@@ -370,7 +372,7 @@ function FounderAdmin() {
     <div><label className="text-[11px] tracking-widest text-muted-foreground uppercase">{t("เนื้อหา HTML", "HTML content")}</label><textarea value={form.html} onChange={event => setForm({ ...form, html: event.target.value })} rows={16} className="mt-1 w-full border border-border bg-background p-3 text-sm leading-relaxed outline-none focus:border-brand" placeholder="ใส่เนื้อหา HTML ของหน้า Founder" /></div>
     <div><label className="text-[11px] tracking-widest text-muted-foreground uppercase">{t("รูปหลัก", "Main image")}</label><div className="mt-2 flex items-center gap-4"><label className="inline-flex cursor-pointer items-center gap-2 text-xs text-brand hover:underline"><Upload className="h-4 w-4" />{t("เลือกรูปจากเครื่อง", "Choose image")}<input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleMainImage} /></label>{form.imageUrl && <img src={form.imageUrl} alt="" className="h-20 w-28 object-cover" />}</div><Input value={form.imageUrl} onChange={event => setForm({ ...form, imageUrl: event.target.value })} placeholder="หรือวาง URL รูปภาพ" className="mt-3 rounded-none" /></div>
     <div><label className="text-[11px] tracking-widest text-muted-foreground uppercase">{t("แถบรูปเลื่อนด้านขวาล่าง", "Bottom-right image strip")}</label><label className="mt-2 inline-flex cursor-pointer items-center gap-2 text-xs text-brand hover:underline"><Upload className="h-4 w-4" />{t("เพิ่มรูปหลายรูป", "Add multiple images")}<input type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={handleGalleryImages} /></label><div className="mt-3 flex gap-3 overflow-x-auto pb-2">{form.galleryUrls.map((url, index) => <div key={`${url}-${index}`} className="relative h-24 w-36 shrink-0"><img src={url} alt="" className="h-full w-full object-cover" /><button type="button" onClick={() => setForm(current => ({ ...current, galleryUrls: current.galleryUrls.filter((_, itemIndex) => itemIndex !== index) }))} className="absolute right-1 top-1 bg-ink/80 px-2 py-0.5 text-xs text-white">×</button></div>)}</div></div>
-    <Button type="button" onClick={save} disabled={saving} className="h-11 rounded-none bg-brand px-8 text-xs uppercase tracking-widest text-brand-foreground">{saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}{t("บันทึกหน้า Founder", "Save Founder page")}</Button>
+    <Button type="button" onClick={save} disabled={saving || uploading} className="h-11 rounded-none bg-brand px-8 text-xs uppercase tracking-widest text-brand-foreground">{saving || uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}{uploading ? t("กำลังอ่านรูป...", "Reading images...") : t("บันทึกหน้า Founder", "Save Founder page")}</Button>
   </div>;
 }
 
