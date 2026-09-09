@@ -31,14 +31,14 @@ export default function Founder() {
       <section className="mx-auto max-w-[1400px] px-4 pb-12 pt-3 sm:px-6 lg:px-10 lg:pb-16 lg:pt-5">
         <div className="grid gap-8 lg:grid-cols-[1fr_1.15fr] lg:gap-12">
           <Reveal>
-            <div className="sticky top-28">
+            <div className="min-w-0">
               {displayImage && (
                 <div className="relative overflow-hidden">
                   <img
                     src={displayImage}
                     alt={locale === "th" ? BRAND.founder.th : BRAND.founder.en}
-                    className="block w-full max-w-none object-cover"
-                    loading="lazy"
+                    className="block h-auto w-full max-w-none object-cover"
+                    loading="eager"
                   />
                   <div
                     aria-hidden
