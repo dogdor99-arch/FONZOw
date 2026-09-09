@@ -83,8 +83,8 @@ export default function Artists() {
             </div>
 
             <div className="flex min-h-[350px] flex-col justify-center py-3 lg:py-6">
-              <p className="eyebrow text-brand">{role}</p>
               <h2 className="mt-3 max-w-xl font-display text-4xl leading-[0.98] text-foreground sm:text-5xl lg:text-[4.5rem]">{title}</h2>
+              {role && <p className="mt-3 eyebrow text-brand">{role}</p>}
               <div className="mt-5 h-px w-16 bg-gold" />
               {current.guitar && <div className="mt-8 flex items-center gap-3 border-l border-gold pl-4 text-xs tracking-[0.14em] text-foreground/65"><span>{current.guitar}</span>{current.guitarUrl && <a href={current.guitarUrl} target="_blank" rel="noreferrer" aria-label={t("ดูกีตาร์รุ่นนี้", "View this guitar")} className="text-brand hover:text-gold"><Guitar className="h-5 w-5" /></a>}</div>}
               <Link href={`/artists/${current.id}`} className="mt-4 inline-flex w-fit items-center gap-3 text-[11px] font-semibold tracking-[0.17em] text-brand uppercase transition-colors hover:text-gold">{t("ดูข้อมูลศิลปินแบบเต็ม", "View full artist profile")}<MoveRight className="h-3.5 w-3.5" /></Link>
