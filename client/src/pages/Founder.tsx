@@ -13,7 +13,7 @@ export default function Founder() {
 
   const article = articles.find(a => a.locale === locale) ?? articles[0];
   const [override, setOverride] = useState<any>(null);
-  useEffect(() => { supabase.from("products").select("*").eq("name", "__founder_page__").maybeSingle().then(({ data }) => setOverride(data)); }, []);
+  useEffect(() => { supabase.from("products").select("*").eq("name", "__founder_page__").order("id", { ascending: false }).limit(1).maybeSingle().then(({ data }) => setOverride(data)); }, []);
   const rawPage = override?.specs?.founderPage;
   const page = typeof rawPage === "string" ? (() => { try { return JSON.parse(rawPage); } catch { return {}; } })() : (rawPage || {});
   const displayArticle = page.html ? { ...article, html: page.html } : article;

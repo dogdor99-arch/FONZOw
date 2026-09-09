@@ -343,7 +343,7 @@ function FounderAdmin() {
   const [form, setForm] = useState({ title: "Founder", html: "", imageUrl: "", galleryUrls: [] as string[] });
 
   useEffect(() => {
-    supabase.from("products").select("*").eq("name", "__founder_page__").maybeSingle().then(({ data }) => {
+    supabase.from("products").select("*").eq("name", "__founder_page__").order("id", { ascending: false }).limit(1).maybeSingle().then(({ data }) => {
       const rawPage = data?.specs?.founderPage;
       const page = typeof rawPage === "string" ? (() => { try { return JSON.parse(rawPage); } catch { return {}; } })() : (rawPage || {});
       setRowId(data?.id ?? null);
