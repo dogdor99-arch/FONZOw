@@ -13,13 +13,15 @@ import { serveStatic, setupVite } from "./vite";
 import { ensureEditorialTables } from "../db";
 
 async function startServer() {
-  await ensureEditorialTables();
   const app = express();
 
   // ตั้งค่า trust proxy รองรับ Reverse Proxy ของ Render เพื่อให้รับส่ง Secure Cookie บน HTTPS ได้ถูกต้อง
   app.set("trust proxy", 1);
 
   const server = createServer(app);
+
+  // Render health checks must receive a response before optional database setup completes.
+  app.get("/healthz", (_req, res) => res.status(200).json({ ok: true }));
 
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -55,6 +57,9 @@ async function startServer() {
 
   server.listen(port, "0.0.0.0", () => {
     console.log(`Server running on port ${port}`);
+    void ensureEditorialTables().catch(error => {
+      console.error("[Database] Editorial table setup failed after server start:", error);
+    });
   });
 }
 
