@@ -63,7 +63,10 @@ export default function GuitarDetail() {
       return gName === decodedClean || gCode === decodedClean || decodedClean.includes(gName) || gName.includes(decodedClean);
     });
 
-    const supaMatch = supabaseProducts.find((p) => cleanStr(p.specs?.sourceCode) === decodedClean || cleanStr(p.code) === decodedClean) || supabaseProducts.find((p) => {
+    const hiddenSupaMatch = supabaseProducts.find((p) => p.specs?.hidden && (cleanStr(p.specs?.sourceCode) === decodedClean || cleanStr(p.code) === decodedClean));
+    if (hiddenSupaMatch) return null;
+    const supaMatch = supabaseProducts.find((p) => !p.specs?.hidden && (cleanStr(p.specs?.sourceCode) === decodedClean || cleanStr(p.code) === decodedClean)) || supabaseProducts.find((p) => {
+      if (p.specs?.hidden) return false;
       const pName = cleanStr(p.name);
       const pCode = cleanStr(p.code);
       const pId = cleanStr(p.id?.toString());
