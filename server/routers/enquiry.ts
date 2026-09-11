@@ -2,8 +2,20 @@ import { z } from "zod";
 import { adminProcedure, publicProcedure, router } from "../_core/trpc";
 import { createEnquiry, listEnquiries, updateEnquiryStatus } from "../fonzoDb";
 import { notifyOwner } from "../_core/notification";
+import { notifyLineLead } from "../_core/line";
 
 export const enquiryRouter = router({
+  contactClick: publicProcedure
+    .input(z.object({
+      productCode: z.string().max(160).optional(),
+      productName: z.string().max(240).optional(),
+      pageUrl: z.string().url().max(1000).optional(),
+    }))
+    .mutation(async ({ input }) => {
+      void notifyLineLead(input).catch(() => undefined);
+      return { success: true } as const;
+    }),
+
   submit: publicProcedure
     .input(
       z.object({

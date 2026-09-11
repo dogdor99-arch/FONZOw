@@ -25,6 +25,7 @@ function isSpecificMarketplaceUrl(value: unknown, marketplace: "shopee" | "lazad
 export default function GuitarDetail() {
   const { code } = useParams();
   const { t } = useLocale();
+  const contactClick = trpc.enquiry.contactClick.useMutation();
 
   const { data: catalogGuitars, isLoading: catalogLoading } = trpc.fonzo.guitars.list.useQuery();
   const catalogRows = (catalogGuitars as any[] | undefined) ?? [];
@@ -208,7 +209,7 @@ export default function GuitarDetail() {
               <div className="flex flex-col gap-3">
                 {isSpecificMarketplaceUrl(guitar.shopee_url, "shopee") ? <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex w-full items-center justify-center bg-[#ee4d2d] px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-[#d73211]"><ShoppingBag className="mr-2 h-4 w-4" />สั่งซื้อผ่าน Shopee<ExternalLink className="ml-2 h-3.5 w-3.5" /></a> : <span className="inline-flex w-full items-center justify-center bg-muted px-6 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground"><ShoppingBag className="mr-2 h-4 w-4" />Shopee สินค้าหมดชั่วคราว</span>}
                 {isSpecificMarketplaceUrl(guitar.lazada_url, "lazada") ? <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex w-full items-center justify-center bg-[#0f146d] px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-[#0b0e52]"><ShoppingBag className="mr-2 h-4 w-4" />สั่งซื้อผ่าน Lazada<ExternalLink className="ml-2 h-3.5 w-3.5" /></a> : <span className="inline-flex w-full items-center justify-center bg-muted px-6 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground"><ShoppingBag className="mr-2 h-4 w-4" />Lazada สินค้าหมดชั่วคราว</span>}
-                <Link href={guitar.line_url || "/contact"} className="inline-flex w-full items-center justify-center bg-brand px-6 py-3 text-xs font-bold uppercase tracking-widest text-brand-foreground transition-all hover:bg-brand/90"><MessageCircle className="mr-2 h-4 w-4" />ติดต่อสอบถาม / สั่งซื้อโดยตรง</Link>
+                <Link href={guitar.line_url || "/contact"} onClick={() => { void contactClick.mutate({ productCode: String(guitar.code || code || ""), productName: String(guitar.name || ""), pageUrl: window.location.href }); }} className="inline-flex w-full items-center justify-center bg-brand px-6 py-3 text-xs font-bold uppercase tracking-widest text-brand-foreground transition-all hover:bg-brand/90"><MessageCircle className="mr-2 h-4 w-4" />ติดต่อสอบถาม / สั่งซื้อโดยตรง</Link>
               </div>
             </div>
           </div>

@@ -12,4 +12,6 @@ export const ENV = {
   cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET ?? "",
   shopifyStoreDomain: process.env.SHOPIFY_STORE_DOMAIN ?? "",
   shopifyStorefrontToken: process.env.SHOPIFY_STOREFRONT_API_ACCESS_TOKEN ?? "",
+  lineChannelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN ?? "",
+  lineRecipientId: process.env.LINE_RECIPIENT_ID ?? "",
 };
