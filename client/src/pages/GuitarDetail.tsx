@@ -18,8 +18,8 @@ function youtubeEmbed(url: string): string | null {
 function isSpecificMarketplaceUrl(value: unknown, marketplace: "shopee" | "lazada") {
   const url = String(value ?? "").trim().toLowerCase();
   if (!url || !/^https?:\/\//.test(url)) return false;
-  if (marketplace === "shopee") return url.includes("shopee.co.th/") && !/(search|search_user|mall\/search|keyword|\?keyword=|\?q=)/.test(url);
-  return url.includes("lazada.co.th/products/") && !/(search|catalog|shop\/|\?q=|\?keyword=)/.test(url);
+  if (marketplace === "shopee") return /^https?:\/\/shopee\.co\.th\/[^/?#]+(?:-[^/?#]+)?-i\.\d+\.\d+(?:[/?#].*)?$/.test(url);
+  return /^https?:\/\/(?:www\.)?lazada\.co\.th\/products\/[^/?#]+-i\d+(?:-s\d+)?\.html(?:[?#].*)?$/.test(url);
 }
 
 export default function GuitarDetail() {
