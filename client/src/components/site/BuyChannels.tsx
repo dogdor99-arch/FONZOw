@@ -65,6 +65,7 @@ type Props = {
   /** Optional direct listing URLs managed from Admin/Supabase. */
   shopeeUrl?: string | null;
   lazadaUrl?: string | null;
+  strictAvailability?: boolean;
   /**
    * `full` — stacked buttons for the product page.
    * `row` — two condensed buttons for list rows.
@@ -83,21 +84,28 @@ type Props = {
  * the model name, and the Facebook enquiry sits alongside as the human channel
  * the showroom actually answers.
  */
-export function BuyChannels({ code, title, shopeeUrl, lazadaUrl, variant = "full", className = "" }: Props) {
+function isSpecificMarketplaceUrl(value: unknown, marketplace: "shopee" | "lazada") {
+  const url = String(value ?? "").trim().toLowerCase();
+  if (!url || !/^https?:\/\//.test(url)) return false;
+  if (marketplace === "shopee") return /^https?:\/\/shopee\.co\.th\/[^/?#]+(?:-[^/?#]+)?-i\.\d+\.\d+(?:[/?#].*)?$/.test(url);
+  return /^https?:\/\/(?:www\.)?lazada\.co\.th\/products\/[^/?#]+-i\d+(?:-s\d+)?\.html(?:[?#].*)?$/.test(url);
+}
+
+export function BuyChannels({ code, title, shopeeUrl, lazadaUrl, strictAvailability = false, variant = "full", className = "" }: Props) {
   const { t } = useLocale();
   const links = marketplaceLinksFor(code);
 
-  const shopeeHref = shopeeUrl || links?.shopee || shopeeSearchUrl(title);
-  const lazadaHref = lazadaUrl || links?.lazada || lazadaSearchUrl(title);
-  const shopeeDirect = Boolean(shopeeUrl || links?.shopee);
-  const lazadaDirect = Boolean(lazadaUrl || links?.lazada);
+  const shopeeDirect = isSpecificMarketplaceUrl(shopeeUrl || links?.shopee, "shopee");
+  const lazadaDirect = isSpecificMarketplaceUrl(lazadaUrl || links?.lazada, "lazada");
+  const shopeeHref = shopeeUrl || links?.shopee || (strictAvailability ? null : shopeeSearchUrl(title));
+  const lazadaHref = lazadaUrl || links?.lazada || (strictAvailability ? null : lazadaSearchUrl(title));
 
   if (variant === "compact") {
     return (
       <div className={`flex items-center gap-1.5 ${className}`}>
         {shopeeHref && (
           <a
-            href={shopeeHref}
+            href={shopeeHref ?? undefined}
             target="_blank"
             rel="noreferrer"
             onClick={event => event.stopPropagation()}
@@ -108,7 +116,7 @@ export function BuyChannels({ code, title, shopeeUrl, lazadaUrl, variant = "full
         )}
         {lazadaHref && (
           <a
-            href={lazadaHref}
+            href={lazadaHref ?? undefined}
             target="_blank"
             rel="noreferrer"
             onClick={event => event.stopPropagation()}
@@ -125,7 +133,7 @@ export function BuyChannels({ code, title, shopeeUrl, lazadaUrl, variant = "full
     return (
       <div className={`flex flex-wrap items-center gap-2 ${className}`}>
         <a
-          href={shopeeHref}
+          href={shopeeHref ?? undefined}
           target="_blank"
           rel="noreferrer"
           className="press inline-flex flex-1 items-center justify-center gap-2 border border-[#ee4d2d]/30 bg-[#ee4d2d] px-4 py-2.5 text-[10px] tracking-[0.18em] text-white uppercase transition-colors duration-160 hover:bg-[#d8431f]">
@@ -133,7 +141,7 @@ export function BuyChannels({ code, title, shopeeUrl, lazadaUrl, variant = "full
           Shopee
         </a>
         <a
-          href={lazadaHref}
+          href={lazadaHref ?? undefined}
           target="_blank"
           rel="noreferrer"
           className="press inline-flex flex-1 items-center justify-center gap-2 border border-[#0f146d]/30 bg-[#0f146d] px-4 py-2.5 text-[10px] tracking-[0.18em] text-white uppercase transition-colors duration-160 hover:bg-[#0b1057]">
@@ -161,7 +169,7 @@ export function BuyChannels({ code, title, shopeeUrl, lazadaUrl, variant = "full
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <a
-          href={shopeeHref}
+          href={shopeeHref ?? undefined}
           target="_blank"
           rel="noreferrer"
           className="press group flex items-center gap-3 border border-[#ee4d2d]/30 bg-[#ee4d2d] px-5 py-4 text-white transition-colors duration-160 hover:bg-[#d8431f]">
@@ -178,7 +186,7 @@ export function BuyChannels({ code, title, shopeeUrl, lazadaUrl, variant = "full
         </a>
 
         <a
-          href={lazadaHref}
+          href={lazadaHref ?? undefined}
           target="_blank"
           rel="noreferrer"
           className="press group flex items-center gap-3 border border-[#0f146d]/30 bg-[#0f146d] px-5 py-4 text-white transition-colors duration-160 hover:bg-[#0b1057]">

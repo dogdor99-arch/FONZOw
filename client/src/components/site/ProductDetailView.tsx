@@ -1,11 +1,10 @@
 import { Link } from "wouter";
-import { Play } from "lucide-react";
+import { ExternalLink, MessageCircle, Play, ShoppingBag } from "lucide-react";
 import type { FonzoProductDetail, FonzoProductSummary } from "@shared/fonzo/types";
 import { useLocale } from "@/contexts/LocaleContext";
 import { Reveal } from "./Reveal";
 import { ProductCard } from "./ProductCard";
 import { ProductGallery } from "./ProductGallery";
-import { BuyChannels } from "./BuyChannels";
 
 function youtubeEmbed(url: string): string | null {
   const patterns = [/[?&]v=([\w-]{6,})/, /youtu\.be\/([\w-]{6,})/, /embed\/([\w-]{6,})/];
@@ -14,6 +13,26 @@ function youtubeEmbed(url: string): string | null {
     if (match) return `https://www.youtube.com/embed/${match[1]}`;
   }
   return null;
+}
+
+function isSpecificMarketplaceUrl(value: unknown, marketplace: "shopee" | "lazada") {
+  const url = String(value ?? "").trim().toLowerCase();
+  if (!url || !/^https?:\/\//.test(url)) return false;
+  if (marketplace === "shopee") return /^https?:\/\/shopee\.co\.th\/[^/?#]+(?:-[^/?#]+)?-i\.\d+\.\d+(?:[/?#].*)?$/.test(url);
+  return /^https?:\/\/(?:www\.)?lazada\.co\.th\/products\/[^/?#]+-i\d+(?:-s\d+)?\.html(?:[?#].*)?$/.test(url);
+}
+
+function AccessoryPurchaseChannels({ product }: { product: FonzoProductSummary }) {
+  const shopeeDirect = isSpecificMarketplaceUrl(product.shopeeUrl, "shopee");
+  const lazadaDirect = isSpecificMarketplaceUrl(product.lazadaUrl, "lazada");
+  return <div className="mt-8">
+    <p className="text-[10px] tracking-[0.24em] text-muted-foreground uppercase">สั่งซื้อออนไลน์</p>
+    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      {shopeeDirect ? <a href={product.shopeeUrl!} target="_blank" rel="noreferrer" className="press flex items-center gap-3 bg-[#ee4d2d] px-5 py-4 text-white"><ShoppingBag className="h-6 w-6 shrink-0" /><span className="text-[11px] tracking-[0.2em] uppercase">Shopee</span><ExternalLink className="ml-auto h-3.5 w-3.5" /></a> : <span className="flex items-center gap-3 border border-border bg-muted px-5 py-4 text-muted-foreground"><ShoppingBag className="h-6 w-6 shrink-0" /><span className="text-[11px] tracking-[0.16em] uppercase">Shopee สินค้าหมดชั่วคราว</span></span>}
+      {lazadaDirect ? <a href={product.lazadaUrl!} target="_blank" rel="noreferrer" className="press flex items-center gap-3 bg-[#0f146d] px-5 py-4 text-white"><ShoppingBag className="h-6 w-6 shrink-0" /><span className="text-[11px] tracking-[0.2em] uppercase">Lazada</span><ExternalLink className="ml-auto h-3.5 w-3.5" /></a> : <span className="flex items-center gap-3 border border-border bg-muted px-5 py-4 text-muted-foreground"><ShoppingBag className="h-6 w-6 shrink-0" /><span className="text-[11px] tracking-[0.16em] uppercase">Lazada สินค้าหมดชั่วคราว</span></span>}
+    </div>
+    <Link href="/contact" className="press mt-3 flex items-center justify-center gap-2 border border-brand bg-brand px-5 py-3.5 text-[11px] tracking-[0.16em] text-brand-foreground uppercase"><MessageCircle className="h-5 w-5" />ติดต่อสอบถาม / สั่งซื้อโดยตรง</Link>
+  </div>;
 }
 
 export function ProductDetailView({
@@ -65,7 +84,7 @@ export function ProductDetailView({
                 : t("สอบถามราคา", "Price on enquiry")}
             </p>
 
-            <BuyChannels code={product.code} title={title} className="mt-8" />
+            <AccessoryPurchaseChannels product={product} />
 
             {description && (
               <div className="mt-10 border-t border-border/70 pt-6">

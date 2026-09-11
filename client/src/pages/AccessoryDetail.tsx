@@ -34,6 +34,7 @@ export default function AccessoryDetail() {
       item.name?.trim().toLowerCase() === product.name?.trim().toLowerCase() ||
       item.specs?.sourceCode === product.code,
     );
+    if (admin?.specs?.hidden) return null;
     if (!admin) return product;
     const adminSpecs = admin.specs && typeof admin.specs === "object" && !Array.isArray(admin.specs)
       ? Object.entries(admin.specs)
@@ -44,6 +45,9 @@ export default function AccessoryDetail() {
       ...product,
       description: admin.description || product.description,
       descriptionEn: admin.description || product.descriptionEn,
+      shopeeUrl: admin.shopee_url || admin.shopeeUrl || admin.shopee || product.shopeeUrl || null,
+      lazadaUrl: admin.lazada_url || admin.lazadaUrl || admin.lazada || product.lazadaUrl || null,
+      videoUrl: admin.video_url || admin.videoUrl || admin.video || admin.specs?.videoUrl || admin.specs?.video_url || product.videoUrl || null,
       specs: adminSpecs.length > 0 ? adminSpecs : product.specs,
       specsEn: adminSpecs.length > 0 ? adminSpecs : product.specsEn,
       images: admin.image_urls?.length ? admin.image_urls.map((url: string) => ({ url, isDefault: false })) : product.images,
@@ -69,7 +73,7 @@ export default function AccessoryDetail() {
     );
   }
 
-  if (!product) {
+  if (!product || !displayProduct) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-28 text-center sm:px-6">
         <h1 className="text-3xl">{t("ไม่พบสินค้านี้", "Item not found")}</h1>
