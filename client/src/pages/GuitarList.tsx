@@ -51,6 +51,15 @@ function normalizeShopTypeCode(product: any, types: any[]) {
   return explicitCode;
 }
 
+function isSpecificMarketplaceUrl(value: unknown, marketplace: "shopee" | "lazada") {
+  const url = String(value ?? "").trim().toLowerCase();
+  if (!url || !/^https?:\/\//.test(url)) return false;
+  if (marketplace === "shopee") {
+    return url.includes("shopee.co.th/") && !/(search|search_user|mall\/search|keyword|\?keyword=|\?q=)/.test(url);
+  }
+  return (url.includes("lazada.co.th/products/") || url.includes("lazada.co.th/products/")) && !/(search|catalog|shop\/|\?q=|\?keyword=)/.test(url);
+}
+
 export default function GuitarList() {
   const { t } = useLocale();
 
@@ -132,7 +141,7 @@ export default function GuitarList() {
     });
 
     // รวมรายชื่อโดยให้สินค้าจาก Supabase (ที่แก้ไขแล้ว) ขึ้นแสดงแทนที่ตัวเก่าอย่างสะอาดตา
-    return [...formattedSupabaseProducts, ...filteredCatalog].filter((product: any) => String(product.name ?? "").trim().toLowerCase() !== "__founder_page__" && String(product.seriesName ?? product.category ?? "").trim().toLowerCase() !== "__site_content__");
+    return [...formattedSupabaseProducts, ...filteredCatalog].filter((product: any) => !product.raw?.specs?.hidden && !product.specs?.hidden && String(product.name ?? "").trim().toLowerCase() !== "__founder_page__" && String(product.seriesName ?? product.category ?? "").trim().toLowerCase() !== "__site_content__");
   }, [catalogGuitars, supabaseProducts]);
 
   const isLoading = isLoadingCatalog || isLoadingSupabase;
@@ -143,7 +152,13 @@ export default function GuitarList() {
         product: { ...product, typeCode: normalizeShopTypeCode(product, types) },
         index,
       }))
-      .sort((a, b) => Number(Boolean(b.product.videoUrl)) - Number(Boolean(a.product.videoUrl)) || shopOrder(a.product) - shopOrder(b.product) || a.index - b.index)
+      .sort((a, b) => {
+        const score = (product: any) => Number(isSpecificMarketplaceUrl(product.shopeeUrl, "shopee") && isSpecificMarketplaceUrl(product.lazadaUrl, "lazada") && Boolean(product.videoUrl));
+        return score(b.product) - score(a.product)
+          || Number(Boolean(b.product.videoUrl)) - Number(Boolean(a.product.videoUrl))
+          || shopOrder(a.product) - shopOrder(b.product)
+          || a.index - b.index;
+      })
       .map(({ product }) => product),
     [allGuitars, types],
   );

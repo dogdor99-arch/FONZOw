@@ -15,6 +15,13 @@ function youtubeEmbed(url: string): string | null {
   return null;
 }
 
+function isSpecificMarketplaceUrl(value: unknown, marketplace: "shopee" | "lazada") {
+  const url = String(value ?? "").trim().toLowerCase();
+  if (!url || !/^https?:\/\//.test(url)) return false;
+  if (marketplace === "shopee") return url.includes("shopee.co.th/") && !/(search|search_user|mall\/search|keyword|\?keyword=|\?q=)/.test(url);
+  return url.includes("lazada.co.th/products/") && !/(search|catalog|shop\/|\?q=|\?keyword=)/.test(url);
+}
+
 export default function GuitarDetail() {
   const { code } = useParams();
   const { t } = useLocale();
@@ -76,12 +83,9 @@ export default function GuitarDetail() {
 
       const nameStr = supa.name || base.name || catalogMatch?.name || decodedCode;
 
-      // ลิงก์สำรองอย่างเป็นทางการของ Fonzo ที่ถูกต้อง 100%
-      const fallbackShopee = "https://shopee.co.th/fonzo_guitar";
-      const fallbackLazada = "https://www.lazada.co.th/shop/fonzo-guitar";
-
-      const shopeeLink = supa.shopee_url || supa.shopeeUrl || supa.shopee || base.shopee_url || base.shopeeUrl || fallbackShopee;
-      const lazadaLink = supa.lazada_url || supa.lazadaUrl || supa.lazada || base.lazada_url || base.lazadaUrl || fallbackLazada;
+      // ใช้เฉพาะลิงก์สินค้ารายการนั้น ไม่ใช้ลิงก์หน้าร้านหรือหน้าค้นหาเป็น fallback
+      const shopeeLink = supa.shopee_url || supa.shopeeUrl || supa.shopee || base.shopee_url || base.shopeeUrl || null;
+      const lazadaLink = supa.lazada_url || supa.lazadaUrl || supa.lazada || base.lazada_url || base.lazadaUrl || null;
       const lineLink = supa.line_url || base.line_url || supa.lineUrl || base.lineUrl || "";
 
       return {
@@ -199,8 +203,8 @@ export default function GuitarDetail() {
             <div className="mt-6 space-y-3 border-t border-border pt-6">
               <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">ช่องทางสั่งซื้อ / ร้านค้าออนไลน์</p>
               <div className="flex flex-col gap-3">
-                {guitar.shopee_url && <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex w-full items-center justify-center bg-[#ee4d2d] px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-[#d73211]"><ShoppingBag className="mr-2 h-4 w-4" />สั่งซื้อผ่าน Shopee<ExternalLink className="ml-2 h-3.5 w-3.5" /></a>}
-                {guitar.lazada_url && <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex w-full items-center justify-center bg-[#0f146d] px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-[#0b0e52]"><ShoppingBag className="mr-2 h-4 w-4" />สั่งซื้อผ่าน Lazada<ExternalLink className="ml-2 h-3.5 w-3.5" /></a>}
+                {isSpecificMarketplaceUrl(guitar.shopee_url, "shopee") ? <a href={guitar.shopee_url} target="_blank" rel="noopener noreferrer" className="inline-flex w-full items-center justify-center bg-[#ee4d2d] px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-[#d73211]"><ShoppingBag className="mr-2 h-4 w-4" />สั่งซื้อผ่าน Shopee<ExternalLink className="ml-2 h-3.5 w-3.5" /></a> : <span className="inline-flex w-full items-center justify-center bg-muted px-6 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground"><ShoppingBag className="mr-2 h-4 w-4" />สินค้าหมดชั่วคราว</span>}
+                {isSpecificMarketplaceUrl(guitar.lazada_url, "lazada") ? <a href={guitar.lazada_url} target="_blank" rel="noopener noreferrer" className="inline-flex w-full items-center justify-center bg-[#0f146d] px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-[#0b0e52]"><ShoppingBag className="mr-2 h-4 w-4" />สั่งซื้อผ่าน Lazada<ExternalLink className="ml-2 h-3.5 w-3.5" /></a> : <span className="inline-flex w-full items-center justify-center bg-muted px-6 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground"><ShoppingBag className="mr-2 h-4 w-4" />สินค้าหมดชั่วคราว</span>}
                 <Link href={guitar.line_url || "/contact"} className="inline-flex w-full items-center justify-center bg-brand px-6 py-3 text-xs font-bold uppercase tracking-widest text-brand-foreground transition-all hover:bg-brand/90"><MessageCircle className="mr-2 h-4 w-4" />ติดต่อสอบถาม / สั่งซื้อโดยตรง</Link>
               </div>
             </div>

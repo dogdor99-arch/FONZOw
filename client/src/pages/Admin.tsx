@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload, Guitar, Headphones, BookOpen, Search, ArrowUpDown } from "lucide-react";
+import { Bell, Loader2, Lock, Package, Plus, RefreshCw, Trash2, Edit2, ArrowLeft, Save, Image as ImageIcon, Upload, Guitar, Headphones, BookOpen, Search, ArrowUpDown, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -203,6 +203,20 @@ function StockManager() {
     }
   };
 
+  const handleToggleHidden = async (product: any) => {
+    if (product.isCatalogItem) {
+      toast.error("รายการจากแคตตาล็อกหลักต้องแก้ไขผ่านข้อมูลสินค้าในระบบ");
+      return;
+    }
+    const hidden = !Boolean(product.specs?.hidden);
+    const { error } = await supabase.from("products").update({ specs: { ...(product.specs || {}), hidden } }).eq("id", product.id);
+    if (error) toast.error(hidden ? "ซ่อนสินค้าไม่สำเร็จ" : "แสดงสินค้าไม่สำเร็จ");
+    else {
+      toast.success(hidden ? "ซ่อนสินค้าจากหน้าร้านแล้ว" : "แสดงสินค้าในหน้าร้านแล้ว");
+      fetchSupabaseProducts();
+    }
+  };
+
   if (view === "add") {
     return <ProductForm mode="add" defaultCategory={categoryTab === "courses" ? "Bird Course" : undefined} defaultProductType={categoryTab === "courses" ? "course" : undefined} onBack={() => { setView("list"); fetchSupabaseProducts(); }} />;
   }
@@ -272,7 +286,7 @@ function StockManager() {
 
       {categoryTab === "accessories" && <div className="flex flex-wrap gap-2 border-b border-border pb-4">{[{ key: "all", label: "ทั้งหมด" }, ...accessoryTypes.map(type => ({ key: type, label: type }))].map(type => <button key={type.key} type="button" onClick={() => setAccessoryType(type.key)} className={cn("border px-4 py-2 text-xs transition-colors", accessoryType === type.key ? "border-brand bg-brand text-brand-foreground" : "border-border text-muted-foreground hover:border-brand/50 hover:text-brand")}>{type.label}</button>)}</div>}
 
-      {categoryTab !== "courses" ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{isLoading ? Array.from({ length: 8 }).map((_, index) => <div key={index} className="aspect-[3/4] animate-pulse bg-secondary" />) : displayProducts.map((p, idx) => <article key={p.id || idx} className="group overflow-hidden border border-border bg-card transition hover:-translate-y-1 hover:border-brand/50 hover:shadow-lg"><div className="aspect-[3/4] overflow-hidden bg-secondary"><img src={p.image_urls?.[0] || p.image_url || p.image || "/fonzo-logo.png"} alt={p.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" onError={event => { event.currentTarget.src = "/fonzo-logo.png"; }} /></div><div className="p-4"><p className="text-[10px] tracking-[0.14em] text-brand uppercase">{categoryTab === "accessories" ? getAccessoryType(p) : p.category || "Guitar"}</p><h3 className="mt-1 line-clamp-2 font-display text-lg">{p.name}</h3><div className="mt-3 flex items-center justify-between text-sm"><span>฿{Number(p.price || 0).toLocaleString()}</span><span className="text-xs text-muted-foreground">{p.stock ?? 0} ชิ้น</span></div><div className="mt-4 flex gap-2"><Button type="button" onClick={() => { setEditingItem(p); setView("edit"); }} className="h-8 flex-1 rounded-none bg-brand px-2 text-[10px] text-brand-foreground"><Edit2 className="mr-1 h-3 w-3" />แก้ไข</Button>{!p.isCatalogItem && <Button type="button" variant="outline" onClick={() => handleDelete(p.id, p.isCatalogItem)} className="h-8 w-8 rounded-none p-0 text-red-500"><Trash2 className="h-3.5 w-3.5" /></Button>}</div></div></article>)}</div> : <div className="border border-border bg-card overflow-x-auto">
+      {categoryTab !== "courses" ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{isLoading ? Array.from({ length: 8 }).map((_, index) => <div key={index} className="aspect-[3/4] animate-pulse bg-secondary" />) : displayProducts.map((p, idx) => <article key={p.id || idx} className={cn("group overflow-hidden border border-border bg-card transition hover:-translate-y-1 hover:border-brand/50 hover:shadow-lg", p.specs?.hidden && "opacity-60")}><div className="aspect-[3/4] overflow-hidden bg-secondary"><img src={p.image_urls?.[0] || p.image_url || p.image || "/fonzo-logo.png"} alt={p.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" onError={event => { event.currentTarget.src = "/fonzo-logo.png"; }} /></div><div className="p-4"><div className="flex items-center justify-between"><p className="text-[10px] tracking-[0.14em] text-brand uppercase">{categoryTab === "accessories" ? getAccessoryType(p) : p.category || "Guitar"}</p>{p.specs?.hidden && <span className="text-[10px] text-muted-foreground">ซ่อนอยู่</span>}</div><h3 className="mt-1 line-clamp-2 font-display text-lg">{p.name}</h3><div className="mt-3 flex items-center justify-between text-sm"><span>฿{Number(p.price || 0).toLocaleString()}</span><span className="text-xs text-muted-foreground">{p.stock ?? 0} ชิ้น</span></div><div className="mt-4 flex gap-2"><Button type="button" onClick={() => { setEditingItem(p); setView("edit"); }} className="h-8 flex-1 rounded-none bg-brand px-2 text-[10px] text-brand-foreground"><Edit2 className="mr-1 h-3 w-3" />แก้ไข</Button>{!p.isCatalogItem && <Button type="button" variant="outline" onClick={() => handleToggleHidden(p)} className="h-8 w-8 rounded-none p-0" aria-label={p.specs?.hidden ? "แสดงสินค้า" : "ซ่อนสินค้า"}>{p.specs?.hidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}</Button>}{!p.isCatalogItem && <Button type="button" variant="outline" onClick={() => handleDelete(p.id, p.isCatalogItem)} className="h-8 w-8 rounded-none p-0 text-red-500"><Trash2 className="h-3.5 w-3.5" /></Button>}</div></div></article>)}</div> : <div className="border border-border bg-card overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead className="bg-secondary/50 border-b border-border uppercase tracking-widest text-muted-foreground">
             <tr>
