@@ -103,12 +103,13 @@ const storeSections = [
   { href: "/guitars/catalog", labelTh: "กีตาร์", labelEn: "Guitars", icon: "shop" },
   { href: "/guitar-custom", labelTh: "กีตาร์สั่งทำ", labelEn: "Custom", icon: "custom" },
   { href: "/accessories", labelTh: "อุปกรณ์", labelEn: "Accessories", icon: "ass" },
+  { href: "/courses", labelTh: "คอร์สเรียน", labelEn: "Courses", icon: "course" },
 ];
 
 function StoreSectionNav() {
   const { locale } = useLocale();
   const [location] = useLocation();
-  return <nav aria-label="Store sections" className="ml-auto flex shrink-0 items-center gap-2 border-l border-border/70 pl-3 sm:gap-2.5 sm:pl-5">{storeSections.map(section => { const active = location === section.href || location.startsWith(`${section.href}/`); return <Link key={section.href} href={section.href} aria-label={locale === "th" ? section.labelTh : section.labelEn} className={`group flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border p-1 transition sm:h-16 sm:w-16 ${active ? "border-brand bg-brand" : "border-border bg-card hover:border-brand/60"}`}><img src={`/fonzo-icons/icon-${section.icon}${active ? "-white" : ""}.png`} alt="" className="h-full w-full object-contain" /><span className="sr-only">{locale === "th" ? section.labelTh : section.labelEn}</span></Link>; })}</nav>;
+  return <nav aria-label="Store sections" className="ml-auto flex shrink-0 items-center gap-2 border-l border-border/70 pl-3 sm:gap-2.5 sm:pl-5">{storeSections.map(section => { const active = location === section.href || location.startsWith(`${section.href}/`); return <Link key={section.href} href={section.href} aria-label={locale === "th" ? section.labelTh : section.labelEn} className={`group flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border p-1 transition sm:h-16 sm:w-16 ${active ? "border-brand bg-brand" : "border-border bg-card hover:border-brand/60"}`}>{section.icon === "course" ? <span className={`font-display text-xl ${active ? "text-white" : "text-brand"}`}>C</span> : <img src={`/fonzo-icons/icon-${section.icon}${active ? "-white" : ""}.png`} alt="" className="h-full w-full object-contain" />}<span className="sr-only">{locale === "th" ? section.labelTh : section.labelEn}</span></Link>; })}</nav>;
 }
 
 export function CompactPageHeading({ eyebrow, title, crumbs = [], storeNav = false }: { eyebrow?: string; title: string; crumbs?: Crumb[]; storeNav?: boolean }) {

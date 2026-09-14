@@ -18,6 +18,8 @@ import GuitarCustomList from "./pages/GuitarCustomList";
 import GuitarCustomDetail from "./pages/GuitarCustomDetail";
 import AccessoriesList from "./pages/AccessoriesList";
 import AccessoryDetail from "./pages/AccessoryDetail";
+import CourseList from "./pages/CourseList";
+import CourseDetail from "./pages/CourseDetail";
 import Catalog from "./pages/Catalog";
 import Gallery from "./pages/Gallery";
 import Works from "./pages/Works";
@@ -64,6 +66,8 @@ function Router() {
       
       <Route path="/accessories" component={AccessoriesList} />
       <Route path="/accessories/:code" component={AccessoryDetail} />
+      <Route path="/courses" component={CourseList} />
+      <Route path="/courses/:code" component={CourseDetail} />
       <Route path="/catalog" component={Catalog} />
       <Route path="/gallery" component={Gallery} />
       <Route path="/works" component={Works} />
