@@ -19,7 +19,7 @@ function isSpecificMarketplaceUrl(value: unknown, marketplace: "shopee" | "lazad
   const url = String(value ?? "").trim().toLowerCase();
   if (!url || !/^https?:\/\//.test(url)) return false;
   if (marketplace === "shopee") return /^https?:\/\/shopee\.co\.th\/[^/?#]+(?:-[^/?#]+)?-i\.\d+\.\d+(?:[/?#].*)?$/.test(url);
-  return /^https?:\/\/(?:www\.)?lazada\.co\.th\/products\/[^/?#]+-i\d+(?:-s\d+)?\.html(?:[?#].*)?$/.test(url);
+  return /^https?:\/\/(?:www\.)?lazada\.co\.th\/products\/(?:[^/?#]+-i\d+(?:-s\d+)?|pdp-i\d+)\.html(?:[?#].*)?$/.test(url);
 }
 
 function AccessoryPurchaseChannels({ product }: { product: FonzoProductSummary }) {
